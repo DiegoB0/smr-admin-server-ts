@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { ApiKey } from './api_key.entity';
 import { Log } from 'src/logs/entities/log.entity';
+import { UsuarioRol } from './usuario_rol.entity';
 
 @Entity('usuarios')
 export class User {
@@ -29,8 +30,8 @@ export class User {
   @Column('bool', { default: true })
   isActive: boolean;
 
-  // @OneToMany(() => UsuarioRol, (ur: UsuarioRol) => ur.usuario)
-  // usuarioRoles: UsuarioRol[];
+  @OneToMany(() => UsuarioRol, (ur: UsuarioRol) => ur.usuario)
+  usuarioRoles: UsuarioRol[];
 
   @OneToMany(() => ApiKey, (apiKey) => apiKey.user)
   apiKeys: ApiKey[];
@@ -38,7 +39,4 @@ export class User {
   @OneToMany(() => Log, (logs) => logs.user)
   logs: Log[];
 
-  // @ManyToOne(() => Client, (client) => client.users, { nullable: true })
-  // @JoinColumn({ name: 'client_id' })
-  // client: Client;
 }
