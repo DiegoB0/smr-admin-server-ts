@@ -23,7 +23,7 @@ export class AuthService {
     private usuarioRolRepo: Repository<UsuarioRol>,
 
     private jwtService: JwtService,
-    private logService: LogsService
+    private readonly logService: LogsService
 
   ) { }
 

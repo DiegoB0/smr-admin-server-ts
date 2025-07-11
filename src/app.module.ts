@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { LogsModule } from './logs/logs.module';
+import { RequisicionesModule } from './requisiciones/requisiciones.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { LogsModule } from './logs/logs.module';
     ExampleTestingModule,
     AuthModule,
     LogsModule,
+    RequisicionesModule,
 
   ],
 })
