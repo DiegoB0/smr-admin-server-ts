@@ -7,7 +7,7 @@ export class LoginDto {
   @IsEmail()
   email: string;
 
-  @ApiProperty({ example: 'securePassword123' })
+  @ApiProperty({ example: '1234' })
   @IsString()
   password: string;
 }
@@ -17,7 +17,7 @@ export class RegisterDto {
   @IsEmail()
   email: string;
 
-  @ApiProperty({ example: 'securePassword123' })
+  @ApiProperty({ example: '1234' })
   @IsString()
   password: string;
 
@@ -37,7 +37,7 @@ export class RegisterWithImageDto {
   @IsEmail()
   email: string;
 
-  @ApiProperty({ example: 'securePassword123' })
+  @ApiProperty({ example: '1234' })
   @IsString()
   password: string;
 

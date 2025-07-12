@@ -8,7 +8,11 @@ export class Rol {
   id: string;
 
   @Column({ unique: true })
-  nombre: string;
+  name: string;
+
+  // Key of each role
+  @Column()
+  slug: string;
 
   @OneToMany(() => RolPermiso, (rp) => rp.rol)
   permisos: RolPermiso[];

@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { ExampleTestingModule } from './test-example/example-testing.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { LogsModule } from './logs/logs.module';
 import { RequisicionesModule } from './requisiciones/requisiciones.module';
+import { UsuariosModule } from './usuarios/usuarios.module';
 
 @Module({
   imports: [
@@ -23,10 +23,10 @@ import { RequisicionesModule } from './requisiciones/requisiciones.module';
         synchronize: true,
       }),
     }),
-    ExampleTestingModule,
     AuthModule,
     LogsModule,
     RequisicionesModule,
+    UsuariosModule,
 
   ],
 })

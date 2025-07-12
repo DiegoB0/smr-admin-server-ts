@@ -9,6 +9,22 @@ async function bootstrap() {
     .setTitle('SMR_APIDocs')
     .setDescription('API for SMR products')
     .setVersion('2.0')
+    .addBearerAuth({
+      type: 'http',
+      scheme: 'bearer',
+      bearerFormat: 'JWT',
+      description: 'Enter JWT Token'
+    }, 'jwt'
+    )
+    .addApiKey(
+      {
+        type: 'apiKey',
+        name: 'x-api-key',
+        in: 'header',
+        description: 'Enter API Key'
+      },
+      'api-key'
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

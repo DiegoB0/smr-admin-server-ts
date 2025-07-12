@@ -7,7 +7,13 @@ export class Permiso {
   id: string;
 
   @Column({ unique: true })
-  nombre: string;
+  name: string;
+
+  @Column()
+  slug: string;
+
+  @Column()
+  description: string;
 
   @OneToMany(() => RolPermiso, (rp) => rp.permiso)
   roles: RolPermiso[];
