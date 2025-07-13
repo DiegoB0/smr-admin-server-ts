@@ -5,6 +5,8 @@ import { AuthModule } from './auth/auth.module';
 import { LogsModule } from './logs/logs.module';
 import { RequisicionesModule } from './requisiciones/requisiciones.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
+import { AlmacenesModule } from './almacenes/almacenes.module';
+import { ProductosModule } from './productos/productos.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { UsuariosModule } from './usuarios/usuarios.module';
     LogsModule,
     RequisicionesModule,
     UsuariosModule,
+    AlmacenesModule,
+    ProductosModule,
 
   ],
 })

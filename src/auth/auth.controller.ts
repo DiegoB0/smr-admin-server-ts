@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Param, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiKeyGuard } from './guards/api-key.guard';
-import { ApiHeader, ApiSecurity } from '@nestjs/swagger';
+import { ApiHeader, ApiParam, ApiProperty, ApiSecurity } from '@nestjs/swagger';
 import { LoginDto, RegisterDto } from './dto/request.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { User } from './entities/usuario.entity';
@@ -46,12 +46,29 @@ export class AuthController {
     return this.authService.register(dto, user);
   }
 
-  // This will not have any users right now nor any guards
-  @Post('admin/register')
-  createUser(
-    @Body() dto: RegisterDto,
+  @Delete('revokeApiKey/:id')
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.DeleteApiKey)
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'Unique API KEY identifier',
+    example: 'a1b2c3d4-e5f6-7890-1234-567890abcdef',
+  })
+  revokeApiKey(
+    @Param() id: string,
+    @GetUser() user: User
   ) {
-    return this.authService.createUser(dto)
+    return this.authService.deleteApiKey(id, user)
   }
+
+  // This will not have any users right now nor any guards
+  // @Post('admin/register')
+  // createUser(
+  //   @Body() dto: RegisterDto,
+  // ) {
+  //   return this.authService.createUser(dto)
+  // }
 
 }

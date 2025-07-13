@@ -35,7 +35,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       roles: user.usuarioRoles.map((usuarioRol) => ({
         name: usuarioRol.rol.name,
         permissions: usuarioRol.rol.permisos.map((rolPermiso) => ({
-          name: rolPermiso.permiso.name,
+          // name: rolPermiso.permiso.name,
+          slug: rolPermiso.permiso.slug
         })),
       })),
     };

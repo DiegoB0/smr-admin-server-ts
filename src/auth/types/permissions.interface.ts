@@ -1,5 +1,6 @@
 export interface Permission {
-  name: string;
+  // name: string;
+  slug: string;
 }
 
 export interface Role {

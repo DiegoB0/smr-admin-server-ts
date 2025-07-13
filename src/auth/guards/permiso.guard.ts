@@ -32,7 +32,7 @@ export class PermissionsGuard implements CanActivate {
 
     const userPermissions = user.roles
       .flatMap((role) => role.permissions)
-      .map((perm) => perm.name);
+      .map((perm) => perm.slug); // Check by slug
 
     const hasPermission = requiredPermissions.every((perm) =>
       userPermissions.includes(perm),
