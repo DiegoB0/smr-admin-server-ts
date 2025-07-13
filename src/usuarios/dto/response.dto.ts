@@ -10,6 +10,8 @@ export class GetUserDto {
 
   isActive: boolean;
 
+  roles: string[];
+
 }
 
 export class PaginatedUserDto extends PaginatedResponseDto<GetUserDto> {

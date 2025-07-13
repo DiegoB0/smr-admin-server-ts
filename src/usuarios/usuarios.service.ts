@@ -1,8 +1,6 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs'
-import { v4 as uuidv4 } from 'uuid';
 import { InjectRepository } from '@nestjs/typeorm';
-import { JwtService } from '@nestjs/jwt'
 import { LogsService } from 'src/logs/logs.service'
 import { User } from 'src/auth/entities/usuario.entity';
 import { In, Repository } from 'typeorm';
@@ -11,7 +9,7 @@ import { Rol } from 'src/auth/entities/rol.entity';
 import { RegisterDto } from 'src/auth/dto/request.dto';
 import { PaginationDto, PaginationMetaData } from 'src/common/dto/pagination.dto';
 import { GetUserDto, PaginatedUserDto } from './dto/response.dto';
-import { ParamUserID } from './dto/request.dto';
+import { ChangeRolesDto, ParamUserID, UpdateUserDto } from './dto/request.dto';
 
 @Injectable()
 export class UsuariosService {
@@ -29,21 +27,33 @@ export class UsuariosService {
 
   ) { }
 
-  async findOne(dto: ParamUserID, user: User): Promise<User> {
+  async findOne(dto: ParamUserID): Promise<GetUserDto> {
     const { id } = dto
-    const existingUser = await this.userRepo.findOne({ where: { id: id } })
+    const user = await this.userRepo.findOne({
+      where: { id: id, isActive: true },
+      relations: [
+        'usuarioRoles',
+        'usuarioRoles.rol'
+      ]
+    })
 
-    if (existingUser === null) throw new NotFoundException('User not found')
+    if (user === null) throw new NotFoundException('User not found')
 
-    return existingUser
+    const mappedUser: GetUserDto = {
+      id: user.id,
+      email: user.email,
+      isActive: user.isActive,
+      name: user.name,
+      roles: user.usuarioRoles
+        ? user.usuarioRoles.map((ur) => ur.rol.name)
+        : [],
+    };
+
+    return mappedUser;
   }
 
   // Get users and filter by roles, and all that
-  async findUsers(pagination: PaginationDto, user: User): Promise<PaginatedUserDto> {
-    console.log('--- Debugging Pagination ---');
-    console.log('Raw pagination DTO object received:', pagination);
-    console.log('Type of pagination.page:', typeof pagination.page, 'Value:', pagination.page);
-    console.log('Type of pagination.limit:', typeof pagination.limit, 'Value:', pagination.limit);
+  async findUsers(pagination: PaginationDto): Promise<PaginatedUserDto> {
 
     const { page = 1, limit = 10, sortBy, order = 'ASC' } = pagination;
 
@@ -51,8 +61,14 @@ export class UsuariosService {
 
     const queryBuilder = this.userRepo.createQueryBuilder('user');
 
+    queryBuilder.leftJoinAndSelect('user.usuarioRoles', 'ur');
+
+    queryBuilder.leftJoinAndSelect('ur.rol', 'rol.name');
+
+    queryBuilder.where({ isActive: true });
+
     if (sortBy) {
-      queryBuilder.orderBy(`user.${sortBy}`, order)
+      queryBuilder.orderBy(`user.${sortBy}`, order);
     }
 
     const [users, totalItems] = await queryBuilder
@@ -64,12 +80,15 @@ export class UsuariosService {
     const hasNextPage = page < totalPages;
     const hasPreviousPage = page > 1;
 
-    // Map entities to DTO
+    // Map fields to JSON Data
     const mappedUsers: GetUserDto[] = users.map((user) => ({
       id: user.id,
       email: user.email,
       isActive: user.isActive,
       name: user.name,
+      roles: user.usuarioRoles
+        ? user.usuarioRoles.map((ur) => ur.rol.name)
+        : [],
     }))
 
     const meta: PaginationMetaData = {
@@ -84,12 +103,41 @@ export class UsuariosService {
     return new PaginatedUserDto(mappedUsers, meta)
   }
 
-  async changeRoles({ }, user: User): Promise<User> {
+  async changeRoles(userId: ParamUserID, dto: ChangeRolesDto, user: User) {
+    const { id } = userId
+    const { roles } = dto
 
+
+    const usuario = await this.userRepo.findOne({ where: { id, isActive: true } });
+
+    if (!usuario) throw new NotFoundException('User not found')
+
+    if (roles && roles.length > 0) {
+      const foundRoles = await this.rolRepo.findBy({ id: In(roles) });
+
+      if (foundRoles.length !== roles.length) {
+        const foundRoleIds = new Set(foundRoles.map(r => r.id));
+        const missingRoleIds = roles.filter(id => !foundRoleIds.has(id));
+        throw new BadRequestException(
+          `One or more provided roles do not exist: ${missingRoleIds.join(', ')}`,
+        );
+      }
+
+      const roleLinks = foundRoles.map((rol) =>
+        this.usuarioRolRepo.create({
+          usuario: { id: usuario.id },
+          rol: { id: rol.id },
+        }),
+      );
+
+      await this.usuarioRolRepo.save(roleLinks);
+    } else {
+      // TODO: Handle default roles
+    }
 
     await this.logService.createLog(
       user,
-      `El usuario ${user.email} fue actualizado exitosamente`,
+      `Se le cambiaron los permisos al usuario ${usuario.email}`,
       'UPDATE_USER',
       JSON.stringify(user),
     )
@@ -98,7 +146,44 @@ export class UsuariosService {
   }
 
   // Update single user
-  async updateUser({ }, user: User): Promise<User> {
+  async updateUser(userId: ParamUserID, dto: UpdateUserDto, user: User): Promise<User> {
+    const { id } = userId;
+    const { name, isActive, password, email } = dto;
+
+    const usuario = await this.userRepo.findOne({ where: { id, isActive: true } })
+
+    if (!usuario) throw new NotFoundException('User not found')
+
+    if (name) {
+      usuario.name = name
+    }
+
+    if (isActive) {
+      usuario.isActive = isActive
+    }
+
+    // TODO: Handle the image once I have the s3 service running
+    if (email !== undefined && email !== usuario.email) {
+      const currentEmail = await this.userRepo.findOne({
+        where: { email }
+      })
+
+      // Check if there's any user with the same email
+      if (currentEmail && currentEmail.id !== usuario.id) {
+        throw new ConflictException('This email is already registered by another user')
+      }
+
+      usuario.email = email;
+
+    }
+
+    if (password !== undefined && password !== '') {
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      usuario.password = password;
+    }
+
+    const updatedUser = await this.userRepo.save(usuario)
 
     await this.logService.createLog(
       user,
@@ -107,21 +192,30 @@ export class UsuariosService {
       JSON.stringify(user),
     )
 
-    return user;
+    return updatedUser;
   }
 
   // Soft delete? 
   async deleteUser(dto: ParamUserID, user: User) {
     const { id } = dto
 
+    const usuario = await this.userRepo.findOne({ where: { id } });
+
+    if (!usuario) throw new NotFoundException('User not found')
+
+    usuario.isActive = false
+
+    await this.userRepo.save(usuario);
 
     // Save logs
     await this.logService.createLog(
       user,
-      `El usuario ${user.email} fue eliminado exitosamente`,
+      `El usuario ${usuario.email} fue eliminado exitosamente`,
       'DELETE_USER',
       JSON.stringify(user),
     );
+
+    return { message: 'User deleted successfully' }
 
   }
 

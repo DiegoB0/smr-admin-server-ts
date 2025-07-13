@@ -3,8 +3,6 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   OneToMany,
-  ManyToOne,
-  JoinColumn,
 } from 'typeorm';
 import { ApiKey } from './api_key.entity';
 import { Log } from 'src/logs/entities/log.entity';

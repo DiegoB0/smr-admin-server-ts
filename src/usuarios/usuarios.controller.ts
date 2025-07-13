@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
 import { SwaggerAuthHeaders } from 'src/auth/decorators/auth.decorator';
 import { ApiKeyGuard } from 'src/auth/guards/api-key.guard';
@@ -9,20 +9,19 @@ import { RequirePermissions } from 'src/auth/decorators/permiso.decorator';
 import { User } from 'src/auth/entities/usuario.entity';
 import { GetUser } from 'src/auth/decorators/user.decorator';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { DeleteDateColumn } from 'typeorm';
-import { RegisterDto } from 'src/auth/dto/request.dto';
-import { ParamUserID } from './dto/request.dto';
+import { ChangeRolesDto, CreateUserDto, ParamUserID, UpdateUserDto } from './dto/request.dto';
 
 @Controller('usuarios')
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) { }
 
   @Post('add')
+  @HttpCode(HttpStatus.OK)
   @SwaggerAuthHeaders()
   @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
   @RequirePermissions(CurrentPermissions.CreateUser)
   addUser(
-    @Body() dto: RegisterDto,
+    @Body() dto: CreateUserDto,
     @GetUser() user: User
   ) {
     return this.usuariosService.createUser(dto, user)
@@ -34,9 +33,8 @@ export class UsuariosController {
   @RequirePermissions(CurrentPermissions.ListUser)
   findAllUsers(
     @Query() dto: PaginationDto,
-    @GetUser() user: User,
   ) {
-    return this.usuariosService.findUsers(dto, user)
+    return this.usuariosService.findUsers(dto)
   }
 
   @Get('find_one/:id')
@@ -44,13 +42,13 @@ export class UsuariosController {
   @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
   @RequirePermissions(CurrentPermissions.ListUser)
   findOne(
-    @Param() dto: ParamUserID,
-    @GetUser() user: User,
+    @Param() dto: ParamUserID
   ) {
-    return this.usuariosService.findOne(dto, user)
+    return this.usuariosService.findOne(dto)
   }
 
   @Delete('delete_user/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @SwaggerAuthHeaders()
   @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
   @RequirePermissions(CurrentPermissions.DeleteUser)
@@ -59,29 +57,31 @@ export class UsuariosController {
     @GetUser() user: User
   ) {
     return this.usuariosService.deleteUser(dto, user)
+
   }
 
   @Patch('update_user/:id')
   @SwaggerAuthHeaders()
   @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
   @RequirePermissions(CurrentPermissions.UpdateUser)
-  updatUser(
-    @Param() dto: ParamUserID,
+  updateUser(
+    @Param() userId: ParamUserID,
+    @Body() dto: UpdateUserDto,
     @GetUser() user: User
   ) {
-    return this.usuariosService.updateUser(dto, user)
+    return this.usuariosService.updateUser(userId, dto, user)
   }
-
 
   @Patch('change_roles/:id')
   @SwaggerAuthHeaders()
   @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
   @RequirePermissions(CurrentPermissions.UpdateUser)
   updateRoles(
-    @Param() id: string,
+    @Param() userId: ParamUserID,
+    @Body() dto: ChangeRolesDto,
     @GetUser() user: User
   ) {
-    return this.usuariosService.updateUser(id, user)
+    return this.usuariosService.changeRoles(userId, dto, user)
   }
 
 }
