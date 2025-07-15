@@ -26,6 +26,7 @@ export class CreateUserDto {
   name: string;
 
   @ApiProperty({ type: 'string', format: 'binary', required: false })
+  @IsOptional()
   image?: any;
 
   @IsArray()
@@ -39,6 +40,7 @@ export class UpdateUserDto {
   @ApiProperty({
     description: 'Flag to see if the user is active'
   })
+  @IsOptional()
   isActive?: boolean
 
   @ApiProperty({ example: 'ola@ola.com' })
@@ -59,13 +61,6 @@ export class UpdateUserDto {
   @ApiProperty({ type: 'string', format: 'binary', required: false })
   @IsOptional()
   image?: any;
-
-  @ApiProperty({ type: [String], example: ['uuid1', 'uuid2'] })
-  @IsOptional()
-  @IsArray()
-  @Transform(({ value }): string[] => (Array.isArray(value) ? value : [value]))
-  @IsUUID('4', { each: true })
-  roles?: string[];
 
 }
 

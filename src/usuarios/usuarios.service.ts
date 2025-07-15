@@ -137,9 +137,9 @@ export class UsuariosService {
 
     await this.logService.createLog(
       user,
-      `Se le cambiaron los permisos al usuario ${usuario.email}`,
+      `El usuario ${user.name} cambio los permisos al usuario ${usuario.email}`,
       'UPDATE_USER',
-      JSON.stringify(user),
+      JSON.stringify(usuario),
     )
 
     return user
@@ -187,9 +187,9 @@ export class UsuariosService {
 
     await this.logService.createLog(
       user,
-      `El usuario ${user.email} fue actualizado exitosamente`,
+      `El usuario ${user.name} actualizo al usuario ${usuario.email}`,
       'UPDATE_USER',
-      JSON.stringify(user),
+      JSON.stringify(updatedUser),
     )
 
     return updatedUser;
@@ -210,9 +210,9 @@ export class UsuariosService {
     // Save logs
     await this.logService.createLog(
       user,
-      `El usuario ${usuario.email} fue eliminado exitosamente`,
+      `EL usuario ${user.name} elimino al usuario ${usuario.name}`,
       'DELETE_USER',
-      JSON.stringify(user),
+      JSON.stringify(usuario),
     );
 
     return { message: 'User deleted successfully' }
@@ -267,9 +267,9 @@ export class UsuariosService {
     // Registrar el log
     await this.logService.createLog(
       user,
-      `El usuario ${user.email} se creo exitosamente`,
+      `El usuario ${user.name} creo al usuario ${usuario.name}`,
       'CREATE_USER',
-      JSON.stringify(user),
+      JSON.stringify(usuario),
     );
 
     return usuario;

@@ -1,4 +1,4 @@
-import { IsArray, IsEmail, IsString, IsUUID } from 'class-validator';
+import { IsArray, IsEmail, IsOptional, IsString, IsUUID } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -46,6 +46,7 @@ export class RegisterWithImageDto {
   name: string;
 
   @ApiProperty({ type: 'string', format: 'binary', required: false })
+  @IsOptional()
   image?: any;
 
   @IsArray()

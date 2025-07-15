@@ -131,7 +131,7 @@ export class AuthService {
     // Save logs
     await this.logService.createLog(
       user,
-      `El usuario ${usuario.email} se registro exitosamente`,
+      `El usuario ${user.name} creo al usuario ${usuario.name} `,
       'REGISTER_USER',
       JSON.stringify(usuario),
     );

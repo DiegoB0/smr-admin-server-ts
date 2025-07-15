@@ -10,13 +10,13 @@ export enum CurrentPermissions {
   CreateUser = 'create-user',
   ListUser = 'list-user',
   DeleteUser = 'delete-user',
-  UpdateUser = 'update-user',
+  UpdateUser = 'edit-user',
 
   // Almacenes
-  CreateAlamacen = 'create-almacen',
+  CreateAlmacen = 'create-almacen',
   ListAlmacen = 'list-almacen',
   DeleteAlmacen = 'delete-almacen',
-  UpdateAlmacen = 'update-almacen',
+  UpdateAlmacen = 'edit-almacen',
 
   /*
    * Permissions for almacen admins
@@ -29,7 +29,7 @@ export enum CurrentPermissions {
   CreateProduct = 'create-product',
   ListProduct = 'list-product',
   DeleteProduct = 'delete-product',
-  UpdateProduct = 'update-product',
+  UpdateProduct = 'edit-product',
 
   SalidaProduct = 'exit-product',
   EntradaProduct = 'enter-product',
@@ -37,7 +37,7 @@ export enum CurrentPermissions {
   // Requisiciones
   CreateRequisicion = 'create-requisicion',
   DeleteRequisicion = 'delete-requisicion',
-  UpdateRequisicion = 'update-requisicion',
+  UpdateRequisicion = 'edit-requisicion',
   ListRequisicion = 'list-requisicion',
 
   /*
