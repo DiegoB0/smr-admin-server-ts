@@ -39,7 +39,7 @@ export class AlmacenesController {
 
   }
 
-  @Get('find_one/:id')
+  @Get('find_almacen/:id')
   @SwaggerAuthHeaders()
   @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
   @RequirePermissions(CurrentPermissions.ListAlmacen)
