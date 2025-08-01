@@ -27,6 +27,15 @@ export class UsuariosController {
     return this.usuariosService.createUser(dto, user)
   }
 
+
+  @Get('find_roles')
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.ListUser)
+  findRoles() {
+    return this.usuariosService.findRoles()
+  }
+
   @Get('all_users')
   @SwaggerAuthHeaders()
   @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)

@@ -22,3 +22,10 @@ export class PaginatedUserDto extends PaginatedResponseDto<GetUserDto> {
  declare data: GetUserDto[];
 
 }
+
+export class RoleDto {
+  id: string;
+
+  name: string;
+}
+

@@ -1,7 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Almacen } from './entities/almacen.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { LogsService } from 'src/logs/logs.service';
 import { User } from 'src/auth/entities/usuario.entity';
 import { CreateAlmacenDto, ParamAlmacenID, UpdateAlmacenDto } from './dto/request.dto';
@@ -45,7 +45,7 @@ export class AlmacenesService {
 
   async findAll(pagination: PaginationDto): Promise<PaginatedAlmacenDto> {
 
-    const { page = 1, limit = 10, sortBy, order = 'ASC' } = pagination;
+    const { page = 1, limit = 10, search, order = 'ASC' } = pagination;
 
     const skip = (page - 1) * limit;
 
@@ -53,9 +53,16 @@ export class AlmacenesService {
 
     queryBuilder.where({ isActive: true });
 
-    if (sortBy) {
-      queryBuilder.orderBy(`almacen.${sortBy}`, order);
+    if (search) {
+      const term = `%${search}%`;
+      queryBuilder.andWhere(new Brackets(qb2 => {
+        qb2
+          .where('almacen.name ILIKE :term', { term })
+          .orWhere('almacen.location ILIKE :term', { term });
+      }));
     }
+
+    queryBuilder.orderBy('almacen.name', order);
 
     const [almacenes, totalItems] = await queryBuilder
       .skip(skip)
