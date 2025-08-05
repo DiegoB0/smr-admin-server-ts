@@ -3,7 +3,7 @@ import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-val
 
 export class ParamAlmacenID {
   @ApiProperty({
-    description: 'ID of the almacen'
+    description: 'ID del almacen'
   })
   @IsNumber()
   @IsNotEmpty()

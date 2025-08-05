@@ -7,6 +7,8 @@ import { RequisicionesModule } from './requisiciones/requisiciones.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { AlmacenesModule } from './almacenes/almacenes.module';
 import { ProductosModule } from './productos/productos.module';
+import { EntradasModule } from './entradas/entradas.module';
+import { SalidasModule } from './salidas/salidas.module';
 
 @Module({
   imports: [
@@ -31,6 +33,8 @@ import { ProductosModule } from './productos/productos.module';
     UsuariosModule,
     AlmacenesModule,
     ProductosModule,
+    EntradasModule,
+    SalidasModule,
 
   ],
 })

@@ -49,6 +49,7 @@ export class AlmacenesController {
     return this.almacenesService.findOne(dto)
   }
 
+
   @Delete('delete_almacen/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @SwaggerAuthHeaders()
@@ -72,5 +73,8 @@ export class AlmacenesController {
   ) {
     return this.almacenesService.updateAlmacen(almacenId, dto, user)
   }
+
+
+  // TODO: Controllers to get the stock of products per almacen
 
 }

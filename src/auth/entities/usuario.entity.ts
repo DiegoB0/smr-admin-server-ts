@@ -7,6 +7,9 @@ import {
 import { ApiKey } from './api_key.entity';
 import { Log } from 'src/logs/entities/log.entity';
 import { UsuarioRol } from './usuario_rol.entity';
+import { Requisicion } from 'src/requisiciones/entities/requisicion.entity';
+import { Entrada } from 'src/entradas/entities/entrada.entity';
+import { Salida } from 'src/salidas/entities/salida.entity';
 
 @Entity('usuarios')
 export class User {
@@ -36,5 +39,14 @@ export class User {
 
   @OneToMany(() => Log, (logs) => logs.user)
   logs: Log[];
+
+  @OneToMany(() => Requisicion, (requesicion) => requesicion.pedidoPor)
+  requisiciones: Requisicion[];
+
+  @OneToMany(() => Entrada, (entrada) => entrada.creadoPor)
+  entradas: Entrada[];
+
+  @OneToMany(() => Salida, (salida) => salida.recibidaPor)
+  salidas: Salida[];
 
 }
