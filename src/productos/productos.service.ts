@@ -9,7 +9,7 @@ import { PaginationDto, PaginationMetaData } from 'src/common/dto/pagination.dto
 import { GetProductDto, PaginatedProductoDto } from './dto/response.dto';
 
 @Injectable()
-export class ProductosService { 
+export class ProductosService {
   constructor(
     @InjectRepository(Producto)
     private productRepo: Repository<Producto>,
@@ -24,11 +24,12 @@ export class ProductosService {
    * All these are just a menu. The actual quantity is on inventory
   */
   async createProduct(dto: CreateProductoDto, user: User): Promise<Producto> {
-    const { id, name, description, unidad   } = dto
+    // TODO: Add all the products to all the almacenes with 0 by default
+    const { id, name, description, unidad } = dto
 
     const producto = await this.productRepo.findOne({ where: { id } })
 
-    if (producto) throw new ConflictException('An almacen with that name already exists')
+    if (producto) throw new ConflictException('A product with that id already exists')
 
     const newProducto = this.productRepo.create({
       id: id,
@@ -108,7 +109,7 @@ export class ProductosService {
 
     const producto = await this.productRepo.findOne({ where: { id, isActive: true } })
 
-    if (!producto) throw new NotFoundException('Almacen not found')
+    if (!producto) throw new NotFoundException('Product not found')
 
     const mappedProducto: GetProductDto = {
       id: producto.id,
@@ -149,7 +150,7 @@ export class ProductosService {
 
     const { id } = almacenId
 
-    const { isActive, name, description, unidad   } = dto
+    const { isActive, name, description, unidad } = dto
 
     const producto = await this.productRepo.findOne({ where: { id, isActive: true } })
 

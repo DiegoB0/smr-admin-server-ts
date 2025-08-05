@@ -74,6 +74,7 @@ export class AlmacenesController {
     return this.almacenesService.updateAlmacen(almacenId, dto, user)
   }
 
+  // TODO: Controllers to add products to inventory. Both single and batch products
 
   // TODO: Controllers to get the stock of products per almacen
 

@@ -14,6 +14,6 @@ export class Inventario {
   producto: Producto;
 
   @Column('int', {default: 0})
-  cantidad: number;
+  stock: number;
   
 }
