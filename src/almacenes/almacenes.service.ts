@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Almacen } from './entities/almacen.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository } from 'typeorm';
@@ -7,12 +7,17 @@ import { User } from 'src/auth/entities/usuario.entity';
 import { CreateAlmacenDto, ParamAlmacenID, UpdateAlmacenDto } from './dto/request.dto';
 import { GetAlmacenDto, PaginatedAlmacenDto } from './dto/response.dto';
 import { PaginationDto, PaginationMetaData } from 'src/common/dto/pagination.dto';
+import { Inventario } from './entities/inventario.entity';
+import { StockInput } from './types/inventory-stock';
 
 @Injectable()
 export class AlmacenesService {
   constructor(
     @InjectRepository(Almacen)
     private almacenRepo: Repository<Almacen>,
+
+    @InjectRepository(Inventario)
+    private inventarioRepo: Repository<Inventario>,
 
     private readonly logService: LogsService
 
@@ -165,5 +170,70 @@ export class AlmacenesService {
     )
 
     return almacen
+  }
+
+  /* PRODUCTOS POR ALMACEN */
+
+  // Add one to stock
+  async addStock(almacenId: number, productId: string, cantidad: number = 1) {
+    let inventario = await this.inventarioRepo.findOne({
+      where: {
+        almacen: { id: almacenId },
+        producto: { id: productId }
+      },
+      relations: ['almacen', 'producto']
+    })
+
+    if (!inventario) {
+      inventario = this.inventarioRepo.create({
+        almacen: { id: almacenId },
+        producto: { id: productId },
+        stock: cantidad
+      })
+    } else {
+      inventario.stock += cantidad;
+    }
+
+    return this.inventarioRepo.save(inventario);
+
+  }
+
+  async addMultipleStock(stockData: StockInput[]) {
+    const updatedInventory: Inventario[] = [];
+
+    for (const { almacenId, productId, cantidad } of stockData) {
+      const inventario = await this.addStock(almacenId, productId, cantidad);
+      updatedInventory.push(inventario);
+    }
+
+    return updatedInventory;
+
+  }
+
+  async removeStock(almacenId: number, productId: string, cantidad: number) {
+    let inventario = await this.inventarioRepo.findOne({
+      where: {
+        almacen: { id: almacenId },
+        producto: { id: productId }
+      },
+      relations: ['almacen', 'producto']
+    })
+
+    if (!inventario) throw new NotFoundException('No inventory found');
+
+    if (inventario.stock < cantidad) throw new BadRequestException('No hay suficiente stock disponible')
+
+    inventario.stock -= cantidad;
+
+    return this.inventarioRepo.save(inventario);
+  }
+
+  async getProducts() {
+
+  }
+
+
+  async getProduct() {
+
   }
 }

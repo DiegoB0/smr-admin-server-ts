@@ -64,15 +64,15 @@ export class ProductosController {
     return this.productosService.deleteProducto(dto, user)
   }
 
-  @Patch('update_almacen/:id')
+  @Patch('update_producto/:id')
   @SwaggerAuthHeaders()
   @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
   @RequirePermissions(CurrentPermissions.UpdateProduct)
   updateProducto( 
-    @Param() almacenId: ParamProductoID,
+    @Param() productoId: ParamProductoID,
     @Body() dto: UpdateProductoDto,
     @GetUser() user: User
   ) {
-    return this.productosService.updateProducto(almacenId, dto, user)
+    return this.productosService.updateProducto(productoId, dto, user)
   }
 }

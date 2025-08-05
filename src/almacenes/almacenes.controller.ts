@@ -8,8 +8,10 @@ import { PermissionsGuard } from 'src/auth/guards/permiso.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { ApiKeyGuard } from 'src/auth/guards/api-key.guard';
 import { SwaggerAuthHeaders } from 'src/auth/decorators/auth.decorator';
-import { CreateAlmacenDto, ParamAlmacenID, UpdateAlmacenDto } from './dto/request.dto';
+import { AddMultipleStockDto, AddStockDto, CreateAlmacenDto, ParamAlmacenID, UpdateAlmacenDto } from './dto/request.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { Inventario } from './entities/inventario.entity';
+import { ParamProductoID } from 'src/productos/dto/request.dto';
 
 @Controller('almacenes')
 export class AlmacenesController {
@@ -74,7 +76,30 @@ export class AlmacenesController {
     return this.almacenesService.updateAlmacen(almacenId, dto, user)
   }
 
-  // TODO: Controllers to add products to inventory. Both single and batch products
+  @Post('products/add-stock')
+  async addStock (
+  @Body() dto: AddStockDto
+  ): Promise<Inventario> {
+    const {almacenId, productId, cantidad} = dto;
+    return this.almacenesService.addStock(almacenId, productId, cantidad)
+
+  }
+
+  @Post('products/add-multiple-stock')
+  async addMultipleStock (
+  @Body() dto: AddMultipleStockDto
+  ): Promise<Inventario[]> {
+    return this.almacenesService.addMultipleStock(dto.stockData)
+  }
+
+  @Delete('products/remove-stock')
+  async removeStock (
+    @Query('almacenId') almacenId: number,
+    @Query('productId') productId: string,
+    @Query('cantidad') cantidad: number
+  ) {
+    return this.almacenesService.removeStock(almacenId, productId, cantidad)
+  }
 
   // TODO: Controllers to get the stock of products per almacen
 

@@ -31,6 +31,10 @@ export enum CurrentPermissions {
   DeleteProduct = 'delete-product',
   UpdateProduct = 'edit-product',
 
+  // Iventario
+  AddStock = 'add-stock',
+  RemoveStock = 'remove-stock',
+
   SalidaProduct = 'exit-product',
   EntradaProduct = 'enter-product',
 

@@ -43,6 +43,9 @@ export class User {
   @OneToMany(() => Requisicion, (requesicion) => requesicion.pedidoPor)
   requisiciones: Requisicion[];
 
+  @OneToMany(() => Requisicion, (requesicion) => requesicion.aprobadoPor)
+  requisicionesAprovadas: Requisicion[];
+
   @OneToMany(() => Entrada, (entrada) => entrada.creadoPor)
   entradas: Entrada[];
 

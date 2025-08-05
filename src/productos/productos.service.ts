@@ -7,12 +7,20 @@ import { CreateProductoDto, ParamProductoID, UpdateProductoDto } from './dto/req
 import { User } from 'src/auth/entities/usuario.entity';
 import { PaginationDto, PaginationMetaData } from 'src/common/dto/pagination.dto';
 import { GetProductDto, PaginatedProductoDto } from './dto/response.dto';
+import { Inventario } from 'src/almacenes/entities/inventario.entity';
+import { Almacen } from 'src/almacenes/entities/almacen.entity';
 
 @Injectable()
 export class ProductosService {
   constructor(
     @InjectRepository(Producto)
     private productRepo: Repository<Producto>,
+
+    @InjectRepository(Inventario)
+    private inventarioRepo: Repository<Inventario>,
+
+    @InjectRepository(Almacen)
+    private almacenesRepo: Repository<Almacen>,
 
 
     private readonly logService: LogsService
@@ -24,7 +32,6 @@ export class ProductosService {
    * All these are just a menu. The actual quantity is on inventory
   */
   async createProduct(dto: CreateProductoDto, user: User): Promise<Producto> {
-    // TODO: Add all the products to all the almacenes with 0 by default
     const { id, name, description, unidad } = dto
 
     const producto = await this.productRepo.findOne({ where: { id } })
@@ -40,7 +47,10 @@ export class ProductosService {
       imageUrl: ''
     })
 
-    const savedProducto = this.productRepo.save(newProducto)
+    const savedProducto = await this.productRepo.save(newProducto)
+
+    // Create an empty inventory
+    await this.initialInventory(savedProducto.id)
 
     await this.logService.createLog(
       user,
@@ -182,6 +192,23 @@ export class ProductosService {
     )
 
     return producto
+  }
+
+  private async initialInventory(productId: string): Promise<void> {
+    const almacenes = await this.almacenesRepo.find();
+
+    if (almacenes.length === 0) return;
+
+    const inventarios = almacenes.map(almacen => {
+      return this.inventarioRepo.create({
+        almacen: {id: almacen.id},
+        producto: {id: productId},
+        stock: 0
+      })
+    })
+
+    await this.inventarioRepo.save(inventarios);
+
   }
 
 }

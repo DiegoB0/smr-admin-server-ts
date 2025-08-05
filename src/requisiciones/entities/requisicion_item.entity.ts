@@ -10,16 +10,13 @@ import { Requisicion } from './requisicion.entity';
 import { EntradaItem } from 'src/entradas/entities/entrada_item.entity';
 import { SalidaItem } from 'src/salidas/entities/salida_item.entity';
 
-@Entity('requsiciones')
+@Entity('requisicion_items')
 export class RequisicionItem {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column('int')
   cantidadSolicitada: number;
-
-  @Column('int')
-  cantidadRecibida: number;
 
   @OneToMany(() => EntradaItem, ei => ei.requisicionItem)
   entradas: EntradaItem[];

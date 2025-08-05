@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { Type } from "class-transformer";
+import { IsArray, IsBoolean, IsInt, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, ValidateNested } from "class-validator";
 
 export class ParamAlmacenID {
   @ApiProperty({
@@ -35,4 +36,39 @@ export class UpdateAlmacenDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+}
+
+export class AddStockDto {
+  @ApiProperty({
+    example: 1,
+    description: 'ID del almacén donde se va a agregar stock',
+  })
+  @IsInt()
+  almacenId: number;
+
+  @ApiProperty({
+    example: 'prod-001',
+    description: 'ID del producto al que se le va a agregar stock',
+  })
+  @IsString()
+  productId: string;
+
+  @ApiProperty({
+    example: 10,
+    description: 'Cantidad de stock a agregar',
+  })
+  @IsInt()
+  @IsPositive()
+  cantidad: number;
+}
+
+export class AddMultipleStockDto {
+  @ApiProperty({
+    type: [AddStockDto],
+    description: 'Arreglo de objetos para agregar stock a múltiples productos',
+  })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AddStockDto)
+  stockData: AddStockDto[];
 }
