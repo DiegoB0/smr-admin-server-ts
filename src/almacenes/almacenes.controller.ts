@@ -76,7 +76,9 @@ export class AlmacenesController {
     return this.almacenesService.updateAlmacen(almacenId, dto, user)
   }
 
-  @Post('products/add-stock')
+
+  // TODO: Add permissions and other guards
+  @Post('products/add_stock')
   async addStock (
   @Body() dto: AddStockDto
   ): Promise<Inventario> {
@@ -85,14 +87,14 @@ export class AlmacenesController {
 
   }
 
-  @Post('products/add-multiple-stock')
+  @Post('products/add_multiple_stock')
   async addMultipleStock (
   @Body() dto: AddMultipleStockDto
   ): Promise<Inventario[]> {
     return this.almacenesService.addMultipleStock(dto.stockData)
   }
 
-  @Delete('products/remove-stock')
+  @Delete('products/remove_stock')
   async removeStock (
     @Query('almacenId') almacenId: number,
     @Query('productId') productId: string,
@@ -101,6 +103,19 @@ export class AlmacenesController {
     return this.almacenesService.removeStock(almacenId, productId, cantidad)
   }
 
-  // TODO: Controllers to get the stock of products per almacen
+  @Get('products/get_products')
+  async getProducts(
+    @Query('almacenId') almacenId: number,
+  ) {
+    return await this.almacenesService.getProducts(almacenId)
+  }
+
+  @Get('products/find_product')
+  async getProduct(
+    @Query('almacenId') almacenId: number,
+    @Query('productId') productId: string,
+  ) {
+    return await this.almacenesService.getProduct(almacenId, productId)
+  }
 
 }

@@ -228,12 +228,33 @@ export class AlmacenesService {
     return this.inventarioRepo.save(inventario);
   }
 
-  async getProducts() {
+  // TODO: Pass flag to get only the products with stock > 0
+  async getProducts(almacenId: number) {
+
+    const inventario = await this.inventarioRepo.find({
+      where: {
+        almacen: { id: almacenId },
+      },
+      relations: ['producto']
+    })
+
+    if (!inventario) throw new NotFoundException('No inventory found');
+
+    return inventario;
 
   }
 
+  async getProduct(almacenId: number, productId: string) {
+    const inventario = await this.inventarioRepo.findOne({
+      where: {
+        almacen: { id: almacenId },
+        producto: { id: productId }
+      },
+      relations: ['producto']
+    })
 
-  async getProduct() {
-
+    return inventario;
   }
+
+  // TODO: Search products in all the almacenes
 }
