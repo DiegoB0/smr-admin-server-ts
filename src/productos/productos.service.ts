@@ -195,7 +195,9 @@ export class ProductosService {
   }
 
   private async initialInventory(productId: string): Promise<void> {
-    const almacenes = await this.almacenesRepo.find();
+    const almacenes = await this.almacenesRepo.find({where: {
+      isActive: true
+    }});
 
     if (almacenes.length === 0) return;
 

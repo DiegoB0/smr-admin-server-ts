@@ -12,10 +12,11 @@ import { AddMultipleStockDto, AddStockDto, CreateAlmacenDto, ParamAlmacenID, Upd
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Inventario } from './entities/inventario.entity';
 import { ParamProductoID } from 'src/productos/dto/request.dto';
+import { InventoryQueryDto } from './dto/response.dto';
 
 @Controller('almacenes')
 export class AlmacenesController {
-  constructor(private readonly almacenesService: AlmacenesService) {}
+  constructor(private readonly almacenesService: AlmacenesService) { }
 
   @Post('add')
   @HttpCode(HttpStatus.OK)
@@ -68,7 +69,7 @@ export class AlmacenesController {
   @SwaggerAuthHeaders()
   @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
   @RequirePermissions(CurrentPermissions.UpdateAlmacen)
-  updateAlmacen( 
+  updateAlmacen(
     @Param() almacenId: ParamAlmacenID,
     @Body() dto: UpdateAlmacenDto,
     @GetUser() user: User
@@ -79,23 +80,55 @@ export class AlmacenesController {
 
   // TODO: Add permissions and other guards
   @Post('products/add_stock')
-  async addStock (
-  @Body() dto: AddStockDto
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.AddStock)
+  async addStock(
+    @Body() dto: AddStockDto
   ): Promise<Inventario> {
-    const {almacenId, productId, cantidad} = dto;
+    const { almacenId, productId, cantidad } = dto;
     return this.almacenesService.addStock(almacenId, productId, cantidad)
 
   }
 
   @Post('products/add_multiple_stock')
-  async addMultipleStock (
-  @Body() dto: AddMultipleStockDto
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.AddStock)
+  async addMultipleStock(
+    @Body() dto: AddMultipleStockDto
   ): Promise<Inventario[]> {
     return this.almacenesService.addMultipleStock(dto.stockData)
   }
 
+
+  @Get('products/get_products')
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.ListStock)
+  async getProducts(
+    @Query() dto: InventoryQueryDto,
+  ) {
+    const {almacenId, ...pagination} = dto;
+    return await this.almacenesService.getProducts(almacenId, pagination)
+  }
+
+  @Get('products/find_product')
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.ListStock)
+  async getProduct(
+    @Query('almacenId') almacenId: number,
+    @Query('productId') productId: string,
+  ) {
+    return await this.almacenesService.getProduct(almacenId, productId)
+  }
+
   @Delete('products/remove_stock')
-  async removeStock (
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.RemoveStock)
+  async removeStock(
     @Query('almacenId') almacenId: number,
     @Query('productId') productId: string,
     @Query('cantidad') cantidad: number
@@ -103,19 +136,5 @@ export class AlmacenesController {
     return this.almacenesService.removeStock(almacenId, productId, cantidad)
   }
 
-  @Get('products/get_products')
-  async getProducts(
-    @Query('almacenId') almacenId: number,
-  ) {
-    return await this.almacenesService.getProducts(almacenId)
-  }
-
-  @Get('products/find_product')
-  async getProduct(
-    @Query('almacenId') almacenId: number,
-    @Query('productId') productId: string,
-  ) {
-    return await this.almacenesService.getProduct(almacenId, productId)
-  }
 
 }

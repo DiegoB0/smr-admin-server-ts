@@ -5,7 +5,7 @@ import { Brackets, Repository } from 'typeorm';
 import { LogsService } from 'src/logs/logs.service';
 import { User } from 'src/auth/entities/usuario.entity';
 import { CreateAlmacenDto, ParamAlmacenID, UpdateAlmacenDto } from './dto/request.dto';
-import { GetAlmacenDto, PaginatedAlmacenDto } from './dto/response.dto';
+import { GetAlmacenDto, GetInventarioDto, PaginatedAlmacenDto, PaginatedInventarioDto } from './dto/response.dto';
 import { PaginationDto, PaginationMetaData } from 'src/common/dto/pagination.dto';
 import { Inventario } from './entities/inventario.entity';
 import { StockInput } from './types/inventory-stock';
@@ -228,20 +228,53 @@ export class AlmacenesService {
     return this.inventarioRepo.save(inventario);
   }
 
-  // TODO: Pass flag to get only the products with stock > 0
-  async getProducts(almacenId: number) {
+  async getProducts(almacenId: number, pagination: PaginationDto): Promise<PaginatedInventarioDto> {
+    const { page = 1, limit = 10, search, order = 'ASC' } = pagination;
+    const skip = (page - 1) * limit;
 
-    const inventario = await this.inventarioRepo.find({
-      where: {
-        almacen: { id: almacenId },
-      },
-      relations: ['producto']
-    })
+    const queryBuilder = this.inventarioRepo.createQueryBuilder('inventario')
+      .leftJoinAndSelect('inventario.producto', 'producto')
+      .where('inventario.almacenId = :almacenId', { almacenId })
+      .andWhere('inventario.stock > 0');
 
-    if (!inventario) throw new NotFoundException('No inventory found');
 
-    return inventario;
+    if (search) {
+      const term = `%${search}%`;
+      queryBuilder.andWhere(
+        new Brackets(qb => {
+          qb.where('producto.name ILIKE :term', { term })
+            .orWhere('producto.id ILIKE :term', { term });
+        }),
+      );
+    }
 
+    queryBuilder.orderBy('producto.name', order);
+
+    const [inventarios, totalItems] = await queryBuilder
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+
+    const totalPages = Math.ceil(totalItems / limit);
+    const hasNextPage = page < totalPages;
+    const hasPreviousPage = page > 1;
+
+    const mappedInventario: GetInventarioDto[] = inventarios.map((inv) => ({
+      id: inv.id,
+      producto: inv.producto,
+      stock: inv.stock,
+    }));
+
+    const meta: PaginationMetaData = {
+      currentPage: page,
+      totalPages,
+      totalItems,
+      itemsPerPage: limit,
+      hasNextPage,
+      hasPreviousPage,
+    };
+
+    return new PaginatedInventarioDto(mappedInventario, meta);
   }
 
   async getProduct(almacenId: number, productId: string) {
@@ -256,5 +289,4 @@ export class AlmacenesService {
     return inventario;
   }
 
-  // TODO: Search products in all the almacenes
 }

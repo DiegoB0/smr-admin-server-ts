@@ -1,7 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { PaginatedResponseDto } from "src/common/dto/pagination.dto";
+import { PaginatedResponseDto, PaginationDto } from "src/common/dto/pagination.dto";
 import { Almacen } from "../entities/almacen.entity";
 import { Producto } from "src/productos/entities/producto.entity";
+import { IsInt } from "class-validator";
+import { Type } from "class-transformer";
 
 export class GetAlmacenDto {
   id: number;
@@ -17,9 +19,9 @@ export class GetAlmacenDto {
 export class PaginatedAlmacenDto extends PaginatedResponseDto<GetAlmacenDto> {
   @ApiProperty({
     description: 'Array de almacenes mas la paginacion',
-    type: [GetAlmacenDto], 
+    type: [GetAlmacenDto],
   })
- declare data: GetAlmacenDto[];
+  declare data: GetAlmacenDto[];
 
 }
 
@@ -28,19 +30,23 @@ export class GetInventarioDto {
 
   id: number;
 
-  almacen: Almacen;
+  producto: Producto;
 
-  productos: Producto[];
-
-  cantidad: number;
+  stock: number;
 
 }
 
 export class PaginatedInventarioDto extends PaginatedResponseDto<GetInventarioDto> {
   @ApiProperty({
     description: 'Array del inventario mas la paginacion',
-    type: [GetInventarioDto], 
+    type: [GetInventarioDto],
   })
- declare data: GetInventarioDto[];
+  declare data: GetInventarioDto[];
 
+}
+
+export class InventoryQueryDto extends PaginationDto {
+  @IsInt()
+  @Type(() => Number)
+  almacenId: number;
 }
