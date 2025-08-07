@@ -8,6 +8,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Inventario } from './inventario.entity';
+import { PeticionProducto } from 'src/requisiciones/entities/peticion_producto.entity';
 
 @Entity('almacenes')
 export class Almacen {
@@ -34,5 +35,8 @@ export class Almacen {
 
   @OneToMany(() => Salida, s => s.almacenOrigen) 
   salidas: Salida[];
+
+  @OneToMany(() => PeticionProducto, (peticion) => peticion.almacen)
+  peticionesProducto: PeticionProducto[];
 
 }

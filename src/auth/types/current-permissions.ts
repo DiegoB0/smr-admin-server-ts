@@ -18,12 +18,18 @@ export enum CurrentPermissions {
   DeleteAlmacen = 'delete-almacen',
   UpdateAlmacen = 'edit-almacen',
 
+  // Accept requisiciones
+  AcceptRequisicion = 'accept-requisicion',
+
   /*
    * Permissions for almacen admins
    */
 
-  // Accept requisiciones
-  AcceptRequisicion = 'accept-requisicion',
+  // Requisiciones
+  CreateRequisicion = 'create-requisicion',
+  DeleteRequisicion = 'delete-requisicion',
+  UpdateRequisicion = 'edit-requisicion',
+  ListRequisicion = 'list-requisicion',
 
   // Productos
   CreateProduct = 'create-product',
@@ -36,20 +42,18 @@ export enum CurrentPermissions {
   RemoveStock = 'remove-stock',
   ListStock = 'list-stock',
 
-  SalidaProduct = 'exit-product',
-  EntradaProduct = 'enter-product',
-
-  // Requisiciones
-  CreateRequisicion = 'create-requisicion',
-  DeleteRequisicion = 'delete-requisicion',
-  UpdateRequisicion = 'edit-requisicion',
-  ListRequisicion = 'list-requisicion',
-
   /*
    * Permissions for almacen employees
    */
 
   AcceptReport = 'accept-report',
+
+  /*
+   * TODO: Define permissions for enter/exit of products on inventory
+   */
+
+  SalidaProduct = 'exit-product', // Could be add/remove stock???
+  EntradaProduct = 'enter-product',
 
  /*
   * Permissions for non-almacen employees (Operators, other-branch administrators, etc) NOTE: Anyone but the almacen guys

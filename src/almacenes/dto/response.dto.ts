@@ -46,6 +46,10 @@ export class PaginatedInventarioDto extends PaginatedResponseDto<GetInventarioDt
 }
 
 export class InventoryQueryDto extends PaginationDto {
+  @ApiProperty({
+    description: 'ID del almacen',
+    type: Number,
+  })
   @IsInt()
   @Type(() => Number)
   almacenId: number;

@@ -10,6 +10,7 @@ import { UsuarioRol } from './usuario_rol.entity';
 import { Requisicion } from 'src/requisiciones/entities/requisicion.entity';
 import { Entrada } from 'src/entradas/entities/entrada.entity';
 import { Salida } from 'src/salidas/entities/salida.entity';
+import { PeticionProducto } from 'src/requisiciones/entities/peticion_producto.entity';
 
 @Entity('usuarios')
 export class User {
@@ -51,5 +52,11 @@ export class User {
 
   @OneToMany(() => Salida, (salida) => salida.recibidaPor)
   salidas: Salida[];
+
+  @OneToMany(() => PeticionProducto, (peticion) => peticion.creadoPor)
+  peticionesCreadas: PeticionProducto[];
+
+  @OneToMany(() => PeticionProducto, (peticion) => peticion.aprobadoPor)
+  peticionesAprobadas: PeticionProducto[];
 
 }
