@@ -408,6 +408,7 @@ export class RequisicionesService {
   }
 
 
+  // TODO: LET DIFFERENT ROLES DO THIS OPERATION BASED ON THE RequisicionType field
   async acceptRequisicion(id: number, user: User) {
     const requisicion = await this.requisicionRepo.findOne({
       where: { id },
@@ -453,10 +454,4 @@ export class RequisicionesService {
 
     return this.requisicionRepo.save(requisicion);
   }
-
-
-  async deleteRequisicion() {
-
-  }
-
 }
