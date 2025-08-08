@@ -10,6 +10,8 @@ export class GetProductDto {
 
   unidad: string;
 
+  precio: number;
+
   imageUrl?: string;
 
   isActive: boolean;

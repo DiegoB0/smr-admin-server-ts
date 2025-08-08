@@ -22,6 +22,9 @@ export class PeticionProducto {
   @Column({ type: 'enum', enum: PeticionStatus, default: PeticionStatus.PENDIENTE })
   status: PeticionStatus;
 
+  @Column('varchar')
+  observaciones: string;
+
   @ManyToOne(() => Almacen, (almacen) => almacen.peticionesProducto)
   almacen: Almacen;
 
@@ -29,10 +32,10 @@ export class PeticionProducto {
   creadoPor: User;
 
   @ManyToOne(() => User, { nullable: true })
-  aprobadoPor?: User;
+  revisadoPor?: User;
 
   @Column({ type: 'timestamptz', nullable: true })
-  fechaAprobacion?: Date;
+  fechaRevision?: Date;
 
   @OneToMany(() => PeticionProductoItem, (ri) => ri.reporte, { cascade: true })
   items: PeticionProductoItem[];

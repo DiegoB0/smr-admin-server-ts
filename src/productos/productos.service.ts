@@ -98,6 +98,7 @@ export class ProductosService {
       name: producto.name,
       description: producto.description,
       unidad: producto.unidad,
+      precio: producto.precio,
       imageUrl: producto.imageUrl,
       isActive: producto.isActive,
     }))
@@ -126,6 +127,7 @@ export class ProductosService {
       name: producto.name,
       description: producto.description,
       unidad: producto.unidad,
+      precio: producto.precio,
       imageUrl: producto.imageUrl,
       isActive: producto.isActive,
     };

@@ -21,6 +21,9 @@ export class Producto {
   @Column('text')
   unidad: string;
 
+  @Column('decimal', {nullable: true})
+  precio: number;
+
   @Column({ nullable: true })
   imageUrl?: string;
 

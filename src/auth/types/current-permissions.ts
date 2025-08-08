@@ -52,12 +52,13 @@ export enum CurrentPermissions {
    * TODO: Define permissions for enter/exit of products on inventory
    */
 
-  SalidaProduct = 'exit-product', // Could be add/remove stock???
-  EntradaProduct = 'enter-product',
+  // Could be add/remove stock???
+  // SalidaProduct = 'exit-product', 
+  // EntradaProduct = 'enter-product',
 
- /*
-  * Permissions for non-almacen employees (Operators, other-branch administrators, etc) NOTE: Anyone but the almacen guys
-  */
+  /*
+   * Permissions for non-almacen employees (Operators, other-branch administrators, etc) NOTE: Anyone but the almacen guys
+   */
   CreateReport = 'create-report',
   ListReport = 'list-report',
   EditReport = 'edit-report',

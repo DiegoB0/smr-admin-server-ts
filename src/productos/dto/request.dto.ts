@@ -27,6 +27,10 @@ export class CreateProductoDto {
   @IsString()
   unidad: string;
 
+  @ApiProperty({ example: 10.00 })
+  @IsNumber()
+  precio: number;
+
   @ApiProperty({ example: 'URL de la foto de la pieza' })
   @IsString()
   imageUrl: string;

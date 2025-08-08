@@ -17,6 +17,9 @@ export class Requisicion {
   @PrimaryGeneratedColumn()
   id: number;
 
+  // TODO: ENTITY EQUIPOS (para que equipo ocupan la pieza/producto)
+  // TODO: ENTITY OBRAS
+
   @CreateDateColumn()
   fechaSolicitud: Date;
 
@@ -29,6 +32,9 @@ export class Requisicion {
   @Column('decimal')
   cantidad_dinero: number;
 
+  @Column('varchar')
+  metodo_pago: string;
+
   @ManyToOne(() => Almacen, (almacen) => almacen.requisiciones)
   almacenDestino: Almacen;
 
@@ -36,10 +42,10 @@ export class Requisicion {
   pedidoPor: User;
 
   @ManyToOne(() => User, { nullable: true })
-  aprobadoPor?: User;
+  revisadoPor?: User;
 
   @Column({ type: 'timestamptz', nullable: true })
-  fechaAprobacion?: Date;
+  fechaRevision?: Date;
 
   // Relacion con cada item
   @OneToMany(() => RequisicionItem, ri => ri.requisicion, { cascade: true })

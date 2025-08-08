@@ -27,6 +27,7 @@ export class UsuariosService {
 
   ) { }
 
+  // TODO: LINK THE USER TO AN ALMACEN/OBRA BASED ON THE ROL
   async createUser(
     dto: RegisterDto,
     user: User
