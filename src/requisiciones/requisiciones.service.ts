@@ -6,11 +6,14 @@ import { Brackets, Repository } from 'typeorm';
 import { RequisicionItem } from './entities/requisicion_item.entity';
 import { PeticionProducto } from './entities/peticion_producto.entity';
 import { PeticionProductoItem } from './entities/peticion_producto_item.entity';
-import { CreatePeticionProductoDto, UpdatePeticionProductoDto } from './dto/request.dto';
+import { CreatePeticionProductoDto, CreateRequisicionDto, UpdatePeticionProductoDto } from './dto/request.dto';
 import { PeticionStatus } from './types/peticion-status';
 import { User } from 'src/auth/entities/usuario.entity';
 import { GetPeticionProductDto, PaginatedPeticionProductoDto, ReporteQueryDto } from './dto/response.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { RequisicionStatus } from './types/requisicion-status';
+import { RequisicionAprovalLevel } from './types/requisicion-type';
+import { Producto } from 'src/productos/entities/producto.entity';
 
 @Injectable()
 export class RequisicionesService {
@@ -18,7 +21,7 @@ export class RequisicionesService {
     @InjectRepository(Requisicion)
     private requisicionRepo: Repository<Requisicion>,
 
-    @InjectRepository(Requisicion)
+    @InjectRepository(RequisicionItem)
     private requisicionItemRepo: Repository<RequisicionItem>,
 
     @InjectRepository(PeticionProducto)
@@ -315,19 +318,140 @@ export class RequisicionesService {
     return updated;
   }
 
+  // TODO: CHECK IF THERE'S ENOUGH STOCK BEFORE DOING THE REQUISICION. IF THERE'S ENOUGH CREATE an ENTRADA
   // TODO: METODOS PARA LAS REQUISICIONES
-  // TODO: Handle the inventory in here (substract from inventory if exist. If not create the requisition)
-  async createRequisicion() {
 
+  async createRequisicion(dto: CreateRequisicionDto, user: User) {
+    const { peticionId, metodo_pago } = dto;
+
+    const exists = await this.requisicionRepo.findOne({
+      where: { peticion: { id: peticionId } },
+    });
+    if (exists) {
+      throw new BadRequestException('Ya existe una requisición para esta petición.');
+    }
+
+    const peticion = await this.peticionRepo.findOne({
+      where: { id: peticionId },
+      relations: ['items', 'items.producto', 'almacen'],
+    });
+
+    if (!peticion) {
+      throw new NotFoundException('Petición no encontrada.');
+    }
+
+    if (peticion.status !== 'APROBADO') {
+      throw new BadRequestException('Solo se pueden crear requisiciones de peticiones aprobadas.');
+    }
+
+    let totalCost = 0;
+    for (const item of peticion.items) {
+      if (item.producto.precio == null) {
+        throw new BadRequestException(
+          `El producto ${item.producto.id} no tiene precio asignado.`
+        );
+      }
+      totalCost += Number(item.cantidad) * Number(item.producto.precio);
+    }
+
+
+    let requisicionType: RequisicionAprovalLevel;
+    if (totalCost < 2000) {
+      requisicionType = RequisicionAprovalLevel.NONE;
+    } else if (totalCost <= 5000) {
+      requisicionType = RequisicionAprovalLevel.ADMIN;
+    } else {
+      requisicionType = RequisicionAprovalLevel.SPECIAL_PERMISSION;
+    }
+
+    const savedRequisicion = await this.requisicionRepo.save(
+      this.requisicionRepo.create({
+        status: RequisicionStatus.PENDIENTE,
+        requisicionType,
+        cantidad_dinero: totalCost,
+        metodo_pago,
+        almacenDestino: peticion.almacen,
+        pedidoPor: user,
+        peticion
+      })
+    );
+
+
+    const items = peticion.items.map((item) => {
+
+      return this.requisicionItemRepo.create({
+        cantidadSolicitada: Number(item.cantidad),
+        producto: { id: item.producto.id } as Producto,
+        requisicion: savedRequisicion,
+      });
+    });
+
+    await this.requisicionItemRepo.save(items);
+
+    return this.requisicionRepo.findOne({
+      where: { id: savedRequisicion.id },
+      relations: ['items', 'items.producto', 'almacenDestino', 'pedidoPor'],
+    });
   }
 
-  async getRequisiciones() {
-
+  async getAllRequisiciones() {
+    return this.requisicionRepo.find({
+      relations: [
+        'items',
+        'items.producto',
+        'almacenDestino',
+        'pedidoPor',
+        'revisadoPor',
+      ],
+      order: { fechaSolicitud: 'DESC' },
+    });
   }
 
 
-  async acceptRequisicion() {
+  async acceptRequisicion(id: number, user: User) {
+    const requisicion = await this.requisicionRepo.findOne({
+      where: { id },
+      relations: ['revisadoPor'],
+    });
 
+    if (!requisicion) {
+      throw new NotFoundException('Requisición no encontrada.');
+    }
+
+    if (requisicion.status !== RequisicionStatus.PENDIENTE) {
+      throw new BadRequestException(
+        `No se puede aprobar una requisición con estado ${requisicion.status}.`
+      );
+    }
+
+    requisicion.status = RequisicionStatus.APROBADA;
+    requisicion.revisadoPor = user;
+    requisicion.fechaRevision = new Date();
+
+    return this.requisicionRepo.save(requisicion);
+  }
+
+  async rejectRequisicion(id: number, user: User) {
+    const requisicion = await this.requisicionRepo.findOne({
+      where: { id },
+      relations: ['revisadoPor'],
+    });
+
+    if (!requisicion) {
+      throw new NotFoundException('Requisición no encontrada.');
+    }
+
+    if (requisicion.status !== RequisicionStatus.PENDIENTE) {
+      throw new BadRequestException(
+        `No se puede rechazar una requisición con estado ${requisicion.status}.`
+      );
+    }
+
+    requisicion.status = RequisicionStatus.RECHAZADA;
+    requisicion.revisadoPor = user;
+    requisicion.fechaRevision = new Date();
+
+    return this.requisicionRepo.save(requisicion);
   }
 
 
@@ -335,7 +459,4 @@ export class RequisicionesService {
 
   }
 
-  async updateRequisicion() {
-
-  }
 }

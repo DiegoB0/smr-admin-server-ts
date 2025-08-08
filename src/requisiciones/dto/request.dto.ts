@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsArray, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, Length, ValidateNested } from "class-validator";
+import { IsArray, IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, Length, ValidateNested } from "class-validator";
+import { MetodoPago } from "../types/metodo-pago";
 
 export class ParamReporteDto {
   @ApiProperty({
@@ -97,4 +98,23 @@ export class UpdatePeticionProductoDto {
   @ValidateNested({ each: true })
   @Type(() => UpdatePeticionProductoItemDto)
   items?: UpdatePeticionProductoItemDto[];
+}
+
+export class CreateRequisicionDto {
+  @ApiProperty({
+    description: 'ID de la peticion',
+    example: 2,
+  })
+  @IsInt()
+  @IsPositive()
+  peticionId: number;
+
+  @ApiProperty({
+    description: 'Método de pago disponible',
+    enum: MetodoPago,
+    example: MetodoPago.TARJETA,
+  })
+  @IsEnum(MetodoPago, { message: 'El método de pago no es válido' })
+  @IsNotEmpty()
+  metodo_pago: MetodoPago;
 }

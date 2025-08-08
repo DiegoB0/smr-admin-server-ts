@@ -8,7 +8,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from 'src/auth/guards/permiso.guard';
 import { CurrentPermissions } from 'src/auth/types/current-permissions';
 import { RequirePermissions } from 'src/auth/decorators/permiso.decorator';
-import { CreatePeticionProductoDto, ParamReporteDto, UpdatePeticionProductoDto } from './dto/request.dto';
+import { CreatePeticionProductoDto, CreateRequisicionDto, ParamReporteDto, UpdatePeticionProductoDto } from './dto/request.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { ReporteQueryDto } from './dto/response.dto';
 
@@ -86,4 +86,38 @@ export class RequisicionesController {
   }
 
   /* REQUISICIONES */
+  @Post('create_requisicion')
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.CreateRequisicion)
+  createRequisicion(
+    @Body() dto: CreateRequisicionDto,
+    @GetUser() user: User
+  ) {
+    return this.requisicionesService.createRequisicion(dto, user);
+  }
+
+  @Get('all_requisiciones')
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.ListRequisicion)
+  getAllRequisiciones() {
+    return this.requisicionesService.getAllRequisiciones();
+  }
+
+  @Patch(':id/approve')
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.AcceptRequisicion)
+  acceptRequisicion(@Param('id') id: number, @GetUser() user: User) {
+    return this.requisicionesService.acceptRequisicion(id, user);
+  }
+
+  @Patch(':id/reject')
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.AcceptRequisicion)
+  rejectRequisicion(@Param('id') id: number, @GetUser() user: User) {
+    return this.requisicionesService.rejectRequisicion(id, user);
+  }
 }

@@ -24,9 +24,9 @@ export class RequisicionItem {
   @OneToMany(() => SalidaItem, si => si.requisicionItem)
   salidas: SalidaItem[];
 
-  @ManyToOne(() => Producto, {eager: true})
+  @ManyToOne(() => Producto, { eager: true })
   producto: Producto;
 
-  @ManyToOne(() => Requisicion, r => r.items, {onDelete: 'CASCADE'})
+  @ManyToOne(() => Requisicion, r => r.items, { onDelete: 'CASCADE' })
   requisicion: Requisicion;
 }
