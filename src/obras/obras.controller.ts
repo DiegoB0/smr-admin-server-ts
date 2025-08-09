@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestj
 import { ObrasService } from './obras.service';
 import { CreateObraDto, UpdateObraDto } from './dto/request.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { ObraQueryDto } from './dto/response.dto';
 
 @Controller('obras')
 export class ObrasController {
@@ -12,11 +13,20 @@ export class ObrasController {
     return this.obrasService.create(dto);
   }
 
+
   @Get('all_obras')
   findAll(
-    @Query() dto: PaginationDto,
+    @Query() dto: PaginationDto
   ) {
     return this.obrasService.findAll(dto);
+  }
+
+  @Get('allowed_obras')
+  findAllowedObras(
+    @Query() dto: ObraQueryDto
+  ) {
+    const id = dto.almacenId ? Number(dto.almacenId) : undefined;
+    return this.obrasService.findAllowedAlmacenes(dto, id);
   }
 
   @Get('find_obra/:id')

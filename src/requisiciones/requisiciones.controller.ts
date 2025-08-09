@@ -8,7 +8,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from 'src/auth/guards/permiso.guard';
 import { CurrentPermissions } from 'src/auth/types/current-permissions';
 import { RequirePermissions } from 'src/auth/decorators/permiso.decorator';
-import { CreatePeticionProductoDto, CreateRequisicionDto, ParamReporteDto, UpdatePeticionProductoDto } from './dto/request.dto';
+import { CreatePeticionProductoDto, CreateRequisicionDto, UpdatePeticionProductoDto } from './dto/request.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { ReporteQueryDto } from './dto/response.dto';
 

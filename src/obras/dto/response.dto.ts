@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { PaginatedResponseDto } from "src/common/dto/pagination.dto";
+import { IsNumber, IsOptional } from "class-validator";
+import { PaginatedResponseDto, PaginationDto } from "src/common/dto/pagination.dto";
 
 export class GetObraDto {
   id: number;
@@ -21,4 +22,10 @@ export class PaginatedObraDto extends PaginatedResponseDto<GetObraDto> {
   })
  declare data: GetObraDto[];
 
+}
+
+export class ObraQueryDto extends PaginationDto {
+  @IsOptional()
+  @IsNumber()
+  almacenId?: number;
 }

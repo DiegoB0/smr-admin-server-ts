@@ -110,7 +110,7 @@ export class AlmacenesController {
   async getProducts(
     @Query() dto: InventoryQueryDto,
   ) {
-    const {almacenId, ...pagination} = dto;
+    const { almacenId, ...pagination } = dto;
     return await this.almacenesService.getProducts(almacenId, pagination)
   }
 
@@ -142,8 +142,11 @@ export class AlmacenesController {
   @SwaggerAuthHeaders()
   @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
   @RequirePermissions(CurrentPermissions.ListUser)
-  async getEncargados () {
-    return this.almacenesService.findAlmacenAdmins()
+  async getEncargados(
+    @Query('almacenId') almacenId?: string
+  ) {
+    const id = almacenId ? Number(almacenId) : undefined;
+    return this.almacenesService.findAlmacenAdmins(id)
   }
 
 }

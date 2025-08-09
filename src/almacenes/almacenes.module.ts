@@ -6,10 +6,11 @@ import { Almacen } from './entities/almacen.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { LogsModule } from 'src/logs/logs.module';
 import { Inventario } from './entities/inventario.entity';
+import { Obra } from 'src/obras/entities/obra.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Almacen, Inventario]),
+    TypeOrmModule.forFeature([Almacen, Inventario, Obra]),
     AuthModule,
     LogsModule
   ],

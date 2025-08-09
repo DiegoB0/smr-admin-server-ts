@@ -9,6 +9,7 @@ import { GetAlmacenDto, GetInventarioDto, PaginatedAlmacenDto, PaginatedInventar
 import { PaginationDto, PaginationMetaData } from 'src/common/dto/pagination.dto';
 import { Inventario } from './entities/inventario.entity';
 import { StockInput } from './types/inventory-stock';
+import { Obra } from 'src/obras/entities/obra.entity';
 
 @Injectable()
 export class AlmacenesService {
@@ -23,21 +24,36 @@ export class AlmacenesService {
     @InjectRepository(Inventario)
     private inventarioRepo: Repository<Inventario>,
 
+
+    @InjectRepository(Obra)
+    private obraRepo: Repository<Obra>,
+
     private readonly logService: LogsService
 
   ) { }
 
   async createAlmacen(dto: CreateAlmacenDto, user: User): Promise<Almacen> {
-    const { name, location } = dto
+    const { name, location, obraId, encargadoId } = dto
 
     const almacen = await this.almacenRepo.findOne({ where: { name } })
 
     if (almacen) throw new ConflictException('An almacen with that name already exists')
 
+    const obra = await this.obraRepo.findOne({ where: { id: obraId } })
+
+    if (!obra) throw new NotFoundException('No se encontro la obra')
+
+
+    const usuario = await this.userRepo.findOne({ where: { id: encargadoId } })
+
+    if (!usuario) throw new NotFoundException('No se encontro la obra')
+
     const newAlmacen = this.almacenRepo.create({
       location: location,
       name: name,
-      isActive: true
+      isActive: true,
+      encargado: usuario,
+      obra: obra
     })
 
     const savedAlmacen = this.almacenRepo.save(newAlmacen)
@@ -53,15 +69,23 @@ export class AlmacenesService {
   }
 
 
-  async findAlmacenAdmins(): Promise<User[]> {
-    return this.userRepo
+  async findAlmacenAdmins(currentAlmacenId?: number): Promise<User[]> {
+    const query = this.userRepo
       .createQueryBuilder('user')
       .leftJoin('user.usuarioRoles', 'usuarioRoles')
       .leftJoin('usuarioRoles.rol', 'rol')
       .leftJoin('user.almacenesEncargados', 'almacen')
-      .where('rol.slug = :slug', { slug: 'admin-almacen' })
-      .andWhere('almacen.id IS NULL')
-      .getMany();
+      .where('rol.slug = :slug', { slug: 'admin-almacen' });
+
+    if (currentAlmacenId) {
+      query.andWhere('(almacen.id IS NULL OR almacen.id = :currentAlmacenId)', {
+        currentAlmacenId,
+      });
+    } else {
+      query.andWhere('almacen.id IS NULL');
+    }
+
+    return query.getMany();
   }
 
   async findAll(
@@ -228,11 +252,28 @@ export class AlmacenesService {
 
     const { id } = almacenId
 
-    const { location, isActive, name } = dto
+    const { location, isActive, name, encargadoId, obraId } = dto
 
     const almacen = await this.almacenRepo.findOne({ where: { id, isActive: true } })
 
     if (!almacen) throw new NotFoundException('Almacen not found')
+
+    const obra = await this.obraRepo.findOne({ where: { id: obraId } })
+
+    if (!obra) throw new NotFoundException('No se encontro la obra')
+
+    if (obraId) {
+      almacen.obra = obra
+    }
+
+    const usuario = await this.userRepo.findOne({ where: { id: encargadoId } })
+
+    if (!usuario) throw new NotFoundException('No se encontro la obra')
+
+    if (encargadoId) {
+      almacen.encargado = usuario
+    }
+
 
     if (location !== undefined) {
       almacen.location = location

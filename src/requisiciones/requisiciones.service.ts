@@ -454,4 +454,5 @@ export class RequisicionesService {
 
     return this.requisicionRepo.save(requisicion);
   }
+
 }

@@ -9,7 +9,8 @@ import { Rol } from 'src/auth/entities/rol.entity';
 import { RegisterDto } from 'src/auth/dto/request.dto';
 import { PaginationDto, PaginationMetaData } from 'src/common/dto/pagination.dto';
 import { GetUserDto, PaginatedUserDto, RoleDto } from './dto/response.dto';
-import { ChangeRolesDto, ParamUserID, UpdateUserDto } from './dto/request.dto';
+import { ChangeRolesDto, CreateUserDto, ParamUserID, UpdateUserDto } from './dto/request.dto';
+import { Obra } from 'src/obras/entities/obra.entity';
 
 @Injectable()
 export class UsuariosService {
@@ -23,16 +24,19 @@ export class UsuariosService {
     @InjectRepository(Rol)
     private rolRepo: Repository<Rol>,
 
+    @InjectRepository(Obra)
+    private obraRepo: Repository<Obra>,
+
     private readonly logService: LogsService
 
   ) { }
 
   // TODO: LINK THE USER TO AN ALMACEN/OBRA BASED ON THE ROL
   async createUser(
-    dto: RegisterDto,
+    dto: CreateUserDto,
     user: User
   ): Promise<User> {
-    const { email, name, password, roles } = dto;
+    const { email, name, password, roles, obraId } = dto;
 
     const existingUser = await this.userRepo.findOne({ where: { email } });
     if (existingUser) {
@@ -48,6 +52,15 @@ export class UsuariosService {
       name,
       password: hash,
     });
+
+    if (obraId) {
+      const obra = await this.obraRepo.findOne({ where: { id: obraId } });
+      if (!obra) {
+        throw new NotFoundException(`Obra with ID ${obraId} not found`);
+      }
+      usuario.obra = obra;
+    }
+
     await this.userRepo.save(usuario);
 
     if (roles && roles.length > 0) {
@@ -165,7 +178,7 @@ export class UsuariosService {
     return new PaginatedUserDto(mappedUsers, meta)
   }
 
-   async findRoles(): Promise<RoleDto[]> {
+  async findRoles(): Promise<RoleDto[]> {
     const roles = await this.rolRepo.find({
       select: ['id', 'name']
     })
@@ -218,11 +231,19 @@ export class UsuariosService {
   // Update single user
   async updateUser(userId: ParamUserID, dto: UpdateUserDto, user: User): Promise<User> {
     const { id } = userId;
-    const { name, isActive, password, email } = dto;
+    const { name, isActive, password, email, obraId } = dto;
 
     const usuario = await this.userRepo.findOne({ where: { id, isActive: true } })
 
     if (!usuario) throw new NotFoundException('User not found')
+
+    if (obraId) {
+      const obra = await this.obraRepo.findOne({ where: { id: obraId } });
+      if (!obra) {
+        throw new NotFoundException(`Obra with ID ${obraId} not found`);
+      }
+      usuario.obra = obra;
+    }
 
     if (name) {
       usuario.name = name
