@@ -1,6 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsArray, IsEmail, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsArray, IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
 
 export class ParamUserID {
   @ApiProperty({
@@ -34,6 +34,15 @@ export class CreateUserDto {
   @IsUUID('4', { each: true })
   @ApiProperty({ type: [String], example: ['uuid1', 'uuid2'] })
   roles: string[];
+
+  @ApiPropertyOptional({
+    example: 2,
+    description: 'ID of the obra this user belongs to (optional)',
+  })
+  @IsOptional()
+  @IsNumber()
+  obraId?: number;
+
 }
 
 export class UpdateUserDto {
@@ -61,6 +70,15 @@ export class UpdateUserDto {
   @ApiProperty({ type: 'string', format: 'binary', required: false })
   @IsOptional()
   image?: any;
+
+
+  @ApiPropertyOptional({
+    example: 2,
+    description: 'ID of the obra this user belongs to (optional)',
+  })
+  @IsOptional()
+  @IsNumber()
+  obraId?: number;
 
 }
 

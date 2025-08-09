@@ -57,6 +57,11 @@ export class UpdateProductoDto {
   @IsString()
   imageUrl: string;
 
+  @ApiProperty({ example: 10.00 })
+  @IsOptional()
+  @IsNumber()
+  precio: number;
+
   @ApiProperty({ example: false })
   @IsOptional()
   @IsBoolean()

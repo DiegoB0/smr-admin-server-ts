@@ -14,6 +14,14 @@ export class GetAlmacenDto {
 
   isActive: boolean;
 
+  encargadoName?: string | null;
+
+  encargadoId?: string | null;
+
+  obraName?: string | null;
+
+  obraId?: number | null;
+
 }
 
 export class PaginatedAlmacenDto extends PaginatedResponseDto<GetAlmacenDto> {

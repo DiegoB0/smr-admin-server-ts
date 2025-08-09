@@ -32,7 +32,7 @@ export class ProductosService {
    * All these are just a menu. The actual quantity is on inventory
   */
   async createProduct(dto: CreateProductoDto, user: User): Promise<Producto> {
-    const { id, name, description, unidad } = dto
+    const { id, name, description, unidad, precio } = dto
 
     const producto = await this.productRepo.findOne({ where: { id } })
 
@@ -44,6 +44,7 @@ export class ProductosService {
       isActive: true,
       description: description,
       unidad: unidad,
+      precio: precio,
       imageUrl: ''
     })
 
@@ -162,7 +163,7 @@ export class ProductosService {
 
     const { id } = almacenId
 
-    const { isActive, name, description, unidad } = dto
+    const { isActive, name, description, unidad, precio } = dto
 
     const producto = await this.productRepo.findOne({ where: { id, isActive: true } })
 
@@ -182,6 +183,10 @@ export class ProductosService {
 
     if (name !== undefined) {
       producto.name = name;
+    }
+
+    if (precio !== undefined) {
+      producto.precio = precio;
     }
 
     this.productRepo.save(producto)

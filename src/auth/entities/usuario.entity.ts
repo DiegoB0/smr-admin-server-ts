@@ -62,11 +62,10 @@ export class User {
   @OneToMany(() => PeticionProducto, (peticion) => peticion.revisadoPor)
   peticionesAprobadas: PeticionProducto[];
 
-  // Optional links to almacen/obra based on the rol
-  @ManyToOne(() => Almacen, { nullable: true, onDelete: 'SET NULL' })
-  almacen?: Almacen;
-
   @ManyToOne(() => Obra, { nullable: true, onDelete: 'SET NULL' })
   obra?: Obra;
+
+  @OneToMany(() => Almacen, almacen => almacen.encargado)
+  almacenesEncargados?: Almacen[];
 
 }

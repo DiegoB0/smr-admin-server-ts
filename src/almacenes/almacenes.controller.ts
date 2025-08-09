@@ -37,8 +37,9 @@ export class AlmacenesController {
   @RequirePermissions(CurrentPermissions.ListAlmacen)
   findAll(
     @Query() dto: PaginationDto,
+    @GetUser() user: User
   ) {
-    return this.almacenesService.findAll(dto)
+    return this.almacenesService.findAll(dto, user)
 
   }
 
@@ -136,5 +137,13 @@ export class AlmacenesController {
     return this.almacenesService.removeStock(almacenId, productId, cantidad)
   }
 
+  // GET ALL THE ADMIN USERS
+  @Get('encargados/all_encargados')
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.ListUser)
+  async getEncargados () {
+    return this.almacenesService.findAlmacenAdmins()
+  }
 
 }

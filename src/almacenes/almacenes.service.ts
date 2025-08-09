@@ -16,6 +16,10 @@ export class AlmacenesService {
     @InjectRepository(Almacen)
     private almacenRepo: Repository<Almacen>,
 
+
+    @InjectRepository(User)
+    private userRepo: Repository<User>,
+
     @InjectRepository(Inventario)
     private inventarioRepo: Repository<Inventario>,
 
@@ -48,23 +52,106 @@ export class AlmacenesService {
     return savedAlmacen;
   }
 
-  async findAll(pagination: PaginationDto): Promise<PaginatedAlmacenDto> {
 
+  async findAlmacenAdmins(): Promise<User[]> {
+    return this.userRepo
+      .createQueryBuilder('user')
+      .leftJoin('user.usuarioRoles', 'usuarioRoles')
+      .leftJoin('usuarioRoles.rol', 'rol')
+      .leftJoin('user.almacenesEncargados', 'almacen')
+      .where('rol.slug = :slug', { slug: 'admin-almacen' })
+      .andWhere('almacen.id IS NULL')
+      .getMany();
+  }
+
+  async findAll(
+    pagination: PaginationDto,
+    user: User
+  ): Promise<PaginatedAlmacenDto> {
     const { page = 1, limit = 10, search, order = 'ASC' } = pagination;
-
     const skip = (page - 1) * limit;
 
-    const queryBuilder = this.almacenRepo.createQueryBuilder('almacen');
+    const userWithRoles = await this.userRepo.findOne({
+      where: { id: user.id },
+      relations: ['usuarioRoles', 'usuarioRoles.rol'],
+    });
 
-    queryBuilder.where({ isActive: true });
+
+    if (!userWithRoles) {
+      throw new NotFoundException(`User with ID ${user.id} not found`);
+    }
+
+    const isAdminAlmacen = userWithRoles.usuarioRoles.some(
+      ur =>
+        ur.rol?.name
+          ?.toLowerCase()
+          .replace(/\s+/g, '-')
+          .trim() === 'admin-almacen'
+    );
+
+    if (isAdminAlmacen) {
+      const almacenesEncargado = await this.almacenRepo
+        .createQueryBuilder('almacen')
+        .leftJoin('almacen.encargado', 'encargado')
+        .addSelect(['encargado.name', 'encargado.id'])
+        .leftJoin('almacen.obra', 'obra')
+        .addSelect(['obra.name', 'obra.id'])
+        .where('almacen.isActive = :isActive', { isActive: true })
+        .andWhere('encargado.id = :userId', { userId: user.id })
+        .getMany();
+
+      if (almacenesEncargado.length === 0) {
+        return new PaginatedAlmacenDto([], {
+          currentPage: 1,
+          totalPages: 0,
+          totalItems: 0,
+          itemsPerPage: limit,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        });
+      }
+
+      const mappedAlmacenes: GetAlmacenDto[] = almacenesEncargado.map(
+        (almacen) => ({
+          id: almacen.id,
+          location: almacen.location,
+          isActive: almacen.isActive,
+          name: almacen.name,
+          encargadoName: almacen.encargado?.name || null,
+          encargadoId: almacen.encargado?.id || null,
+          obraName: almacen.obra?.name || null,
+          obraId: almacen.obra?.id || null,
+        })
+      );
+
+      return new PaginatedAlmacenDto(mappedAlmacenes, {
+        currentPage: 1,
+        totalPages: 1,
+        totalItems: mappedAlmacenes.length,
+        itemsPerPage: mappedAlmacenes.length,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      });
+    }
+
+    const queryBuilder = this.almacenRepo
+      .createQueryBuilder('almacen')
+      .leftJoin('almacen.encargado', 'encargado')
+      .addSelect(['encargado.name', 'encargado.id'])
+      .leftJoin('almacen.obra', 'obra')
+      .addSelect(['obra.name', 'obra.id'])
+      .where('almacen.isActive = :isActive', { isActive: true });
 
     if (search) {
       const term = `%${search}%`;
-      queryBuilder.andWhere(new Brackets(qb2 => {
-        qb2
-          .where('almacen.name ILIKE :term', { term })
-          .orWhere('almacen.location ILIKE :term', { term });
-      }));
+      queryBuilder.andWhere(
+        new Brackets((qb2) => {
+          qb2
+            .where('almacen.name ILIKE :term', { term })
+            .orWhere('almacen.location ILIKE :term', { term })
+            .orWhere('encargado.name ILIKE :term', { term });
+        })
+      );
     }
 
     queryBuilder.orderBy('almacen.name', order);
@@ -72,30 +159,29 @@ export class AlmacenesService {
     const [almacenes, totalItems] = await queryBuilder
       .skip(skip)
       .take(limit)
-      .getManyAndCount()
+      .getManyAndCount();
 
     const totalPages = Math.ceil(totalItems / limit);
-    const hasNextPage = page < totalPages;
-    const hasPreviousPage = page > 1;
 
-    // Map fields to JSON Data
     const mappedAlmacenes: GetAlmacenDto[] = almacenes.map((almacen) => ({
       id: almacen.id,
       location: almacen.location,
       isActive: almacen.isActive,
       name: almacen.name,
-    }))
+      encargadoName: almacen.encargado?.name || null,
+      encargadoId: almacen.encargado?.id || null,
+      obraName: almacen.obra?.name || null,
+      obraId: almacen.obra?.id || null,
+    }));
 
-    const meta: PaginationMetaData = {
+    return new PaginatedAlmacenDto(mappedAlmacenes, {
       currentPage: page,
-      totalPages: totalPages,
-      totalItems: totalItems,
+      totalPages,
+      totalItems,
       itemsPerPage: limit,
-      hasNextPage: hasNextPage,
-      hasPreviousPage: hasPreviousPage,
-    }
-
-    return new PaginatedAlmacenDto(mappedAlmacenes, meta)
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
+    });
   }
 
   async findOne(dto: ParamAlmacenID): Promise<GetAlmacenDto> {

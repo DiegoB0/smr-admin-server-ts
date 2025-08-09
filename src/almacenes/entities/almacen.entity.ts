@@ -11,6 +11,7 @@ import {
 import { Inventario } from './inventario.entity';
 import { PeticionProducto } from 'src/requisiciones/entities/peticion_producto.entity';
 import { Obra } from 'src/obras/entities/obra.entity';
+import { User } from 'src/auth/entities/usuario.entity';
 
 @Entity('almacenes')
 export class Almacen {
@@ -35,12 +36,15 @@ export class Almacen {
   @OneToMany(() => Entrada, (entrada) => entrada.almacenDestino)
   entradas: Entrada[];
 
-  @OneToMany(() => Salida, s => s.almacenOrigen) 
+  @OneToMany(() => Salida, s => s.almacenOrigen)
   salidas: Salida[];
 
   @OneToMany(() => PeticionProducto, (peticion) => peticion.almacen)
   peticionesProducto: PeticionProducto[];
 
-  @ManyToOne(() => Obra, obra => obra.almacenes, {onDelete: 'SET NULL'})
+  @ManyToOne(() => Obra, obra => obra.almacenes, { onDelete: 'SET NULL' })
   obra: Obra
+
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  encargado?: User;
 }
