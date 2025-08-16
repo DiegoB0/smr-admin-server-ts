@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { User } from 'src/auth/entities/usuario.entity';
 import { AlmacenesService } from './almacenes.service';
 import { GetUser } from 'src/auth/decorators/user.decorator';
@@ -130,9 +130,9 @@ export class AlmacenesController {
   @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
   @RequirePermissions(CurrentPermissions.RemoveStock)
   async removeStock(
-    @Query('almacenId') almacenId: number,
+    @Query('almacenId', ParseIntPipe) almacenId: number,
     @Query('productId') productId: string,
-    @Query('cantidad') cantidad: number
+    @Query('cantidad', ParseIntPipe) cantidad: number
   ) {
     return this.almacenesService.removeStock(almacenId, productId, cantidad)
   }

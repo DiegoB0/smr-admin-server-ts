@@ -41,14 +41,6 @@ export class CreatePeticionProductoDto {
   observaciones: string;
 
   @ApiProperty({
-    description: 'ID del almacen',
-    example: 2,
-  })
-  @IsInt()
-  @IsPositive()
-  almacenId: number;
-
-  @ApiProperty({
     description: 'Lista de productos solicitados',
     type: () => PeticionProductoItemDto,
     isArray: true,

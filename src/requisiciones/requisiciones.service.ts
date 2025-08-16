@@ -27,12 +27,16 @@ export class RequisicionesService {
     @InjectRepository(PeticionProducto)
     private peticionRepo: Repository<PeticionProducto>,
 
+    @InjectRepository(User)
+    private userRepo: Repository<User>,
+
     @InjectRepository(PeticionProductoItem)
     private peticionItemRepo: Repository<PeticionProductoItem>,
 
     private readonly logService: LogsService
   ) { }
 
+  // TODO: Endpoint to get peticiones por almacen
   async getAllPeticiones(pagination: PaginationDto): Promise<PaginatedPeticionProductoDto> {
     const { page = 1, limit = 10, search, order = 'DESC' } = pagination;
     const skip = (page - 1) * limit;
@@ -139,7 +143,7 @@ export class RequisicionesService {
       const term = `%${search}%`;
       queryBuilder.andWhere(
         new Brackets((qb) => {
-          qb.where('peticion.observaciones ILIKE :term', { term })
+          qb.where('peticion.status::text ILIKE :term', { term })
             .orWhere('almacen.name ILIKE :term')
             .orWhere('creadoPor.email ILIKE :term');
         })
@@ -189,9 +193,26 @@ export class RequisicionesService {
       throw new BadRequestException('Debe incluir al menos un producto en la petición.');
     }
 
+    const currentUser = await this.userRepo.findOne({
+      where: { id: user.id },
+      relations: ['obra', 'obra.almacenes']
+    })
+
+
+    if (!currentUser) throw new NotFoundException('User not found')
+
+    if (!currentUser?.obra?.almacenes?.length) {
+      throw new BadRequestException(
+        'El usuario no tiene un almacén asignado a su obra.'
+      );
+    }
+
+    const almacenId = currentUser.obra.almacenes[0].id;
+
+
     const peticion = this.peticionRepo.create({
       observaciones: dto.observaciones,
-      almacen: { id: dto.almacenId } as any,
+      almacen: { id: almacenId } as any,
       creadoPor: { id: user.id } as any,
       status: PeticionStatus.PENDIENTE,
       items: dto.items.map((i) =>
