@@ -15,6 +15,7 @@ import { RequisicionStatus } from './types/requisicion-status';
 import { RequisicionAprovalLevel, RequisicionType } from './types/requisicion-type';
 import { Producto } from 'src/productos/entities/producto.entity';
 import { Almacen } from 'src/almacenes/entities/almacen.entity';
+import { PeticionGenerada } from './types/peticion-generada';
 
 @Injectable()
 export class RequisicionesService {
@@ -93,6 +94,96 @@ export class RequisicionesService {
       id: p.id,
       fechaCreacion: p.fechaCreacion,
       status: p.status,
+      observaciones: p.observaciones,
+      fechaRevision: p.fechaRevision ?? null,
+      almacen: { name: p.almacen?.name },
+      creadoPor: { email: p.creadoPor?.email },
+      revisadoPor: p.revisadoPor ? { email: p.revisadoPor.email } : null,
+      items: p.items.map((i) => ({
+        id: i.id,
+        cantidad: i.cantidad,
+        producto: {
+          id: i.producto.id,
+          name: i.producto.name,
+        },
+      })),
+    }));
+
+    return new PaginatedPeticionProductoDto(mapped, {
+      currentPage: page,
+      totalPages,
+      totalItems,
+      itemsPerPage: limit,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
+    });
+  }
+
+  async getAllPeticionesAprobadas(
+    pagination: PaginationDto
+  ): Promise<PaginatedPeticionProductoDto> {
+    const { page = 1, limit = 10, search, order = 'DESC' } = pagination;
+    const skip = (page - 1) * limit;
+
+    const queryBuilder = this.peticionRepo
+      .createQueryBuilder('peticion')
+      .select([
+        'peticion.id',
+        'peticion.fechaCreacion',
+        'peticion.status',
+        'peticion.generado',
+        'peticion.observaciones',
+        'peticion.fechaRevision',
+      ])
+      .leftJoin('peticion.almacen', 'almacen')
+      .addSelect(['almacen.name'])
+
+      .leftJoin('peticion.creadoPor', 'creadoPor')
+      .addSelect(['creadoPor.email'])
+
+      .leftJoin('peticion.revisadoPor', 'revisadoPor')
+      .addSelect(['revisadoPor.email'])
+
+      .leftJoin('peticion.items', 'items')
+      .addSelect(['items.id', 'items.cantidad'])
+
+      .leftJoin('items.producto', 'producto')
+      .addSelect(['producto.id', 'producto.name'])
+
+      // 👇 only aprobadas
+      .where('peticion.status = :status', {
+        status: PeticionStatus.APROBADO,
+      })
+      .andWhere('peticion.generado =:generado', {
+        generado: PeticionGenerada.PENDIENTE
+
+      });
+
+    if (search) {
+      const term = `%${search}%`;
+      queryBuilder.andWhere(
+        new Brackets((qb) => {
+          qb.where('peticion.observaciones ILIKE :term', { term })
+            .orWhere('almacen.name ILIKE :term', { term })
+            .orWhere('creadoPor.email ILIKE :term');
+        })
+      );
+    }
+
+    queryBuilder.orderBy('peticion.fechaCreacion', order);
+
+    const [peticiones, totalItems] = await queryBuilder
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+
+    const totalPages = Math.ceil(totalItems / limit);
+
+    const mapped: GetPeticionProductDto[] = peticiones.map((p) => ({
+      id: p.id,
+      fechaCreacion: p.fechaCreacion,
+      status: p.status,
+      generado: p.generado,
       observaciones: p.observaciones,
       fechaRevision: p.fechaRevision ?? null,
       almacen: { name: p.almacen?.name },
@@ -368,7 +459,7 @@ export class RequisicionesService {
     }
 
     const almacenDestino = await this.almacenRepo.findOne({
-      where: {id: almacenDestinoId}
+      where: { id: almacenDestinoId }
     })
 
     if (!almacenDestino) {
@@ -493,6 +584,10 @@ export class RequisicionesService {
     });
 
     await this.requisicionItemRepo.save(items);
+
+    await this.peticionRepo.update(peticion.id, {
+      generado: PeticionGenerada.GENERADA,
+    });
 
     return this.requisicionRepo.findOne({
       where: { id: savedRequisicion.id },

@@ -41,6 +41,18 @@ export class RequisicionesController {
   }
 
 
+  @Get('reportes/aproved_reports')
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.ListReport)
+  findApprovedReports(
+    @Query() dto: PaginationDto,
+  ) {
+    return this.requisicionesService.getAllPeticionesAprobadas(dto)
+
+  }
+
+
   @Get('reportes/reports_by_user')
   @SwaggerAuthHeaders()
   @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)

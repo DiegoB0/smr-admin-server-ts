@@ -10,6 +10,7 @@ import {
 import { Almacen } from 'src/almacenes/entities/almacen.entity';
 import { PeticionProductoItem } from './peticion_producto_item.entity';
 import { PeticionStatus } from '../types/peticion-status';
+import { PeticionGenerada } from '../types/peticion-generada';
 
 @Entity('peticion_productos')
 export class PeticionProducto {
@@ -21,6 +22,9 @@ export class PeticionProducto {
 
   @Column({ type: 'enum', enum: PeticionStatus, default: PeticionStatus.PENDIENTE })
   status: PeticionStatus;
+
+  @Column({type: 'enum', enum: PeticionGenerada, default: PeticionGenerada.PENDIENTE})
+  generado: PeticionGenerada;
 
   @Column('varchar')
   observaciones: string;
