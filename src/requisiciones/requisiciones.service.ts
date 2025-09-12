@@ -16,6 +16,7 @@ import { RequisicionAprovalLevel, RequisicionType } from './types/requisicion-ty
 import { Producto } from 'src/productos/entities/producto.entity';
 import { Almacen } from 'src/almacenes/entities/almacen.entity';
 import { PeticionGenerada } from './types/peticion-generada';
+import { Equipo } from 'src/equipos/entities/equipo.entity';
 
 @Injectable()
 export class RequisicionesService {
@@ -37,6 +38,9 @@ export class RequisicionesService {
 
     @InjectRepository(Almacen)
     private almacenRepo: Repository<Almacen>,
+
+    @InjectRepository(Equipo)
+    private equipoRepo: Repository<Equipo>,
 
     private readonly logService: LogsService
   ) { }
@@ -304,11 +308,19 @@ export class RequisicionesService {
 
     const almacenId = currentUser.obra.almacenes[0].id;
 
+    const equipo = await this.equipoRepo.findOne({
+      where: {id: dto.equipoId}
+    })
+
+    if (!equipo) {
+      throw new NotFoundException('No se encontro el equipo')
+    }
 
     const peticion = this.peticionRepo.create({
       observaciones: dto.observaciones,
       almacen: { id: almacenId } as any,
       creadoPor: { id: user.id } as any,
+      equipo,
       status: PeticionStatus.PENDIENTE,
       items: dto.items.map((i) =>
         this.peticionItemRepo.create({

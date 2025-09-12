@@ -9,7 +9,7 @@ export class ObrasController {
   constructor(private readonly obrasService: ObrasService) { }
 
   @Post('add')
-  create(@Body() dto: CreateObraDto) {
+  add(@Body() dto: CreateObraDto) {
     return this.obrasService.create(dto);
   }
 

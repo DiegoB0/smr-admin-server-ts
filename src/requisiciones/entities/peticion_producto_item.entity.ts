@@ -10,7 +10,7 @@ export class PeticionProductoItem {
   @Column('int')
   cantidad: number;
 
-  @ManyToOne(() => Producto, { eager: true })
+  @ManyToOne(() => Producto)
   producto: Producto;
 
   @ManyToOne(() => PeticionProducto, (reporte) => reporte.items, { onDelete: 'CASCADE' })

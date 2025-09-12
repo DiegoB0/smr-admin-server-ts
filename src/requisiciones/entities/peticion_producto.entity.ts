@@ -11,6 +11,7 @@ import { Almacen } from 'src/almacenes/entities/almacen.entity';
 import { PeticionProductoItem } from './peticion_producto_item.entity';
 import { PeticionStatus } from '../types/peticion-status';
 import { PeticionGenerada } from '../types/peticion-generada';
+import { Equipo } from 'src/equipos/entities/equipo.entity';
 
 @Entity('peticion_productos')
 export class PeticionProducto {
@@ -41,6 +42,9 @@ export class PeticionProducto {
   @Column({ type: 'timestamptz', nullable: true })
   fechaRevision?: Date;
 
-  @OneToMany(() => PeticionProductoItem, (ri) => ri.reporte, { cascade: true })
+  @OneToMany(() => PeticionProductoItem, (ri) => ri.reporte)
   items: PeticionProductoItem[];
+
+  @ManyToOne(() => Equipo, (equipo) => equipo.reportes)
+  equipo?: Equipo;
 }

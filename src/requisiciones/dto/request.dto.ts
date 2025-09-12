@@ -43,6 +43,14 @@ export class CreatePeticionProductoDto {
   observaciones: string;
 
   @ApiProperty({
+    description: 'ID del equipo',
+    example: 2,
+  })
+  @IsInt()
+  @IsPositive()
+  equipoId: number;
+
+  @ApiProperty({
     description: 'Lista de productos solicitados',
     type: () => PeticionProductoItemDto,
     isArray: true,
@@ -81,6 +89,14 @@ export class UpdatePeticionProductoDto {
   @IsOptional()
   @Length(3, 255)
   observaciones?: string;
+
+  @ApiProperty({
+    description: 'ID del equipo',
+    example: 2,
+  })
+  @IsInt()
+  @IsPositive()
+  equipoId: number;
 
   @ApiProperty({
     description: 'Lista de productos solicitados',

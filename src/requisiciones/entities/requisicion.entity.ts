@@ -1,4 +1,5 @@
 import { User } from 'src/auth/entities/usuario.entity';
+import { Equipo } from 'src/equipos/entities/equipo.entity';
 import {
   Column,
   CreateDateColumn,
@@ -75,6 +76,9 @@ export class Requisicion {
   // Relacion con cada item
   @OneToMany(() => RequisicionItem, ri => ri.requisicion, { cascade: true })
   items: RequisicionItem[];
+
+  @ManyToOne(() => Equipo, (equipo) => equipo.requisiciones)
+  equipo?: Equipo;
 
   // TODO:
   // - Add the obra the requisicion belongs

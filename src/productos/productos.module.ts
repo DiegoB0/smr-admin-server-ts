@@ -20,5 +20,6 @@ import { Almacen } from 'src/almacenes/entities/almacen.entity';
   ],
   controllers: [ProductosController],
   providers: [ProductosService],
+  exports: [TypeOrmModule]
 })
 export class ProductosModule {}
