@@ -6,14 +6,15 @@ import { Brackets, Repository } from 'typeorm';
 import { RequisicionItem } from './entities/requisicion_item.entity';
 import { PeticionProducto } from './entities/peticion_producto.entity';
 import { PeticionProductoItem } from './entities/peticion_producto_item.entity';
-import { CreatePeticionProductoDto, CreateRequisicionDto, UpdatePeticionProductoDto } from './dto/request.dto';
+import { CreatePeticionProductoDto, CreateRequisicionDto, CreateServiceRequisicionDto, UpdatePeticionProductoDto } from './dto/request.dto';
 import { PeticionStatus } from './types/peticion-status';
 import { User } from 'src/auth/entities/usuario.entity';
 import { GetPeticionProductDto, PaginatedPeticionProductoDto, ReporteQueryDto } from './dto/response.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { RequisicionStatus } from './types/requisicion-status';
-import { RequisicionAprovalLevel } from './types/requisicion-type';
+import { RequisicionAprovalLevel, RequisicionType } from './types/requisicion-type';
 import { Producto } from 'src/productos/entities/producto.entity';
+import { Almacen } from 'src/almacenes/entities/almacen.entity';
 
 @Injectable()
 export class RequisicionesService {
@@ -32,6 +33,9 @@ export class RequisicionesService {
 
     @InjectRepository(PeticionProductoItem)
     private peticionItemRepo: Repository<PeticionProductoItem>,
+
+    @InjectRepository(Almacen)
+    private almacenRepo: Repository<Almacen>,
 
     private readonly logService: LogsService
   ) { }
@@ -341,9 +345,85 @@ export class RequisicionesService {
 
   // TODO: CHECK IF THERE'S ENOUGH STOCK BEFORE DOING THE REQUISICION. IF THERE'S ENOUGH CREATE an ENTRADA
   // TODO: METODOS PARA LAS REQUISICIONES
+  async createServiceRequisicion(
+    dto: CreateServiceRequisicionDto,
+    user: User
+  ) {
+    const {
+      almacenCargoId,
+      almacenDestinoId,
+      cantidad_dinero,
+      description,
+      concepto,
+      prioridad,
+      metodo_pago,
+    } = dto;
+
+    const almacenCargo = await this.almacenRepo.findOne({
+      where: { id: almacenCargoId }
+    })
+
+    if (!almacenCargo) {
+      throw new NotFoundException('No se encontro el almacen')
+    }
+
+    const almacenDestino = await this.almacenRepo.findOne({
+      where: {id: almacenDestinoId}
+    })
+
+    if (!almacenDestino) {
+      throw new NotFoundException('No se encontro el almacen')
+    }
+
+
+    if (!cantidad_dinero || cantidad_dinero <= 0) {
+      throw new BadRequestException(
+        'La requisición de servicio requiere una cantidad de dinero válida.'
+      );
+    }
+
+    // Same approval logic as product path
+    let aprovalType: RequisicionAprovalLevel;
+    if (cantidad_dinero < 2000) {
+      aprovalType = RequisicionAprovalLevel.NONE;
+    } else if (cantidad_dinero <= 5000) {
+      aprovalType = RequisicionAprovalLevel.ADMIN;
+    } else {
+      aprovalType = RequisicionAprovalLevel.SPECIAL_PERMISSION;
+    }
+
+    const requisicion = this.requisicionRepo.create({
+      status: RequisicionStatus.PENDIENTE,
+      aprovalType,
+      cantidad_dinero,
+      metodo_pago,
+      prioridad,
+      concepto,
+      almacenCargo,
+      almacenDestino,
+      requisicionType: RequisicionType.SERVICE,
+      pedidoPor: user ?? null,
+      descripcion: description,
+    });
+
+    const saved = await this.requisicionRepo.save(requisicion);
+
+    return this.requisicionRepo.findOne({
+      where: { id: saved.id },
+      relations: ['almacenCargo', 'pedidoPor'],
+    });
+  }
 
   async createRequisicion(dto: CreateRequisicionDto, user: User) {
-    const { peticionId, metodo_pago } = dto;
+    const { peticionId, metodo_pago, prioridad, hrm, concepto, almacenCargoId } = dto;
+
+    const almacenCargo = await this.almacenRepo.findOne({
+      where: { id: almacenCargoId }
+    })
+
+    if (!almacenCargo) {
+      throw new NotFoundException('No se encontro el almacen')
+    }
 
     const exists = await this.requisicionRepo.findOne({
       where: { peticion: { id: peticionId } },
@@ -376,24 +456,29 @@ export class RequisicionesService {
     }
 
 
-    let requisicionType: RequisicionAprovalLevel;
+    let aprovalType: RequisicionAprovalLevel;
     if (totalCost < 2000) {
-      requisicionType = RequisicionAprovalLevel.NONE;
+      aprovalType = RequisicionAprovalLevel.NONE;
     } else if (totalCost <= 5000) {
-      requisicionType = RequisicionAprovalLevel.ADMIN;
+      aprovalType = RequisicionAprovalLevel.ADMIN;
     } else {
-      requisicionType = RequisicionAprovalLevel.SPECIAL_PERMISSION;
+      aprovalType = RequisicionAprovalLevel.SPECIAL_PERMISSION;
     }
 
     const savedRequisicion = await this.requisicionRepo.save(
       this.requisicionRepo.create({
         status: RequisicionStatus.PENDIENTE,
-        requisicionType,
+        aprovalType,
         cantidad_dinero: totalCost,
         metodo_pago,
+        prioridad,
+        concepto,
+        almacenCargo,
         almacenDestino: peticion.almacen,
-        pedidoPor: user,
-        peticion
+        requisicionType: RequisicionType.PRODUCT,
+        pedidoPor: user ?? null,
+        peticion,
+        hrm,
       })
     );
 

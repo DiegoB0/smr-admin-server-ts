@@ -3,3 +3,8 @@ export enum RequisicionAprovalLevel {
   ADMIN = 'admin', // from 2000 - 5000 $
   SPECIAL_PERMISSION = 'special_permission' // > 5000 $
 }
+
+export enum RequisicionType {
+  PRODUCT = "product",
+  SERVICE = "service"
+}

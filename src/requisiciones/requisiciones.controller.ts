@@ -8,7 +8,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from 'src/auth/guards/permiso.guard';
 import { CurrentPermissions } from 'src/auth/types/current-permissions';
 import { RequirePermissions } from 'src/auth/decorators/permiso.decorator';
-import { CreatePeticionProductoDto, CreateRequisicionDto, UpdatePeticionProductoDto } from './dto/request.dto';
+import { CreatePeticionProductoDto, CreateRequisicionDto, CreateServiceRequisicionDto, UpdatePeticionProductoDto } from './dto/request.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { ReporteQueryDto } from './dto/response.dto';
 
@@ -86,6 +86,8 @@ export class RequisicionesController {
   }
 
   /* REQUISICIONES */
+
+  // Requisiciones de productos (relacionadas con reportes)
   @Post('create_requisicion')
   @SwaggerAuthHeaders()
   @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
@@ -95,6 +97,19 @@ export class RequisicionesController {
     @GetUser() user: User
   ) {
     return this.requisicionesService.createRequisicion(dto, user);
+  }
+
+
+  // Requisiciones de servicios
+  @Post('create_service_requisicion')
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.CreateRequisicion)
+  createServiceRequisicion(
+    @Body() dto: CreateServiceRequisicionDto,
+    @GetUser() user: User
+  ) {
+    return this.requisicionesService.createServiceRequisicion(dto, user);
   }
 
   @Get('all_requisiciones')

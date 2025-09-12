@@ -16,5 +16,6 @@ import { Obra } from 'src/obras/entities/obra.entity';
   ],
   controllers: [AlmacenesController],
   providers: [AlmacenesService],
+  exports: [TypeOrmModule]
 })
 export class AlmacenesModule {}
