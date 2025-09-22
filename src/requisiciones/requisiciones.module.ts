@@ -11,6 +11,7 @@ import { PeticionProductoItem } from './entities/peticion_producto_item.entity';
 import { AlmacenesModule } from 'src/almacenes/almacenes.module';
 import { EquiposModule } from 'src/equipos/equipos.module';
 import { ProductosModule } from 'src/productos/productos.module';
+import { RequisicionServiceItem } from './entities/requisicion_service_item.entity';
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { ProductosModule } from 'src/productos/productos.module';
       Requisicion,
       RequisicionItem,
       PeticionProducto,
-      PeticionProductoItem
+      PeticionProductoItem,
+      RequisicionServiceItem,
     ]),
     LogsModule,
     AuthModule,

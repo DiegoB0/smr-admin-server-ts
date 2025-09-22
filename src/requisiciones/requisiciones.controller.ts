@@ -128,8 +128,10 @@ export class RequisicionesController {
   @SwaggerAuthHeaders()
   @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
   @RequirePermissions(CurrentPermissions.ListRequisicion)
-  getAllRequisiciones() {
-    return this.requisicionesService.getAllRequisiciones();
+  getAllRequisiciones(
+    @Query() dto: PaginationDto,
+  ) {
+    return this.requisicionesService.getAllRequisiciones(dto);
   }
 
   @Patch(':id/approve')

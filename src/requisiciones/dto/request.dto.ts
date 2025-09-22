@@ -139,6 +139,22 @@ export class CreateRequisicionDto {
   hrm?: number;
 
   @ApiProperty({
+    description: 'Numero de la requisicion',
+    example: 101,
+  })
+  @IsInt()
+  @IsPositive()
+  @IsOptional()
+  rcp?: number;
+
+  @ApiProperty({
+    description: 'Titulo de la requisicion',
+    example: "Some title",
+  })
+  @IsString()
+  titulo: string;
+
+  @ApiProperty({
     description: 'Concepto de la requisicion',
     example: "Viaticos",
   })
@@ -195,22 +211,20 @@ export class CreateServiceRequisicionDto {
   almacenDestinoId?: number;
 
   @ApiProperty({
-    description: 'Cantidad de dinero',
-    example: '100.00',
-    type: Number,
+    description: 'Numero de la requisicion',
+    example: 101,
   })
-  @IsNumber({ maxDecimalPlaces: 2 }, { message: 'Must be a valid number' })
+  @IsInt()
   @IsPositive()
   @IsOptional()
-  cantidad_dinero?: number;
+  rcp?: number;
 
   @ApiProperty({
-    description: 'Descripcion de la requisicion',
-    example: "Detergente en polvo",
+    description: 'Titulo de la requisicion',
+    example: "Some title",
   })
   @IsString()
-  @IsOptional()
-  description?: string;
+  titulo: string;
 
   @ApiProperty({
     description: 'Concepto de la requisicion',
@@ -236,7 +250,6 @@ export class CreateServiceRequisicionDto {
   @IsEnum(MetodoPago, { message: 'El método de pago no es válido' })
   @IsNotEmpty()
   metodo_pago: MetodoPago;
-
 
   @ApiProperty({
     description: 'Método de pago disponible',

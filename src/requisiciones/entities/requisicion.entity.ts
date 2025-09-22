@@ -15,6 +15,8 @@ import { RequisicionItem } from './requisicion_item.entity';
 import { RequisicionAprovalLevel, RequisicionType } from '../types/requisicion-type';
 import { MetodoPago } from '../types/metodo-pago';
 import { PeticionProducto } from './peticion_producto.entity';
+import { RequisicionServiceItem } from './requisicion_service_item.entity';
+import { PrioridadType } from '../types/prioridad-type';
 
 @Entity('requisiciones')
 export class Requisicion {
@@ -25,10 +27,13 @@ export class Requisicion {
   fechaSolicitud: Date;
 
   @Column({nullable: true})
-  prioridad: string;
+  rcp: number;
 
   @Column({nullable: true})
-  descripcion: string;
+  titulo: string;
+
+  @Column({enum: PrioridadType})
+  prioridad: PrioridadType;
 
   @Column({nullable: true})
   hrm: number; // Horas de servicio
@@ -77,8 +82,11 @@ export class Requisicion {
   @OneToMany(() => RequisicionItem, ri => ri.requisicion, { cascade: true })
   items: RequisicionItem[];
 
+  @OneToMany(() => RequisicionServiceItem, ri => ri.requisicion, { cascade: true })
+  service_items: RequisicionServiceItem[];
+
   @ManyToOne(() => Equipo, (equipo) => equipo.requisiciones)
-  equipo?: Equipo;
+  equipo: Equipo;
 
   // TODO:
   // - Add the obra the requisicion belongs

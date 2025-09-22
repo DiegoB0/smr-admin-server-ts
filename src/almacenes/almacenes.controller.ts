@@ -43,6 +43,18 @@ export class AlmacenesController {
 
   }
 
+  @Get('find_almacenes')
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.ListAlmacen)
+  findAlmacenes(
+    @Query() dto: PaginationDto,
+    @GetUser() user: User
+  ) {
+    return this.almacenesService.findAlmacenes(dto, user)
+
+  }
+
   @Get('find_almacen/:id')
   @SwaggerAuthHeaders()
   @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)

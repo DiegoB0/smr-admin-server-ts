@@ -16,7 +16,6 @@ export class ProductosController {
   constructor(private readonly productosService: ProductosService) {}
 
   /* PRODUCTOS */
-
   @Post('add')
   @HttpCode(HttpStatus.OK)
   @SwaggerAuthHeaders()

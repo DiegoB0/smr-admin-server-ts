@@ -1,5 +1,6 @@
 export enum PeticionStatus {
   PENDIENTE = 'PENDIENTE',
   APROBADO = 'APROBADO',
+  PROCESADO = 'PROCESADO',
   RECHAZADO = 'RECHAZADO',
 }

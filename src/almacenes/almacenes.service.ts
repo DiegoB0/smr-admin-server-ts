@@ -88,6 +88,57 @@ export class AlmacenesService {
     return query.getMany();
   }
 
+
+  async findAlmacenes(
+    pagination: PaginationDto,
+    user: User
+  ): Promise<PaginatedAlmacenDto> {
+    const { page = 1, limit = 10 } = pagination;
+
+
+    const almacenesEncargado = await this.almacenRepo
+      .createQueryBuilder('almacen')
+      .leftJoin('almacen.encargado', 'encargado')
+      .addSelect(['encargado.name', 'encargado.id'])
+      .leftJoin('almacen.obra', 'obra')
+      .addSelect(['obra.name', 'obra.id'])
+      .where('almacen.isActive = :isActive', { isActive: true })
+      .getMany();
+
+    if (almacenesEncargado.length === 0) {
+      return new PaginatedAlmacenDto([], {
+        currentPage: 1,
+        totalPages: 0,
+        totalItems: 0,
+        itemsPerPage: limit,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      });
+    }
+
+    const mappedAlmacenes: GetAlmacenDto[] = almacenesEncargado.map(
+      (almacen) => ({
+        id: almacen.id,
+        location: almacen.location,
+        isActive: almacen.isActive,
+        name: almacen.name,
+        encargadoName: almacen.encargado?.name || null,
+        encargadoId: almacen.encargado?.id || null,
+        obraName: almacen.obra?.name || null,
+        obraId: almacen.obra?.id || null,
+      })
+    );
+
+    return new PaginatedAlmacenDto(mappedAlmacenes, {
+      currentPage: 1,
+      totalPages: 1,
+      totalItems: mappedAlmacenes.length,
+      itemsPerPage: mappedAlmacenes.length,
+      hasNextPage: false,
+      hasPreviousPage: false,
+    });
+  }
+
   async findAll(
     pagination: PaginationDto,
     user: User

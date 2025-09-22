@@ -9,7 +9,7 @@ import { PeticionProductoItem } from './entities/peticion_producto_item.entity';
 import { CreatePeticionProductoDto, CreateRequisicionDto, CreateServiceRequisicionDto, UpdatePeticionProductoDto } from './dto/request.dto';
 import { PeticionStatus } from './types/peticion-status';
 import { User } from 'src/auth/entities/usuario.entity';
-import { GetPeticionProductDto, PaginatedPeticionProductoDto, ReporteQueryDto } from './dto/response.dto';
+import { GetPeticionProductDto, GetRequisicionDto, PaginatedPeticionProductoDto, PaginatedRequisicionDto, ReporteQueryDto } from './dto/response.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { RequisicionStatus } from './types/requisicion-status';
 import { RequisicionAprovalLevel, RequisicionType } from './types/requisicion-type';
@@ -30,11 +30,11 @@ export class RequisicionesService {
     @InjectRepository(PeticionProducto)
     private peticionRepo: Repository<PeticionProducto>,
 
-    @InjectRepository(User)
-    private userRepo: Repository<User>,
-
     @InjectRepository(PeticionProductoItem)
     private peticionItemRepo: Repository<PeticionProductoItem>,
+
+    @InjectRepository(User)
+    private userRepo: Repository<User>,
 
     @InjectRepository(Almacen)
     private almacenRepo: Repository<Almacen>,
@@ -68,6 +68,9 @@ export class RequisicionesService {
       .leftJoin('peticion.revisadoPor', 'revisadoPor')
       .addSelect(['revisadoPor.email'])
 
+      .leftJoin('peticion.equipo', 'equipo')
+      .addSelect(['equipo.equipo'])
+
       .leftJoin('peticion.items', 'items')
       .addSelect(['items.id', 'items.cantidad'])
 
@@ -100,6 +103,7 @@ export class RequisicionesService {
       status: p.status,
       observaciones: p.observaciones,
       fechaRevision: p.fechaRevision ?? null,
+      equipo: p.equipo?.equipo,
       almacen: { name: p.almacen?.name },
       creadoPor: { email: p.creadoPor?.email },
       revisadoPor: p.revisadoPor ? { email: p.revisadoPor.email } : null,
@@ -151,10 +155,12 @@ export class RequisicionesService {
       .leftJoin('peticion.items', 'items')
       .addSelect(['items.id', 'items.cantidad'])
 
+      .leftJoin('peticion.equipo', 'equipo')
+      .addSelect(['equipo.equipo'])
+
       .leftJoin('items.producto', 'producto')
       .addSelect(['producto.id', 'producto.name'])
 
-      // 👇 only aprobadas
       .where('peticion.status = :status', {
         status: PeticionStatus.APROBADO,
       })
@@ -190,6 +196,7 @@ export class RequisicionesService {
       generado: p.generado,
       observaciones: p.observaciones,
       fechaRevision: p.fechaRevision ?? null,
+      equipo: p.equipo?.equipo,
       almacen: { name: p.almacen?.name },
       creadoPor: { email: p.creadoPor?.email },
       revisadoPor: p.revisadoPor ? { email: p.revisadoPor.email } : null,
@@ -236,6 +243,8 @@ export class RequisicionesService {
       .addSelect(['items.id', 'items.cantidad'])
       .leftJoin('items.producto', 'producto')
       .addSelect(['producto.id', 'producto.name'])
+      .leftJoin('peticion.equipo', 'equipo')
+      .addSelect(['equipo.equipo'])
       .where('creadoPor.id = :userId', { userId });
 
     if (search) {
@@ -267,6 +276,7 @@ export class RequisicionesService {
       almacen: { name: p.almacen?.name },
       creadoPor: { email: p.creadoPor?.email },
       revisadoPor: p.revisadoPor ? { email: p.revisadoPor.email } : null,
+      equipo: p.equipo?.equipo,
       items: p.items.map((i) => ({
         id: i.id,
         cantidad: i.cantidad,
@@ -309,7 +319,7 @@ export class RequisicionesService {
     const almacenId = currentUser.obra.almacenes[0].id;
 
     const equipo = await this.equipoRepo.findOne({
-      where: {id: dto.equipoId}
+      where: { id: dto.equipoId }
     })
 
     if (!equipo) {
@@ -322,15 +332,19 @@ export class RequisicionesService {
       creadoPor: { id: user.id } as any,
       equipo,
       status: PeticionStatus.PENDIENTE,
-      items: dto.items.map((i) =>
-        this.peticionItemRepo.create({
-          cantidad: i.cantidad,
-          producto: { id: i.productoId } as any,
-        })
-      ),
+      items: []
     });
 
     const saved = await this.peticionRepo.save(peticion);
+
+    for (const item of dto.items) {
+      const peticionItem = this.peticionItemRepo.create({
+        cantidad: item.cantidad,
+        producto: { id: item.productoId } as any,
+        reporte: saved,
+      });
+      await this.peticionItemRepo.save(peticionItem);
+    }
 
     await this.logService.createLog(
       user,
@@ -448,6 +462,97 @@ export class RequisicionesService {
 
   // TODO: CHECK IF THERE'S ENOUGH STOCK BEFORE DOING THE REQUISICION. IF THERE'S ENOUGH CREATE an ENTRADA
   // TODO: METODOS PARA LAS REQUISICIONES
+  async getAllRequisiciones(pagination: PaginationDto): Promise<PaginatedRequisicionDto> {
+    const { page = 1, limit = 10, order = 'DESC' } = pagination;
+    const skip = (page - 1) * limit;
+
+    const [requisiciones, totalItems] = await this.requisicionRepo.findAndCount({
+      relations: [
+        'items',
+        'equipo',
+        'items.producto',
+        'almacenCargo',
+        'almacenDestino',
+        'pedidoPor',
+        'revisadoPor',
+      ],
+      skip,
+      take: limit,
+      order: { fechaSolicitud: order as any },
+    });
+
+    const totalPages = Math.ceil(totalItems / limit);
+
+    const mappedData: GetRequisicionDto[] = requisiciones.map((r) => ({
+      id: r.id,
+      fechaSolicitud: r.fechaSolicitud,
+      rcp: r.rcp,
+      titulo: r.titulo,
+      prioridad: r.prioridad,
+      hrm: r.hrm,
+      concepto: r.concepto,
+      status: r.status,
+      aprovalType: r.aprovalType,
+      requisicionType: r.requisicionType,
+      cantidad_dinero: r.cantidad_dinero,
+      metodo_pago: r.metodo_pago,
+      equipo: {
+        equipo: r.equipo.equipo,
+        serie: r.equipo.serie,
+      },
+      almacenDestino: {
+        id: r.almacenDestino.id,
+        name: r.almacenDestino.name,
+        location: r.almacenDestino.location,
+        isActive: r.almacenDestino.isActive,
+      },
+      almacenCargo: {
+        id: r.almacenCargo.id,
+        name: r.almacenCargo.name,
+        location: r.almacenCargo.location,
+        isActive: r.almacenCargo.isActive,
+      },
+      pedidoPor: {
+        id: r.pedidoPor.id,
+        email: r.pedidoPor.email,
+        name: r.pedidoPor.name,
+        imageUrl: r.pedidoPor.imageUrl,
+        isActive: r.pedidoPor.isActive,
+      },
+      revisadoPor: r.revisadoPor
+        ? {
+          id: r.revisadoPor.id,
+          email: r.revisadoPor.email,
+          name: r.revisadoPor.name,
+          imageUrl: r.revisadoPor.imageUrl,
+          isActive: r.revisadoPor.isActive,
+        }
+        : null,
+      fechaRevision: r.fechaRevision ?? null,
+      items: r.items.map((i) => ({
+        id: i.id,
+        cantidadSolicitada: i.cantidadSolicitada,
+        producto: {
+          id: i.producto.id,
+          name: i.producto.name,
+          description: i.producto.description,
+          unidad: i.producto.unidad,
+          precio: i.producto.precio,
+          isActive: i.producto.isActive,
+        },
+      })),
+    }));
+
+    return new PaginatedRequisicionDto(mappedData, {
+      currentPage: page,
+      totalPages,
+      totalItems,
+      itemsPerPage: limit,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
+    });
+  }
+
   async createServiceRequisicion(
     dto: CreateServiceRequisicionDto,
     user: User
@@ -455,8 +560,6 @@ export class RequisicionesService {
     const {
       almacenCargoId,
       almacenDestinoId,
-      cantidad_dinero,
-      description,
       concepto,
       prioridad,
       metodo_pago,
@@ -479,14 +582,10 @@ export class RequisicionesService {
     }
 
 
-    if (!cantidad_dinero || cantidad_dinero <= 0) {
-      throw new BadRequestException(
-        'La requisición de servicio requiere una cantidad de dinero válida.'
-      );
-    }
 
     // Same approval logic as product path
     let aprovalType: RequisicionAprovalLevel;
+    let cantidad_dinero = 0
     if (cantidad_dinero < 2000) {
       aprovalType = RequisicionAprovalLevel.NONE;
     } else if (cantidad_dinero <= 5000) {
@@ -506,7 +605,6 @@ export class RequisicionesService {
       almacenDestino,
       requisicionType: RequisicionType.SERVICE,
       pedidoPor: user ?? null,
-      descripcion: description,
     });
 
     const saved = await this.requisicionRepo.save(requisicion);
@@ -518,7 +616,7 @@ export class RequisicionesService {
   }
 
   async createRequisicion(dto: CreateRequisicionDto, user: User) {
-    const { peticionId, metodo_pago, prioridad, hrm, concepto, almacenCargoId } = dto;
+    const { peticionId, metodo_pago, prioridad, hrm, concepto, almacenCargoId, titulo, rcp } = dto;
 
     const almacenCargo = await this.almacenRepo.findOne({
       where: { id: almacenCargoId }
@@ -537,7 +635,7 @@ export class RequisicionesService {
 
     const peticion = await this.peticionRepo.findOne({
       where: { id: peticionId },
-      relations: ['items', 'items.producto', 'almacen'],
+      relations: ['items', 'items.producto', 'almacen', 'equipo'],
     });
 
     if (!peticion) {
@@ -576,12 +674,15 @@ export class RequisicionesService {
         metodo_pago,
         prioridad,
         concepto,
+        rcp,
+        titulo,
         almacenCargo,
         almacenDestino: peticion.almacen,
         requisicionType: RequisicionType.PRODUCT,
         pedidoPor: user ?? null,
         peticion,
         hrm,
+        equipo: peticion?.equipo,
       })
     );
 
@@ -599,6 +700,7 @@ export class RequisicionesService {
 
     await this.peticionRepo.update(peticion.id, {
       generado: PeticionGenerada.GENERADA,
+      status: PeticionStatus.PROCESADO
     });
 
     return this.requisicionRepo.findOne({
@@ -606,20 +708,6 @@ export class RequisicionesService {
       relations: ['items', 'items.producto', 'almacenDestino', 'pedidoPor'],
     });
   }
-
-  async getAllRequisiciones() {
-    return this.requisicionRepo.find({
-      relations: [
-        'items',
-        'items.producto',
-        'almacenDestino',
-        'pedidoPor',
-        'revisadoPor',
-      ],
-      order: { fechaSolicitud: 'DESC' },
-    });
-  }
-
 
   // TODO: LET DIFFERENT ROLES DO THIS OPERATION BASED ON THE RequisicionType field
   async acceptRequisicion(id: number, user: User) {

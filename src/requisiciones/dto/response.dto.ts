@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsString } from "class-validator";
+import { on } from "events";
 import { PaginatedResponseDto, PaginationDto } from "src/common/dto/pagination.dto";
 
 export class ReporteQueryDto extends PaginationDto {
@@ -22,6 +23,11 @@ class AlmacenMinimalDto {
 class UserMinimalDto {
   @ApiProperty({ example: 'diego@almacen.com' })
   email: string;
+}
+
+class EquipoMinimal {
+  equipo: string;
+  serie: string;
 }
 
 class ProductoMinimalDto {
@@ -68,6 +74,7 @@ export class GetPeticionProductDto {
   @ApiProperty({ type: () => UserMinimalDto, nullable: true })
   revisadoPor: UserMinimalDto | null;
 
+
   @ApiProperty({ type: () => [PeticionItemMinimalDto] })
   items: PeticionItemMinimalDto[];
 }
@@ -78,5 +85,86 @@ export class PaginatedPeticionProductoDto extends PaginatedResponseDto<GetPetici
     type: [GetPeticionProductDto], 
   })
  declare data: GetPeticionProductDto[];
+
+}
+
+
+export class RequisicionItemMinimalDto {
+  @ApiProperty({ example: 24 })
+  id: number;
+
+  @ApiProperty({ example: 10 })
+  cantidadSolicitada: number;
+
+  @ApiProperty({ type: () => ProductoMinimalDto })
+  producto: ProductoMinimalDto;
+}
+
+
+export class GetRequisicionDto {
+  @ApiProperty({ example: 8 })
+  id: number;
+
+  @ApiProperty({ example: '2025-09-22T08:48:34.464Z' })
+  fechaSolicitud: Date;
+
+  @ApiProperty({ example: 123 })
+  rcp: number;
+
+  @ApiProperty({ example: 'asdf' })
+  titulo: string;
+
+  @ApiProperty({ example: 'baja' })
+  prioridad: string;
+
+  @ApiProperty({ example: 123 })
+  hrm: number;
+
+  @ApiProperty({ example: 'asdf' })
+  concepto: string;
+
+  @ApiProperty({ example: 'pendiente' })
+  status: string;
+
+  @ApiProperty({ example: 'none' })
+  aprovalType: string;
+
+  @ApiProperty({ example: 'product' })
+  requisicionType: string;
+
+  @ApiProperty({ example: 1000 })
+  cantidad_dinero: number;
+
+  @ApiProperty({ example: 'efectivo' })
+  metodo_pago: string;
+
+  @ApiProperty({ type: () => AlmacenMinimalDto })
+  almacenDestino: AlmacenMinimalDto;
+
+  @ApiProperty({ type: () => AlmacenMinimalDto })
+  almacenCargo: AlmacenMinimalDto;
+
+  @ApiProperty({ type: () => UserMinimalDto })
+  pedidoPor: UserMinimalDto;
+
+  @ApiProperty({ type: () => UserMinimalDto, nullable: true })
+  revisadoPor: UserMinimalDto | {} | null;
+
+  @ApiProperty({ type: () => EquipoMinimal, nullable: true })
+  equipo: EquipoMinimal | {};
+
+  @ApiProperty({ example: null, nullable: true })
+  fechaRevision: Date | null;
+
+  @ApiProperty({ type: () => [RequisicionItemMinimalDto] })
+  items: RequisicionItemMinimalDto[];
+}
+
+export class PaginatedRequisicionDto extends PaginatedResponseDto<GetRequisicionDto> {
+  @ApiProperty({
+    description: 'Array de requisiciones',
+    type: [GetRequisicionDto], 
+  })
+ declare data: GetRequisicionDto[];
 
 }
