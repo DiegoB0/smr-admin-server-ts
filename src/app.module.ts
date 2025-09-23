@@ -11,6 +11,7 @@ import { EntradasModule } from './entradas/entradas.module';
 import { SalidasModule } from './salidas/salidas.module';
 import { EquiposModule } from './equipos/equipos.module';
 import { ObrasModule } from './obras/obras.module';
+import { ProveedoresModule } from './proveedores/proveedores.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { ObrasModule } from './obras/obras.module';
     SalidasModule,
     EquiposModule,
     ObrasModule,
+    ProveedoresModule,
 
   ],
 })

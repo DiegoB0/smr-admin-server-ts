@@ -26,19 +26,19 @@ export class Requisicion {
   @CreateDateColumn()
   fechaSolicitud: Date;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   rcp: number;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   titulo: string;
 
-  @Column({enum: PrioridadType})
+  @Column({ enum: PrioridadType })
   prioridad: PrioridadType;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   hrm: number; // Horas de servicio
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   concepto: string;
 
   @ManyToOne(() => Almacen, (almacen) => almacen.requisiciones)
@@ -50,13 +50,13 @@ export class Requisicion {
   @Column({ type: 'enum', enum: RequisicionAprovalLevel, default: RequisicionAprovalLevel.NONE })
   aprovalType: RequisicionAprovalLevel;
 
-  @Column({type: 'enum', enum: RequisicionType, default: RequisicionType.PRODUCT})
+  @Column({ type: 'enum', enum: RequisicionType, default: RequisicionType.PRODUCT })
   requisicionType: RequisicionType;
 
   @Column('int')
   cantidad_dinero: number;
 
-  @Column({ type: 'enum', enum: MetodoPago, default: MetodoPago.TARJETA })
+  @Column({ type: 'enum', enum: MetodoPago, default: MetodoPago.SIN_PAGAR })
   metodo_pago: MetodoPago;
 
   @ManyToOne(() => Almacen, (almacen) => almacen.requisiciones)
@@ -71,11 +71,11 @@ export class Requisicion {
   @Column({ type: 'timestamptz', nullable: true })
   fechaRevision?: Date;
 
-  @ManyToOne(() => PeticionProducto, { eager: true, nullable: true})
+  @ManyToOne(() => PeticionProducto, { eager: true, nullable: true })
   @JoinColumn({ name: 'peticionId' })
   peticion: PeticionProducto;
 
-  @Column({ name: 'peticionId', unique: true, nullable: true})
+  @Column({ name: 'peticionId', unique: true, nullable: true })
   peticionId: number;
 
   // Relacion con cada item
@@ -85,7 +85,7 @@ export class Requisicion {
   @OneToMany(() => RequisicionServiceItem, ri => ri.requisicion, { cascade: true })
   service_items: RequisicionServiceItem[];
 
-  @ManyToOne(() => Equipo, (equipo) => equipo.requisiciones)
+  @ManyToOne(() => Equipo, (equipo) => equipo.requisiciones, { nullable: true })
   equipo: Equipo;
 
   // TODO:

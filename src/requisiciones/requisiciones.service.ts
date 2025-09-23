@@ -17,6 +17,7 @@ import { Producto } from 'src/productos/entities/producto.entity';
 import { Almacen } from 'src/almacenes/entities/almacen.entity';
 import { PeticionGenerada } from './types/peticion-generada';
 import { Equipo } from 'src/equipos/entities/equipo.entity';
+import { RequisicionServiceItem } from './entities/requisicion_service_item.entity';
 
 @Injectable()
 export class RequisicionesService {
@@ -26,6 +27,10 @@ export class RequisicionesService {
 
     @InjectRepository(RequisicionItem)
     private requisicionItemRepo: Repository<RequisicionItem>,
+
+
+    @InjectRepository(RequisicionServiceItem)
+    private serviceItemRepo: Repository<RequisicionServiceItem>,
 
     @InjectRepository(PeticionProducto)
     private peticionRepo: Repository<PeticionProducto>,
@@ -127,6 +132,7 @@ export class RequisicionesService {
     });
   }
 
+  // TODO: FIX THE REST OF GETS FO REQUISICIONES
   async getAllPeticionesAprobadas(
     pagination: PaginationDto
   ): Promise<PaginatedPeticionProductoDto> {
@@ -462,15 +468,18 @@ export class RequisicionesService {
 
   // TODO: CHECK IF THERE'S ENOUGH STOCK BEFORE DOING THE REQUISICION. IF THERE'S ENOUGH CREATE an ENTRADA
   // TODO: METODOS PARA LAS REQUISICIONES
-  async getAllRequisiciones(pagination: PaginationDto): Promise<PaginatedRequisicionDto> {
+  async getAllRequisiciones(
+    pagination: PaginationDto
+  ): Promise<PaginatedRequisicionDto> {
     const { page = 1, limit = 10, order = 'DESC' } = pagination;
     const skip = (page - 1) * limit;
 
     const [requisiciones, totalItems] = await this.requisicionRepo.findAndCount({
       relations: [
         'items',
-        'equipo',
         'items.producto',
+        'service_items',
+        'equipo',
         'almacenCargo',
         'almacenDestino',
         'pedidoPor',
@@ -496,10 +505,13 @@ export class RequisicionesService {
       requisicionType: r.requisicionType,
       cantidad_dinero: r.cantidad_dinero,
       metodo_pago: r.metodo_pago,
-      equipo: {
-        equipo: r.equipo.equipo,
-        serie: r.equipo.serie,
-      },
+      equipo: r.equipo
+        ? {
+          equipo: r.equipo.equipo,
+          serie: r.equipo.serie,
+          no_economico: r.equipo.no_economico,
+        }
+        : null,
       almacenDestino: {
         id: r.almacenDestino.id,
         name: r.almacenDestino.name,
@@ -529,18 +541,26 @@ export class RequisicionesService {
         }
         : null,
       fechaRevision: r.fechaRevision ?? null,
-      items: r.items.map((i) => ({
-        id: i.id,
-        cantidadSolicitada: i.cantidadSolicitada,
-        producto: {
-          id: i.producto.id,
-          name: i.producto.name,
-          description: i.producto.description,
-          unidad: i.producto.unidad,
-          precio: i.producto.precio,
-          isActive: i.producto.isActive,
-        },
-      })),
+      items: r.requisicionType === RequisicionType.PRODUCT
+        ? r.items.map((i) => ({
+          id: i.id,
+          cantidadSolicitada: i.cantidadSolicitada,
+          producto: {
+            id: i.producto.id,
+            name: i.producto.name,
+            description: i.producto.description,
+            unidad: i.producto.unidad,
+            precio: i.producto.precio,
+            isActive: i.producto.isActive,
+          },
+        }))
+        : r.service_items.map((si) => ({
+          id: si.id,
+          cantidad: si.cantidad,
+          unidad: si.unidad,
+          descripcion: si.descripcion,
+          precio_unitario: si.precio_unitario,
+        })),
     }));
 
     return new PaginatedRequisicionDto(mappedData, {
@@ -562,7 +582,9 @@ export class RequisicionesService {
       almacenDestinoId,
       concepto,
       prioridad,
-      metodo_pago,
+      titulo,
+      rcp,
+      items
     } = dto;
 
     const almacenCargo = await this.almacenRepo.findOne({
@@ -582,13 +604,21 @@ export class RequisicionesService {
     }
 
 
+    let totalCost = 0;
+    for (const item of items) {
+      if (item.precio_unitario == null) {
+        throw new BadRequestException(
+          `El item no tiene precio asignado.`
+        );
+      }
+      totalCost += Number(item.cantidad) * Number(item.precio_unitario);
+    }
 
     // Same approval logic as product path
     let aprovalType: RequisicionAprovalLevel;
-    let cantidad_dinero = 0
-    if (cantidad_dinero < 2000) {
+    if (totalCost < 2000) {
       aprovalType = RequisicionAprovalLevel.NONE;
-    } else if (cantidad_dinero <= 5000) {
+    } else if (totalCost <= 5000) {
       aprovalType = RequisicionAprovalLevel.ADMIN;
     } else {
       aprovalType = RequisicionAprovalLevel.SPECIAL_PERMISSION;
@@ -597,9 +627,10 @@ export class RequisicionesService {
     const requisicion = this.requisicionRepo.create({
       status: RequisicionStatus.PENDIENTE,
       aprovalType,
-      cantidad_dinero,
-      metodo_pago,
+      cantidad_dinero: totalCost,
       prioridad,
+      rcp,
+      titulo,
       concepto,
       almacenCargo,
       almacenDestino,
@@ -609,14 +640,24 @@ export class RequisicionesService {
 
     const saved = await this.requisicionRepo.save(requisicion);
 
+    const serviceItems = items.map(item => ({
+      cantidad: item.cantidad,
+      unidad: item.unidad,
+      descripcion: item.descripcion,
+      precio_unitario: item.precio_unitario,
+      requisicion: saved,
+    }));
+
+    await this.serviceItemRepo.save(serviceItems);
+
     return this.requisicionRepo.findOne({
       where: { id: saved.id },
-      relations: ['almacenCargo', 'pedidoPor'],
+      relations: ['almacenCargo', 'pedidoPor', 'service_items'],
     });
   }
 
   async createRequisicion(dto: CreateRequisicionDto, user: User) {
-    const { peticionId, metodo_pago, prioridad, hrm, concepto, almacenCargoId, titulo, rcp } = dto;
+    const { peticionId, prioridad, hrm, concepto, almacenCargoId, titulo, rcp } = dto;
 
     const almacenCargo = await this.almacenRepo.findOne({
       where: { id: almacenCargoId }
@@ -671,7 +712,6 @@ export class RequisicionesService {
         status: RequisicionStatus.PENDIENTE,
         aprovalType,
         cantidad_dinero: totalCost,
-        metodo_pago,
         prioridad,
         concepto,
         rcp,

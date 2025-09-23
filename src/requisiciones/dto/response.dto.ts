@@ -27,6 +27,7 @@ class UserMinimalDto {
 
 class EquipoMinimal {
   equipo: string;
+  no_economico: string;
   serie: string;
 }
 
@@ -101,6 +102,25 @@ export class RequisicionItemMinimalDto {
 }
 
 
+export class RequisicionServiceItemMinimalDto {
+  @ApiProperty({ example: 24 })
+  id: number;
+
+  @ApiProperty({ example: 10 })
+  cantidad: number;
+
+  @ApiProperty({ example: 'litros' })
+  unidad: string;
+
+  @ApiProperty({ example: 'descripcion' })
+  descripcion: string;
+ 
+  @ApiProperty({ example: 10 })
+  precio_unitario: number;
+
+}
+
+
 export class GetRequisicionDto {
   @ApiProperty({ example: 8 })
   id: number;
@@ -151,13 +171,13 @@ export class GetRequisicionDto {
   revisadoPor: UserMinimalDto | {} | null;
 
   @ApiProperty({ type: () => EquipoMinimal, nullable: true })
-  equipo: EquipoMinimal | {};
+  equipo: EquipoMinimal | {} | null;
 
   @ApiProperty({ example: null, nullable: true })
   fechaRevision: Date | null;
 
   @ApiProperty({ type: () => [RequisicionItemMinimalDto] })
-  items: RequisicionItemMinimalDto[];
+  items: RequisicionItemMinimalDto[] | RequisicionServiceItemMinimalDto[];
 }
 
 export class PaginatedRequisicionDto extends PaginatedResponseDto<GetRequisicionDto> {

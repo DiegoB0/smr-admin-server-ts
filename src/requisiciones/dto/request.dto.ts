@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsArray, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, Length, ValidateNested } from "class-validator";
+import { ArrayMinSize, IsArray, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, Length, ValidateNested } from "class-validator";
 import { MetodoPago } from "../types/metodo-pago";
 import { PrioridadType } from "../types/prioridad-type";
 import { RequisicionType } from "../types/requisicion-type";
@@ -170,14 +170,6 @@ export class CreateRequisicionDto {
   @IsNotEmpty()
   prioridad: PrioridadType;
 
-  @ApiProperty({
-    description: 'Método de pago disponible',
-    enum: MetodoPago,
-    example: MetodoPago.TARJETA,
-  })
-  @IsEnum(MetodoPago, { message: 'El método de pago no es válido' })
-  @IsNotEmpty()
-  metodo_pago: MetodoPago;
 
 
   @ApiProperty({
@@ -191,6 +183,38 @@ export class CreateRequisicionDto {
 }
 
 
+export class ServiceItemDto {
+  @ApiProperty({
+    description: 'Cantidad del servicio',
+    example: 10,
+  })
+  @IsInt()
+  @IsPositive()
+  cantidad: number;
+
+  @ApiProperty({
+    description: 'Unidad del servicio',
+    example: 'Horas',
+  })
+  @IsString()
+  unidad: string;
+
+  @ApiProperty({
+    description: 'Descripción del servicio',
+    example: 'Servicio de limpieza',
+  })
+  @IsString()
+  descripcion: string;
+
+  @ApiProperty({
+    description: 'Precio unitario del servicio',
+    example: 100,
+  })
+  @IsInt()
+  @IsPositive()
+  precio_unitario: number;
+}
+
 export class CreateServiceRequisicionDto {
   @ApiProperty({
     description: 'ID del almacen de cargo',
@@ -202,7 +226,7 @@ export class CreateServiceRequisicionDto {
   almacenCargoId?: number;
 
   @ApiProperty({
-    description: 'ID del almacen de cargo',
+    description: 'ID del almacen de destino',
     example: 2,
   })
   @IsInt()
@@ -221,14 +245,14 @@ export class CreateServiceRequisicionDto {
 
   @ApiProperty({
     description: 'Titulo de la requisicion',
-    example: "Some title",
+    example: 'Some title',
   })
   @IsString()
   titulo: string;
 
   @ApiProperty({
     description: 'Concepto de la requisicion',
-    example: "Consumibles",
+    example: 'Consumibles',
   })
   @IsString()
   concepto: string;
@@ -243,20 +267,22 @@ export class CreateServiceRequisicionDto {
   prioridad: PrioridadType;
 
   @ApiProperty({
-    description: 'Método de pago disponible',
-    enum: MetodoPago,
-    example: MetodoPago.TARJETA,
-  })
-  @IsEnum(MetodoPago, { message: 'El método de pago no es válido' })
-  @IsNotEmpty()
-  metodo_pago: MetodoPago;
-
-  @ApiProperty({
-    description: 'Método de pago disponible',
+    description: 'Tipo de requisicion',
     enum: RequisicionType,
     example: RequisicionType.SERVICE,
   })
   @IsEnum(RequisicionType, { message: 'Tipo de la requisicion' })
   @IsNotEmpty()
   requisicionType: RequisicionType;
+
+  @ApiProperty({
+    description: 'Items de servicio',
+    type: [ServiceItemDto],
+  })
+  @IsArray()
+  @ArrayMinSize(1, { message: 'Debe incluir al menos un item de servicio' })
+  @ValidateNested({ each: true })
+  @Type(() => ServiceItemDto)
+  items: ServiceItemDto[];
 }
+
