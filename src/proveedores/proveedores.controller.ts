@@ -18,12 +18,12 @@ export class ProveedoresController {
     return this.proveedoresService.findAll();
   }
 
-  @Delete('delete_proveedor:id')
+  @Delete('delete_proveedor/:id')
   remove(@Param('id') id: string) {
     return this.proveedoresService.remove(+id);
   }
 
-  @Patch('update_proveedor:id')
+  @Patch('update_proveedor/:id')
   update(@Param('id') id: string, @Body() updateProveedoreDto: UpdateProveedorDto) {
     return this.proveedoresService.update(+id, updateProveedoreDto);
   }
