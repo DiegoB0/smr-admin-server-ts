@@ -118,6 +118,7 @@ export class CreateRequisicionDto {
   @IsInt()
   @IsPositive()
   @IsOptional()
+  @Type(() => Number)
   peticionId?: number;
 
   @ApiProperty({
@@ -127,7 +128,17 @@ export class CreateRequisicionDto {
   @IsInt()
   @IsPositive()
   @IsOptional()
+  @Type(() => Number)
   almacenCargoId?: number;
+
+  @ApiProperty({
+    description: 'ID del equipo',
+    example: 2,
+  })
+  @IsInt()
+  @IsPositive()
+  @Type(() => Number)
+  proveedorId: number;
 
   @ApiProperty({
     description: 'Horas de servicio',

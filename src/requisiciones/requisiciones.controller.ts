@@ -134,6 +134,17 @@ export class RequisicionesController {
     return this.requisicionesService.getAllRequisiciones(dto);
   }
 
+
+  @Get('aproved_requisiciones')
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.ListRequisicion)
+  getAprovedRequisiciones(
+    @Query() dto: PaginationDto,
+  ) {
+    return this.requisicionesService.getRequisicionesAprobadas(dto);
+  }
+
   @Patch(':id/approve')
   @SwaggerAuthHeaders()
   @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)

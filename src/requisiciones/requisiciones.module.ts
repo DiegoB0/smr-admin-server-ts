@@ -12,6 +12,7 @@ import { AlmacenesModule } from 'src/almacenes/almacenes.module';
 import { EquiposModule } from 'src/equipos/equipos.module';
 import { ProductosModule } from 'src/productos/productos.module';
 import { RequisicionServiceItem } from './entities/requisicion_service_item.entity';
+import { ProveedoresModule } from 'src/proveedores/proveedores.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { RequisicionServiceItem } from './entities/requisicion_service_item.enti
     AuthModule,
     AlmacenesModule,
     EquiposModule,
+    ProveedoresModule,
     ProductosModule
   ],
   controllers: [RequisicionesController],

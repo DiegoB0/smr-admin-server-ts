@@ -18,6 +18,7 @@ import { Almacen } from 'src/almacenes/entities/almacen.entity';
 import { PeticionGenerada } from './types/peticion-generada';
 import { Equipo } from 'src/equipos/entities/equipo.entity';
 import { RequisicionServiceItem } from './entities/requisicion_service_item.entity';
+import { Proveedor } from 'src/proveedores/entities/proveedor.entity';
 
 @Injectable()
 export class RequisicionesService {
@@ -27,7 +28,6 @@ export class RequisicionesService {
 
     @InjectRepository(RequisicionItem)
     private requisicionItemRepo: Repository<RequisicionItem>,
-
 
     @InjectRepository(RequisicionServiceItem)
     private serviceItemRepo: Repository<RequisicionServiceItem>,
@@ -46,6 +46,9 @@ export class RequisicionesService {
 
     @InjectRepository(Equipo)
     private equipoRepo: Repository<Equipo>,
+
+    @InjectRepository(Proveedor)
+    private proveedorRepo: Repository<Proveedor>,
 
     private readonly logService: LogsService
   ) { }
@@ -573,6 +576,112 @@ export class RequisicionesService {
     });
   }
 
+  async getRequisicionesAprobadas(
+    pagination: PaginationDto
+  ): Promise<PaginatedRequisicionDto> {
+    const { page = 1, limit = 10, order = 'DESC' } = pagination;
+    const skip = (page - 1) * limit;
+
+    const [requisiciones, totalItems] = await this.requisicionRepo.findAndCount({
+      relations: [
+        'items',
+        'items.producto',
+        'service_items',
+        'equipo',
+        'almacenCargo',
+        'almacenDestino',
+        'pedidoPor',
+        'revisadoPor',
+      ],
+      where: { status: RequisicionStatus.APROBADA },
+      skip,
+      take: limit,
+      order: { fechaSolicitud: order as any },
+    });
+
+    const totalPages = Math.ceil(totalItems / limit);
+
+    const mappedData: GetRequisicionDto[] = requisiciones.map((r) => ({
+      id: r.id,
+      fechaSolicitud: r.fechaSolicitud,
+      rcp: r.rcp,
+      titulo: r.titulo,
+      prioridad: r.prioridad,
+      hrm: r.hrm,
+      concepto: r.concepto,
+      status: r.status,
+      aprovalType: r.aprovalType,
+      requisicionType: r.requisicionType,
+      cantidad_dinero: r.cantidad_dinero,
+      metodo_pago: r.metodo_pago,
+      equipo: r.equipo
+        ? {
+          equipo: r.equipo.equipo,
+          serie: r.equipo.serie,
+          no_economico: r.equipo.no_economico,
+        }
+        : null,
+      almacenDestino: {
+        id: r.almacenDestino.id,
+        name: r.almacenDestino.name,
+        location: r.almacenDestino.location,
+        isActive: r.almacenDestino.isActive,
+      },
+      almacenCargo: {
+        id: r.almacenCargo.id,
+        name: r.almacenCargo.name,
+        location: r.almacenCargo.location,
+        isActive: r.almacenCargo.isActive,
+      },
+      pedidoPor: {
+        id: r.pedidoPor.id,
+        email: r.pedidoPor.email,
+        name: r.pedidoPor.name,
+        imageUrl: r.pedidoPor.imageUrl,
+        isActive: r.pedidoPor.isActive,
+      },
+      revisadoPor: r.revisadoPor
+        ? {
+          id: r.revisadoPor.id,
+          email: r.revisadoPor.email,
+          name: r.revisadoPor.name,
+          imageUrl: r.revisadoPor.imageUrl,
+          isActive: r.revisadoPor.isActive,
+        }
+        : null,
+      fechaRevision: r.fechaRevision ?? null,
+      items: r.requisicionType === RequisicionType.PRODUCT
+        ? r.items.map((i) => ({
+          id: i.id,
+          cantidadSolicitada: i.cantidadSolicitada,
+          producto: {
+            id: i.producto.id,
+            name: i.producto.name,
+            description: i.producto.description,
+            unidad: i.producto.unidad,
+            precio: i.producto.precio,
+            isActive: i.producto.isActive,
+          },
+        }))
+        : r.service_items.map((si) => ({
+          id: si.id,
+          cantidad: si.cantidad,
+          unidad: si.unidad,
+          descripcion: si.descripcion,
+          precio_unitario: si.precio_unitario,
+        })),
+    }));
+
+    return new PaginatedRequisicionDto(mappedData, {
+      currentPage: page,
+      totalPages,
+      totalItems,
+      itemsPerPage: limit,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
+    });
+  }
+
   async createServiceRequisicion(
     dto: CreateServiceRequisicionDto,
     user: User
@@ -687,6 +796,15 @@ export class RequisicionesService {
       throw new BadRequestException('Solo se pueden crear requisiciones de peticiones aprobadas.');
     }
 
+
+    const proveedor = await this.proveedorRepo.findOne({
+      where: { id: dto.proveedorId }
+    })
+
+    if (!proveedor) {
+      throw new NotFoundException('Proveedor not found')
+    }
+
     let totalCost = 0;
     for (const item of peticion.items) {
       if (item.producto.precio == null) {
@@ -721,6 +839,7 @@ export class RequisicionesService {
         requisicionType: RequisicionType.PRODUCT,
         pedidoPor: user ?? null,
         peticion,
+        proveedor,
         hrm,
         equipo: peticion?.equipo,
       })

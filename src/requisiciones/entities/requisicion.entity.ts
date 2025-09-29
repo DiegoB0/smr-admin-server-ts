@@ -17,6 +17,7 @@ import { MetodoPago } from '../types/metodo-pago';
 import { PeticionProducto } from './peticion_producto.entity';
 import { RequisicionServiceItem } from './requisicion_service_item.entity';
 import { PrioridadType } from '../types/prioridad-type';
+import { Proveedor } from 'src/proveedores/entities/proveedor.entity';
 
 @Entity('requisiciones')
 export class Requisicion {
@@ -67,6 +68,9 @@ export class Requisicion {
 
   @ManyToOne(() => User, { nullable: true })
   revisadoPor?: User;
+
+  @ManyToOne(() => Proveedor, { nullable: true })
+  proveedor?: Proveedor;
 
   @Column({ type: 'timestamptz', nullable: true })
   fechaRevision?: Date;
