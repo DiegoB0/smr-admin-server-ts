@@ -2,9 +2,9 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Requisicion } from './entities/requisicion.entity';
 import { LogsService } from 'src/logs/logs.service';
-import { Brackets, Repository } from 'typeorm';
+import { Brackets, DataSource, In, Repository } from 'typeorm';
 import { RequisicionItem } from './entities/requisicion_item.entity';
-import { PeticionProducto } from './entities/peticion_producto.entity';
+import { Componente, Fase, PeticionProducto } from './entities/peticion_producto.entity';
 import { PeticionProductoItem } from './entities/peticion_producto_item.entity';
 import { CreatePeticionProductoDto, CreateRequisicionDto, CreateServiceRequisicionDto, UpdatePeticionProductoDto } from './dto/request.dto';
 import { PeticionStatus } from './types/peticion-status';
@@ -50,15 +50,74 @@ export class RequisicionesService {
     @InjectRepository(Proveedor)
     private proveedorRepo: Repository<Proveedor>,
 
-    private readonly logService: LogsService
+    @InjectRepository(Componente)
+    private readonly componenteRepo: Repository<Componente>,
+    @InjectRepository(Fase)
+    private readonly faseRepo: Repository<Fase>,
+
+    private readonly logService: LogsService,
+    private readonly dataSource: DataSource
   ) { }
 
   // TODO: Endpoint to get peticiones por almacen
-  async getAllPeticiones(pagination: PaginationDto): Promise<PaginatedPeticionProductoDto> {
+  async getAllPeticiones(
+    pagination: PaginationDto
+  ): Promise<PaginatedPeticionProductoDto> {
     const { page = 1, limit = 10, search, order = 'DESC' } = pagination;
     const skip = (page - 1) * limit;
 
-    const queryBuilder = this.peticionRepo
+    // Base QB without M2M joins, for count + ids
+    const baseQB = this.peticionRepo
+      .createQueryBuilder('peticion')
+      .leftJoin('peticion.almacen', 'almacen')
+      .leftJoin('peticion.creadoPor', 'creadoPor');
+
+    if (search) {
+      const term = `%${search}%`;
+      baseQB.andWhere(
+        new Brackets((qb) => {
+          qb.where('peticion.observaciones ILIKE :term', { term })
+            .orWhere('almacen.name ILIKE :term', { term })
+            .orWhere('creadoPor.email ILIKE :term', { term });
+        })
+      );
+    }
+
+    const totalItems = await baseQB.getCount();
+    const totalPages = Math.ceil(totalItems / limit);
+    if (totalItems === 0) {
+      return new PaginatedPeticionProductoDto([], {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      });
+    }
+
+    // Get page of IDs only
+    const idRows = await baseQB
+      .select('peticion.id', 'id')
+      .orderBy('peticion.fechaCreacion', order)
+      .skip(skip)
+      .take(limit)
+      .getRawMany<{ id: number }>();
+
+    const ids = idRows.map((r) => r.id);
+    if (ids.length === 0) {
+      return new PaginatedPeticionProductoDto([], {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      });
+    }
+
+    // Load rows with all needed relations for those ids
+    const peticiones = await this.peticionRepo
       .createQueryBuilder('peticion')
       .select([
         'peticion.id',
@@ -69,42 +128,31 @@ export class RequisicionesService {
       ])
       .leftJoin('peticion.almacen', 'almacen')
       .addSelect(['almacen.name'])
-
       .leftJoin('peticion.creadoPor', 'creadoPor')
       .addSelect(['creadoPor.email'])
-
       .leftJoin('peticion.revisadoPor', 'revisadoPor')
       .addSelect(['revisadoPor.email'])
-
       .leftJoin('peticion.equipo', 'equipo')
-      .addSelect(['equipo.equipo'])
-
+      .addSelect([
+        'equipo.equipo',
+        'equipo.modelo',
+        'equipo.horometro',
+        'equipo.serie',
+      ])
       .leftJoin('peticion.items', 'items')
       .addSelect(['items.id', 'items.cantidad'])
-
       .leftJoin('items.producto', 'producto')
-      .addSelect(['producto.id', 'producto.name']);
+      .addSelect(['producto.id', 'producto.name'])
+      .leftJoin('peticion.componentes', 'componentes')
+      .addSelect(['componentes.key'])
+      .leftJoin('peticion.fases', 'fases')
+      .addSelect(['fases.key'])
+      .where('peticion.id IN (:...ids)', { ids })
+      // preserve order by fechaCreacion (optional). To strictly keep page order, order by FIELD(ids...)
+      .orderBy('peticion.fechaCreacion', order)
+      .getMany();
 
-    if (search) {
-      const term = `%${search}%`;
-      queryBuilder.andWhere(
-        new Brackets((qb) => {
-          qb.where('peticion.observaciones ILIKE :term', { term })
-            .orWhere('almacen.name ILIKE :term', { term })
-            .orWhere('creadoPor.email ILIKE :term');
-        })
-      );
-    }
-
-    queryBuilder.orderBy('peticion.fechaCreacion', order);
-
-    const [peticiones, totalItems] = await queryBuilder
-      .skip(skip)
-      .take(limit)
-      .getManyAndCount();
-
-    const totalPages = Math.ceil(totalItems / limit);
-
+    // Map
     const mapped: GetPeticionProductDto[] = peticiones.map((p) => ({
       id: p.id,
       fechaCreacion: p.fechaCreacion,
@@ -112,10 +160,15 @@ export class RequisicionesService {
       observaciones: p.observaciones,
       fechaRevision: p.fechaRevision ?? null,
       equipo: p.equipo?.equipo,
+      modelo: p.equipo?.modelo,
+      horometro: p.equipo?.horometro,
+      serie: p.equipo?.serie,
       almacen: { name: p.almacen?.name },
       creadoPor: { email: p.creadoPor?.email },
       revisadoPor: p.revisadoPor ? { email: p.revisadoPor.email } : null,
-      items: p.items.map((i) => ({
+      componentes: (p.componentes ?? []).map((c) => c.key),
+      fases: (p.fases ?? []).map((f) => f.key),
+      items: (p.items ?? []).map((i) => ({
         id: i.id,
         cantidad: i.cantidad,
         producto: {
@@ -142,7 +195,65 @@ export class RequisicionesService {
     const { page = 1, limit = 10, search, order = 'DESC' } = pagination;
     const skip = (page - 1) * limit;
 
-    const queryBuilder = this.peticionRepo
+    // 1) Base QB for count + ids (no M2M joins)
+    const baseQB = this.peticionRepo
+      .createQueryBuilder('peticion')
+      .leftJoin('peticion.almacen', 'almacen')
+      .leftJoin('peticion.creadoPor', 'creadoPor')
+      .where('peticion.status = :status', {
+        status: PeticionStatus.APROBADO,
+      })
+      .andWhere('peticion.generado = :generado', {
+        generado: PeticionGenerada.PENDIENTE,
+      });
+
+    if (search) {
+      const term = `%${search}%`;
+      baseQB.andWhere(
+        new Brackets((qb) => {
+          qb.where('peticion.observaciones ILIKE :term', { term })
+            .orWhere('almacen.name ILIKE :term', { term })
+            .orWhere('creadoPor.email ILIKE :term', { term });
+        })
+      );
+    }
+
+    const totalItems = await baseQB.getCount();
+    const totalPages = Math.ceil(totalItems / limit);
+
+    if (totalItems === 0) {
+      return new PaginatedPeticionProductoDto([], {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      });
+    }
+
+    // 2) Page of IDs only
+    const idRows = await baseQB
+      .select('peticion.id', 'id')
+      .orderBy('peticion.fechaCreacion', order)
+      .skip(skip)
+      .take(limit)
+      .getRawMany<{ id: number }>();
+
+    const ids = idRows.map((r) => r.id);
+    if (ids.length === 0) {
+      return new PaginatedPeticionProductoDto([], {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      });
+    }
+
+    // 3) Load full rows for those IDs with all needed relations
+    const peticiones = await this.peticionRepo
       .createQueryBuilder('peticion')
       .select([
         'peticion.id',
@@ -154,50 +265,30 @@ export class RequisicionesService {
       ])
       .leftJoin('peticion.almacen', 'almacen')
       .addSelect(['almacen.name'])
-
       .leftJoin('peticion.creadoPor', 'creadoPor')
       .addSelect(['creadoPor.email'])
-
       .leftJoin('peticion.revisadoPor', 'revisadoPor')
       .addSelect(['revisadoPor.email'])
-
+      .leftJoin('peticion.equipo', 'equipo')
+      .addSelect([
+        'equipo.equipo',
+        'equipo.modelo',
+        'equipo.horometro',
+        'equipo.serie',
+      ])
       .leftJoin('peticion.items', 'items')
       .addSelect(['items.id', 'items.cantidad'])
-
-      .leftJoin('peticion.equipo', 'equipo')
-      .addSelect(['equipo.equipo'])
-
       .leftJoin('items.producto', 'producto')
       .addSelect(['producto.id', 'producto.name'])
+      .leftJoin('peticion.componentes', 'componentes')
+      .addSelect(['componentes.key'])
+      .leftJoin('peticion.fases', 'fases')
+      .addSelect(['fases.key'])
+      .where('peticion.id IN (:...ids)', { ids })
+      .orderBy('peticion.fechaCreacion', order)
+      .getMany();
 
-      .where('peticion.status = :status', {
-        status: PeticionStatus.APROBADO,
-      })
-      .andWhere('peticion.generado =:generado', {
-        generado: PeticionGenerada.PENDIENTE
-
-      });
-
-    if (search) {
-      const term = `%${search}%`;
-      queryBuilder.andWhere(
-        new Brackets((qb) => {
-          qb.where('peticion.observaciones ILIKE :term', { term })
-            .orWhere('almacen.name ILIKE :term', { term })
-            .orWhere('creadoPor.email ILIKE :term');
-        })
-      );
-    }
-
-    queryBuilder.orderBy('peticion.fechaCreacion', order);
-
-    const [peticiones, totalItems] = await queryBuilder
-      .skip(skip)
-      .take(limit)
-      .getManyAndCount();
-
-    const totalPages = Math.ceil(totalItems / limit);
-
+    // 4) Map
     const mapped: GetPeticionProductDto[] = peticiones.map((p) => ({
       id: p.id,
       fechaCreacion: p.fechaCreacion,
@@ -206,10 +297,15 @@ export class RequisicionesService {
       observaciones: p.observaciones,
       fechaRevision: p.fechaRevision ?? null,
       equipo: p.equipo?.equipo,
+      modelo: p.equipo?.modelo,
+      horometro: p.equipo?.horometro,
+      serie: p.equipo?.serie,
       almacen: { name: p.almacen?.name },
       creadoPor: { email: p.creadoPor?.email },
       revisadoPor: p.revisadoPor ? { email: p.revisadoPor.email } : null,
-      items: p.items.map((i) => ({
+      componentes: (p.componentes ?? []).map((c) => c.key),
+      fases: (p.fases ?? []).map((f) => f.key),
+      items: (p.items ?? []).map((i) => ({
         id: i.id,
         cantidad: i.cantidad,
         producto: {
@@ -229,11 +325,65 @@ export class RequisicionesService {
     });
   }
 
-  async getPeticionesByUser(dto: ReporteQueryDto): Promise<PaginatedPeticionProductoDto> {
+  async getPeticionesByUser(
+    dto: ReporteQueryDto
+  ): Promise<PaginatedPeticionProductoDto> {
     const { userId, page = 1, limit = 10, search, order = 'DESC' } = dto;
     const skip = (page - 1) * limit;
 
-    const queryBuilder = this.peticionRepo
+    const baseQB = this.peticionRepo
+      .createQueryBuilder('peticion')
+      .leftJoin('peticion.almacen', 'almacen')
+      .leftJoin('peticion.creadoPor', 'creadoPor')
+      .where('creadoPor.id = :userId', { userId });
+
+    if (search) {
+      const term = `%${search}%`;
+      baseQB.andWhere(
+        new Brackets((qb) => {
+          qb.where('peticion.status::text ILIKE :term', { term })
+            .orWhere('almacen.name ILIKE :term', { term })
+            .orWhere('creadoPor.email ILIKE :term', { term });
+        })
+      );
+    }
+
+    const totalItems = await baseQB.getCount();
+    const totalPages = Math.ceil(totalItems / limit);
+
+    if (totalItems === 0) {
+      return new PaginatedPeticionProductoDto([], {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      });
+    }
+
+    // 2) Page of IDs only
+    const idRows = await baseQB
+      .select('peticion.id', 'id')
+      .orderBy('peticion.fechaCreacion', order)
+      .skip(skip)
+      .take(limit)
+      .getRawMany<{ id: number }>();
+
+    const ids = idRows.map((r) => r.id);
+    if (ids.length === 0) {
+      return new PaginatedPeticionProductoDto([], {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      });
+    }
+
+    // 3) Load full rows for those IDs with all needed relations
+    const peticiones = await this.peticionRepo
       .createQueryBuilder('peticion')
       .select([
         'peticion.id',
@@ -248,34 +398,21 @@ export class RequisicionesService {
       .addSelect(['creadoPor.email'])
       .leftJoin('peticion.revisadoPor', 'revisadoPor')
       .addSelect(['revisadoPor.email'])
+      .leftJoin('peticion.equipo', 'equipo')
+      .addSelect(['equipo.equipo', 'equipo.modelo', 'equipo.horometro', 'equipo.serie'])
       .leftJoin('peticion.items', 'items')
       .addSelect(['items.id', 'items.cantidad'])
       .leftJoin('items.producto', 'producto')
       .addSelect(['producto.id', 'producto.name'])
-      .leftJoin('peticion.equipo', 'equipo')
-      .addSelect(['equipo.equipo'])
-      .where('creadoPor.id = :userId', { userId });
+      .leftJoin('peticion.componentes', 'componentes')
+      .addSelect(['componentes.key'])
+      .leftJoin('peticion.fases', 'fases')
+      .addSelect(['fases.key'])
+      .where('peticion.id IN (:...ids)', { ids })
+      .orderBy('peticion.fechaCreacion', order)
+      .getMany();
 
-    if (search) {
-      const term = `%${search}%`;
-      queryBuilder.andWhere(
-        new Brackets((qb) => {
-          qb.where('peticion.status::text ILIKE :term', { term })
-            .orWhere('almacen.name ILIKE :term')
-            .orWhere('creadoPor.email ILIKE :term');
-        })
-      );
-    }
-
-    queryBuilder.orderBy('peticion.fechaCreacion', order);
-
-    const [peticiones, totalItems] = await queryBuilder
-      .skip(skip)
-      .take(limit)
-      .getManyAndCount();
-
-    const totalPages = Math.ceil(totalItems / limit);
-
+    // 4) Map
     const mapped: GetPeticionProductDto[] = peticiones.map((p) => ({
       id: p.id,
       fechaCreacion: p.fechaCreacion,
@@ -286,13 +423,15 @@ export class RequisicionesService {
       creadoPor: { email: p.creadoPor?.email },
       revisadoPor: p.revisadoPor ? { email: p.revisadoPor.email } : null,
       equipo: p.equipo?.equipo,
-      items: p.items.map((i) => ({
+      modelo: p.equipo?.modelo,
+      horometro: p.equipo?.horometro,
+      serie: p.equipo?.serie,
+      componentes: (p.componentes ?? []).map((c) => c.key),
+      fases: (p.fases ?? []).map((f) => f.key),
+      items: (p.items ?? []).map((i) => ({
         id: i.id,
         cantidad: i.cantidad,
-        producto: {
-          id: i.producto.id,
-          name: i.producto.name,
-        },
+        producto: { id: i.producto.id, name: i.producto.name },
       })),
     }));
 
@@ -308,67 +447,97 @@ export class RequisicionesService {
 
   async createPeticionProducto(dto: CreatePeticionProductoDto, user: User) {
     if (!dto.items || dto.items.length === 0) {
-      throw new BadRequestException('Debe incluir al menos un producto en la petición.');
+      throw new BadRequestException(
+        'Debe incluir al menos un producto en la petición.'
+      );
     }
 
     const currentUser = await this.userRepo.findOne({
       where: { id: user.id },
-      relations: ['obra', 'obra.almacenes']
-    })
-
-
-    if (!currentUser) throw new NotFoundException('User not found')
-
+      relations: ['obra', 'obra.almacenes'],
+    });
+    if (!currentUser) throw new NotFoundException('User not found');
     if (!currentUser?.obra?.almacenes?.length) {
       throw new BadRequestException(
         'El usuario no tiene un almacén asignado a su obra.'
       );
     }
-
     const almacenId = currentUser.obra.almacenes[0].id;
 
     const equipo = await this.equipoRepo.findOne({
-      where: { id: dto.equipoId }
-    })
-
-    if (!equipo) {
-      throw new NotFoundException('No se encontro el equipo')
-    }
-
-    const peticion = this.peticionRepo.create({
-      observaciones: dto.observaciones,
-      almacen: { id: almacenId } as any,
-      creadoPor: { id: user.id } as any,
-      equipo,
-      status: PeticionStatus.PENDIENTE,
-      items: []
+      where: { id: dto.equipoId },
     });
+    if (!equipo) throw new NotFoundException('No se encontro el equipo');
 
-    const saved = await this.peticionRepo.save(peticion);
-
-    for (const item of dto.items) {
-      const peticionItem = this.peticionItemRepo.create({
-        cantidad: item.cantidad,
-        producto: { id: item.productoId } as any,
-        reporte: saved,
-      });
-      await this.peticionItemRepo.save(peticionItem);
+    // Resolve componentes and fases from keys
+    const componentes = await this.componenteRepo.findBy({
+      key: In(dto.componentes),
+    });
+    if (componentes.length !== dto.componentes.length) {
+      throw new BadRequestException('Componente(s) inválidos');
+    }
+    if (componentes.length === 0) {
+      throw new BadRequestException(
+        'Debe seleccionar al menos un componente.'
+      );
     }
 
-    await this.logService.createLog(
-      user,
-      `El usuario ${user.name} creo el reporte ${saved}`,
-      'CREATE_REPORTE',
-      JSON.stringify(saved),
-    )
+    const fases = await this.faseRepo.findBy({
+      key: In(dto.fases),
+    });
+    if (fases.length !== dto.fases.length) {
+      throw new BadRequestException('Fase(s) inválidas');
+    }
+    if (fases.length === 0) {
+      throw new BadRequestException('Debe seleccionar al menos una fase.');
+    }
 
-    return saved;
+    return await this.dataSource.transaction(async (manager) => {
+      const peticion = this.peticionRepo.create({
+        observaciones: dto.observaciones,
+        almacen: { id: almacenId } as any,
+        creadoPor: { id: user.id } as any,
+        equipo,
+        status: PeticionStatus.PENDIENTE,
+        componentes,
+        fases,
+        items: [],
+      });
+
+      const saved = await manager.getRepository(PeticionProducto).save(peticion);
+
+      for (const item of dto.items) {
+        const peticionItem = this.peticionItemRepo.create({
+          cantidad: item.cantidad,
+          producto: { id: item.productoId } as any,
+          reporte: saved,
+        });
+        await manager.getRepository(PeticionProductoItem).save(peticionItem);
+      }
+
+      await this.logService.createLog(
+        user,
+        `El usuario ${user.name} creó el reporte ${saved.id}`,
+        'CREATE_REPORTE',
+        JSON.stringify({ id: saved.id })
+      );
+
+      return await manager.getRepository(PeticionProducto).findOne({
+        where: { id: saved.id },
+        relations: ['componentes', 'fases', 'items', 'equipo', 'almacen'],
+      });
+    });
   }
 
-  async updatePeticionProducto(id: number, dto: UpdatePeticionProductoDto, user: User) {
+  async updatePeticionProducto(
+    id: number,
+    dto: UpdatePeticionProductoDto,
+    user: User
+  ) {
+    // Load current entity with relations we might replace
     const peticion = await this.peticionRepo.findOne({
       where: { id },
-      relations: ['items'],
+      relations: ['items', 'componentes', 'fases'],
     });
 
     if (!peticion) {
@@ -376,33 +545,98 @@ export class RequisicionesService {
     }
 
     if (peticion.status !== PeticionStatus.PENDIENTE) {
-      throw new BadRequestException('Solo se pueden modificar peticiones pendientes.');
-    }
-
-    if (dto.observaciones !== undefined) {
-      peticion.observaciones = dto.observaciones;
-    }
-
-    if (dto.items) {
-      await this.peticionItemRepo.delete({ reporte: { id } as any });
-      peticion.items = dto.items.map((i) =>
-        this.peticionItemRepo.create({
-          cantidad: i.cantidad,
-          producto: { id: i.productoId } as any,
-        })
+      throw new BadRequestException(
+        'Solo se pueden modificar peticiones pendientes.'
       );
     }
 
-    const updated = await this.peticionRepo.save(peticion);
+    // Resolve componentes/fases if provided
+    let componentesToSet = undefined as undefined | typeof peticion.componentes;
+    let fasesToSet = undefined as undefined | typeof peticion.fases;
 
-    await this.logService.createLog(
-      user,
-      `El usuario ${user.name} actualizo el reporte ${updated}`,
-      'CREATE_REPORTE',
-      JSON.stringify(updated),
-    )
+    if (dto.componentes !== undefined) {
+      if (!Array.isArray(dto.componentes)) {
+        throw new BadRequestException('Componentes inválidos.');
+      }
+      if (dto.componentes.length === 0) {
+        // enforce at least one if field is provided
+        throw new BadRequestException(
+          'Debe seleccionar al menos un componente.'
+        );
+      }
+      const comps = await this.componenteRepo.findBy({
+        key: In(dto.componentes),
+      });
+      if (comps.length !== dto.componentes.length) {
+        throw new BadRequestException('Componente(s) inválidos.');
+      }
+      componentesToSet = comps;
+    }
 
-    return updated;
+    if (dto.fases !== undefined) {
+      if (!Array.isArray(dto.fases)) {
+        throw new BadRequestException('Fases inválidas.');
+      }
+      if (dto.fases.length === 0) {
+        // enforce at least one if field is provided
+        throw new BadRequestException('Debe seleccionar al menos una fase.');
+      }
+      const fs = await this.faseRepo.findBy({
+        key: In(dto.fases),
+      });
+      if (fs.length !== dto.fases.length) {
+        throw new BadRequestException('Fase(s) inválidas.');
+      }
+      fasesToSet = fs;
+    }
+
+    // Apply simple fields
+    if (dto.observaciones !== undefined) {
+      peticion.observaciones = dto.observaciones;
+    }
+    if (dto.equipoId !== undefined) {
+      peticion.equipo = { id: dto.equipoId } as any;
+    }
+
+    // Transaction: replace items and M2M sets atomically
+    return await this.dataSource.transaction(async (manager) => {
+      const peticionRepository = manager.getRepository(PeticionProducto);
+      const peticionItemRepository = manager.getRepository(PeticionProductoItem);
+
+      // Replace items if provided
+      if (dto.items !== undefined) {
+        await peticionItemRepository.delete({ reporte: { id } as any });
+        peticion.items = dto.items.map((i) =>
+          peticionItemRepository.create({
+            cantidad: i.cantidad,
+            producto: { id: i.productoId } as any,
+          })
+        );
+      }
+
+      // Replace componentes/fases if provided
+      if (componentesToSet !== undefined) {
+        peticion.componentes = componentesToSet;
+      }
+      if (fasesToSet !== undefined) {
+        peticion.fases = fasesToSet;
+      }
+
+      const updated = await peticionRepository.save(peticion);
+
+      await this.logService.createLog(
+        user,
+        `El usuario ${user.name} actualizó el reporte ${updated.id}`,
+        'UPDATE_REPORTE',
+        JSON.stringify({ id: updated.id })
+      );
+
+      // Optionally return with relations
+      return await peticionRepository.findOne({
+        where: { id: updated.id },
+        relations: ['componentes', 'fases', 'items', 'equipo', 'almacen'],
+      });
+    });
   }
 
   async approvePeticionProducto(id: number, user: User) {
@@ -689,6 +923,7 @@ export class RequisicionesService {
     const {
       almacenCargoId,
       almacenDestinoId,
+      proveedorId,
       concepto,
       prioridad,
       titulo,
@@ -710,6 +945,14 @@ export class RequisicionesService {
 
     if (!almacenDestino) {
       throw new NotFoundException('No se encontro el almacen')
+    }
+
+    const proveedor = await this.proveedorRepo.findOne({
+      where: { id: dto.proveedorId }
+    })
+
+    if (!proveedor) {
+      throw new NotFoundException('Proveedor not found')
     }
 
 
@@ -743,7 +986,8 @@ export class RequisicionesService {
       concepto,
       almacenCargo,
       almacenDestino,
-      requisicionType: RequisicionType.SERVICE,
+      proveedor,
+      requisicionType: RequisicionType.CONSUMIBLES,
       pedidoPor: user ?? null,
     });
 

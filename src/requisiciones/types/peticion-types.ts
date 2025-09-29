@@ -1,23 +1,24 @@
-export enum PeticionComponente {
-  MOTOR = "motor",
-  TRANSMISION = "transmision",
-  SIST_HIDRAULICO = "sistema hidraulico",
-  TREN_RODAJE = "tren de rodaje",
-  HERRAMIENTAS_CORTE = "herramientas de corte",
-  SIST_ELECTROCO = "sistema hidraulico",
-  AC = "A/C",
-  SIST_ENFRIAMIENTO = "sistema de enfriamiento",
-  OTROS = "otros"
-}
+export const COMPONENTE_KEYS = [
+  'motor',
+  'transmision',
+  'sistema_hidraulico',
+  'tren_de_rodaje',
+  'herramienta_de_corte',
+  'sistema_electrico',
+  'ac',
+  'sistema_de_enfriamiento',
+  'otros',
+] as const;
+export type ComponenteKey = (typeof COMPONENTE_KEYS)[number];
 
-export enum PeticionFase {
-  CARRILERA = "carrilera",
-  ELEMENTOS_DESGASTE = "elementos de desgaste",
-  PREVENTIVO = "preventivo",
-  LLANTAS = "llantas",
-  LUBRICACION = "lubricacion",
-  MANTENIMIENTO_MECANICO = "mantenimiento mecanico",
-  REPARACION_MAYOR = "reparacion mayor",
-  TALLER = "taller",
-  OTROS = "otros"
-}
+export const FASE_KEYS = [
+  'carrileria',
+  'elementos_de_desgaste',
+  'preventivo',
+  'llantas',
+  'lubricacion',
+  'mantenimiento_mecanico',
+  'reparacion_mayor',
+  'taller',
+] as const;
+export type FaseKey = (typeof FASE_KEYS)[number];

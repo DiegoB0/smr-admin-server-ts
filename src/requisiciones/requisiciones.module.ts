@@ -6,7 +6,7 @@ import { LogsModule } from 'src/logs/logs.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { RequisicionItem } from './entities/requisicion_item.entity';
 import { Requisicion } from './entities/requisicion.entity';
-import { PeticionProducto } from './entities/peticion_producto.entity';
+import { Componente, Fase, PeticionProducto } from './entities/peticion_producto.entity';
 import { PeticionProductoItem } from './entities/peticion_producto_item.entity';
 import { AlmacenesModule } from 'src/almacenes/almacenes.module';
 import { EquiposModule } from 'src/equipos/equipos.module';
@@ -22,6 +22,8 @@ import { ProveedoresModule } from 'src/proveedores/proveedores.module';
       PeticionProducto,
       PeticionProductoItem,
       RequisicionServiceItem,
+      Fase,
+      Componente
     ]),
     LogsModule,
     AuthModule,

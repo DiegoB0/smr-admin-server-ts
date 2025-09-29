@@ -12,6 +12,7 @@ import { SalidasModule } from './salidas/salidas.module';
 import { EquiposModule } from './equipos/equipos.module';
 import { ObrasModule } from './obras/obras.module';
 import { ProveedoresModule } from './proveedores/proveedores.module';
+import { SeedModule } from './seed/seed.module';
 
 @Module({
   imports: [
@@ -41,7 +42,7 @@ import { ProveedoresModule } from './proveedores/proveedores.module';
     EquiposModule,
     ObrasModule,
     ProveedoresModule,
-
+    SeedModule,
   ],
 })
 export class AppModule { }

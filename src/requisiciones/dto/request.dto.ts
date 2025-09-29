@@ -1,9 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { ArrayMinSize, IsArray, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, Length, ValidateNested } from "class-validator";
+import { ArrayMinSize, ArrayNotEmpty, IsArray, IsEnum, IsIn, IsInt, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, Length, ValidateNested } from "class-validator";
 import { MetodoPago } from "../types/metodo-pago";
 import { PrioridadType } from "../types/prioridad-type";
 import { RequisicionType } from "../types/requisicion-type";
+import { COMPONENTE_KEYS, ComponenteKey, FASE_KEYS, FaseKey } from "../types/peticion-types";
 
 export class ParamReporteDto {
   @ApiProperty({
@@ -49,6 +50,30 @@ export class CreatePeticionProductoDto {
   @IsInt()
   @IsPositive()
   equipoId: number;
+
+ @ApiProperty({
+    description: 'Componentes seleccionados',
+    isArray: true,
+    enum: COMPONENTE_KEYS,
+    example: ['motor', 'sistema_electrico'],
+  })
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsString({ each: true })
+  @IsIn(COMPONENTE_KEYS as unknown as string[], { each: true })
+  componentes: ComponenteKey[];
+
+  @ApiProperty({
+    description: 'Fases seleccionadas',
+    isArray: true,
+    enum: FASE_KEYS,
+    example: ['preventivo', 'taller'],
+  })
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsString({ each: true })
+  @IsIn(FASE_KEYS as unknown as string[], { each: true })
+  fases: FaseKey[];
 
   @ApiProperty({
     description: 'Lista de productos solicitados',
@@ -97,6 +122,32 @@ export class UpdatePeticionProductoDto {
   @IsInt()
   @IsPositive()
   equipoId: number;
+
+ @ApiProperty({
+    description: 'Componentes seleccionados (reemplaza el conjunto)',
+    isArray: true,
+    enum: COMPONENTE_KEYS,
+    required: false,
+    example: ['motor', 'sistema_electrico'],
+  })
+  @IsArray()
+  @IsOptional()
+  @IsString({ each: true })
+  @IsIn(COMPONENTE_KEYS as unknown as string[], { each: true })
+  componentes?: ComponenteKey[];
+
+  @ApiProperty({
+    description: 'Fases seleccionadas (reemplaza el conjunto)',
+    isArray: true,
+    enum: FASE_KEYS,
+    required: false,
+    example: ['preventivo'],
+  })
+  @IsArray()
+  @IsOptional()
+  @IsString({ each: true })
+  @IsIn(FASE_KEYS as unknown as string[], { each: true })
+  fases?: FaseKey[];
 
   @ApiProperty({
     description: 'Lista de productos solicitados',
@@ -182,7 +233,6 @@ export class CreateRequisicionDto {
   prioridad: PrioridadType;
 
 
-
   @ApiProperty({
     description: 'Método de pago disponible',
     enum: RequisicionType,
@@ -245,6 +295,16 @@ export class CreateServiceRequisicionDto {
   @IsOptional()
   almacenDestinoId?: number;
 
+
+  @ApiProperty({
+    description: 'ID del equipo',
+    example: 2,
+  })
+  @IsInt()
+  @IsPositive()
+  @Type(() => Number)
+  proveedorId: number;
+
   @ApiProperty({
     description: 'Numero de la requisicion',
     example: 101,
@@ -280,7 +340,7 @@ export class CreateServiceRequisicionDto {
   @ApiProperty({
     description: 'Tipo de requisicion',
     enum: RequisicionType,
-    example: RequisicionType.SERVICE,
+    example: RequisicionType.CONSUMIBLES,
   })
   @IsEnum(RequisicionType, { message: 'Tipo de la requisicion' })
   @IsNotEmpty()

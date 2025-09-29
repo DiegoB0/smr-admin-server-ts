@@ -24,6 +24,9 @@ export class Equipo {
   @Column('text')
   serie: string;
 
+  @Column('numeric', {nullable: true})
+  horometro: number;
+
   @Column('bool', { default: true })
   isActive: boolean;
 

@@ -3,6 +3,8 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -24,11 +26,14 @@ export class PeticionProducto {
   @Column({ type: 'enum', enum: PeticionStatus, default: PeticionStatus.PENDIENTE })
   status: PeticionStatus;
 
-  @Column({type: 'enum', enum: PeticionGenerada, default: PeticionGenerada.PENDIENTE})
+  @Column({ type: 'enum', enum: PeticionGenerada, default: PeticionGenerada.PENDIENTE })
   generado: PeticionGenerada;
 
   @Column('varchar')
   observaciones: string;
+
+  @Column({ nullable: true })
+  pdfUrl: string;
 
   @ManyToOne(() => Almacen, (almacen) => almacen.peticionesProducto)
   almacen: Almacen;
@@ -47,4 +52,38 @@ export class PeticionProducto {
 
   @ManyToOne(() => Equipo, (equipo) => equipo.reportes)
   equipo?: Equipo;
+
+  @ManyToMany(() => Componente, { eager: false })
+  @JoinTable({
+    name: 'peticion_componentes',
+    joinColumn: { name: 'peticion_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'componente_id', referencedColumnName: 'id' },
+  })
+  componentes: Componente[];
+
+  @ManyToMany(() => Fase, { eager: false })
+  @JoinTable({
+    name: 'peticion_fases',
+    joinColumn: { name: 'peticion_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'fase_id', referencedColumnName: 'id' },
+  })
+  fases: Fase[];
+}
+
+@Entity('componentes')
+export class Componente {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ unique: true })
+  key: string;
+}
+
+@Entity('fases')
+export class Fase {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ unique: true })
+  key: string;
 }
