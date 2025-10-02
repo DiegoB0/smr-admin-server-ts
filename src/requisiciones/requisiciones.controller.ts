@@ -160,4 +160,13 @@ export class RequisicionesController {
   rejectRequisicion(@Param('id') id: number, @GetUser() user: User) {
     return this.requisicionesService.rejectRequisicion(id, user);
   }
+
+
+  @Patch(':id/pagar')
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.AcceptRequisicion)
+  pagarRequisicion(@Param('id') id: number, @GetUser() user: User) {
+    return this.requisicionesService.markAsPagada(id, user);
+  }
 }
