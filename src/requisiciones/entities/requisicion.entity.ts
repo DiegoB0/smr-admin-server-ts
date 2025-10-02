@@ -33,6 +33,10 @@ export class Requisicion {
   @Column({ nullable: true })
   titulo: string;
 
+
+  @Column({ nullable: true })
+  observaciones: string;
+
   @Column({ enum: PrioridadType })
   prioridad: PrioridadType;
 

@@ -1193,6 +1193,7 @@ export class RequisicionesService {
     // Mark requisicion as PAGADA
     requisicion.status = RequisicionStatus.PAGADA;
     requisicion.metodo_pago = dto.metodo_pago;
+    requisicion.observaciones = dto.observaciones;
     // Create the entrada
     const entrada = this.entradaRepo.create({
       fechaEsperada: dto.fechaEsperada,
