@@ -6,7 +6,7 @@ import { Brackets, DataSource, In, Repository } from 'typeorm';
 import { RequisicionItem } from './entities/requisicion_item.entity';
 import { Componente, Fase, PeticionProducto } from './entities/peticion_producto.entity';
 import { PeticionProductoItem } from './entities/peticion_producto_item.entity';
-import { CreatePeticionProductoDto, CreateRequisicionDto, CreateServiceRequisicionDto, UpdatePeticionProductoDto } from './dto/request.dto';
+import { CreatePeticionProductoDto, CreateRequisicionDto, CreateServiceRequisicionDto, PagarRequisicionDto, UpdatePeticionProductoDto } from './dto/request.dto';
 import { PeticionStatus } from './types/peticion-status';
 import { User } from 'src/auth/entities/usuario.entity';
 import { GetPeticionProductDto, GetRequisicionDto, PaginatedPeticionProductoDto, PaginatedRequisicionDto, ReporteQueryDto } from './dto/response.dto';
@@ -1166,44 +1166,36 @@ export class RequisicionesService {
     return this.requisicionRepo.save(requisicion);
   }
 
-  async markAsPagada(id: number, user: User, fechaEsperada?: string) {
+  async markAsPagada(id: number, user: User, dto: PagarRequisicionDto) {
     const requisicion = await this.requisicionRepo.findOne({
       where: { id },
       relations: ['items', 'items.producto', 'almacenDestino', 'almacenCargo'],
     });
-
     if (!requisicion) {
       throw new NotFoundException('Requisición no encontrada.');
     }
-
     if (requisicion.status !== RequisicionStatus.APROBADA) {
       throw new BadRequestException(
         `Solo se puede marcar como pagada una requisición aprobada. Estado actual: ${requisicion.status}`
       );
     }
-
     // Only generate entrada for product requisiciones
     if (requisicion.requisicionType !== RequisicionType.PRODUCT) {
       throw new BadRequestException(
         'Solo las requisiciones de productos generan entradas automáticas.'
-
       );
     }
-
     if (!requisicion.items || requisicion.items.length === 0) {
-
       throw new BadRequestException(
         'La requisición no tiene items de productos.'
       );
-
     }
-
     // Mark requisicion as PAGADA
     requisicion.status = RequisicionStatus.PAGADA;
-
+    requisicion.metodo_pago = dto.metodo_pago;
     // Create the entrada
     const entrada = this.entradaRepo.create({
-      fechaEsperada: fechaEsperada,
+      fechaEsperada: dto.fechaEsperada,
       status: EntradaStatus.PENDIENTE,
       almacenDestino: requisicion.almacenCargo,
       creadoPor: user,
@@ -1217,10 +1209,8 @@ export class RequisicionesService {
         return entradaItem;
       }),
     });
-
     await this.requisicionRepo.save(requisicion);
     const savedEntrada = await this.entradaRepo.save(entrada);
-
     return {
       requisicion,
       entrada: savedEntrada,
