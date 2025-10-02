@@ -13,6 +13,7 @@ import { EquiposModule } from 'src/equipos/equipos.module';
 import { ProductosModule } from 'src/productos/productos.module';
 import { RequisicionServiceItem } from './entities/requisicion_service_item.entity';
 import { ProveedoresModule } from 'src/proveedores/proveedores.module';
+import { EntradasModule } from 'src/entradas/entradas.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ProveedoresModule } from 'src/proveedores/proveedores.module';
       Componente
     ]),
     LogsModule,
+    EntradasModule,
     AuthModule,
     AlmacenesModule,
     EquiposModule,
