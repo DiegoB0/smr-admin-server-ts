@@ -16,6 +16,13 @@ export class PagarRequisicionDto {
   metodo_pago: MetodoPago;
 
   @ApiProperty({
+    description: 'some observaciones',
+    example: "Some observaciones",
+  })
+  @IsString()
+  observaciones: string;
+
+  @ApiProperty({
     example: '2025-10-15',
     description: 'Fecha esperada de entrega (formato YYYY-MM-DD)',
     required: false,
