@@ -8,7 +8,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from 'src/auth/guards/permiso.guard';
 import { CurrentPermissions } from 'src/auth/types/current-permissions';
 import { RequirePermissions } from 'src/auth/decorators/permiso.decorator';
-import { CreatePeticionProductoDto, CreateRequisicionDto, CreateServiceRequisicionDto, UpdatePeticionProductoDto } from './dto/request.dto';
+import { CreatePeticionProductoDto, CreateRequisicionDto, CreateServiceRequisicionDto, PagarRequisicionDto, UpdatePeticionProductoDto } from './dto/request.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { ReporteQueryDto } from './dto/response.dto';
 
@@ -166,7 +166,10 @@ export class RequisicionesController {
   @SwaggerAuthHeaders()
   @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
   @RequirePermissions(CurrentPermissions.AcceptRequisicion)
-  pagarRequisicion(@Param('id') id: number, @GetUser() user: User) {
-    return this.requisicionesService.markAsPagada(id, user);
+  pagarRequisicion(
+    @Param('id') id: number,
+    @Body() dto: PagarRequisicionDto,
+    @GetUser() user: User) {
+    return this.requisicionesService.markAsPagada(id, user, dto);
   }
 }

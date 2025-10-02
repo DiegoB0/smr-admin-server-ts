@@ -6,6 +6,25 @@ import { PrioridadType } from "../types/prioridad-type";
 import { RequisicionType } from "../types/requisicion-type";
 import { COMPONENTE_KEYS, ComponenteKey, FASE_KEYS, FaseKey } from "../types/peticion-types";
 
+export class PagarRequisicionDto {
+  @ApiProperty({
+    enum: MetodoPago,
+    example: MetodoPago.ORDEN_COMPRA,
+    description: 'Método de pago utilizado para la requisición',
+  })
+  @IsEnum(MetodoPago)
+  metodo_pago: MetodoPago;
+
+  @ApiProperty({
+    example: '2025-10-15',
+    description: 'Fecha esperada de entrega (formato YYYY-MM-DD)',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  fechaEsperada?: string;
+}
+
 export class ParamReporteDto {
   @ApiProperty({
     description: 'ID del reporte'
