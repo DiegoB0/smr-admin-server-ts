@@ -1198,7 +1198,7 @@ export class RequisicionesService {
     const entrada = this.entradaRepo.create({
       fechaEsperada: dto.fechaEsperada,
       status: EntradaStatus.PENDIENTE,
-      almacenDestino: requisicion.almacenCargo,
+      almacenDestino: requisicion.almacenDestino,
       creadoPor: user,
       requisicion: requisicion,
       items: requisicion.items.map(reqItem => {
