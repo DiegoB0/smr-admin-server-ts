@@ -1166,7 +1166,7 @@ export class RequisicionesService {
     return this.requisicionRepo.save(requisicion);
   }
 
-async markAsPagada(id: number, user: User, fechaEsperada?: string) {
+  async markAsPagada(id: number, user: User, fechaEsperada?: string) {
     const requisicion = await this.requisicionRepo.findOne({
       where: { id },
       relations: ['items', 'items.producto', 'almacenDestino', 'almacenCargo'],
@@ -1205,13 +1205,13 @@ async markAsPagada(id: number, user: User, fechaEsperada?: string) {
     const entrada = this.entradaRepo.create({
       fechaEsperada: fechaEsperada,
       status: EntradaStatus.PENDIENTE,
-      almacenDestino: requisicion.almacenCargo, 
+      almacenDestino: requisicion.almacenCargo,
       creadoPor: user,
       requisicion: requisicion,
       items: requisicion.items.map(reqItem => {
         const entradaItem = new EntradaItem();
         entradaItem.cantidadEsperada = reqItem.cantidadSolicitada;
-        entradaItem.cantidadRecibida = 0; 
+        entradaItem.cantidadRecibida = 0;
         entradaItem.producto = reqItem.producto;
         entradaItem.requisicionItem = reqItem;
         return entradaItem;
