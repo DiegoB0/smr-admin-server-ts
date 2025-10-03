@@ -1,0 +1,79 @@
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  postgres_data:
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: unless-stopped
+    networks: [internal]
+    ports:
+      - "127.0.0.1:5434:5432"
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    security_opt:
+      - no-new-privileges:true
+    read_only: false
+    tmpfs:
+      - /tmp:noexec,nosuid,nodev,size=64m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME} -h 127.0.0.1 -p 5432"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  smr_v2:
+    build: .
+    container_name: smr_v2
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [internal]
+    ports:
+      - "0.0.0.0:5000:5000"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgres://${DB_USERNAME}:${DB_PASSWORD}@postgres:5432/${DB_NAME}?sslmode=disable
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,nodev,size=64m
+
+  seed:
+    image: postgres:16-alpine
+    depends_on:
+      postgres:
+        condition: service_healthy
+      smr_v2:
+        condition: service_started  
+    networks: [internal]
+    environment:
+      PGPASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./seed:/seed:ro
+    entrypoint:
+      - sh
+      - -lc
+      - |
+        set -e
+        # Wait until TypeORM created the 'permisos' table
+        until psql -h postgres -U ${DB_USERNAME} -d ${DB_NAME} -tAc "select 1 from information_schema.tables where table_name='permisos' limit 1" | grep -q 1; do
+          echo "waiting for schema (permisos)..."; sleep 2;
+        done
+        echo "Schema ready; applying seed..."
+        psql -h postgres -U ${DB_USERNAME} -d ${DB_NAME} -f /seed/00-seed.sql
+    restart: "no"

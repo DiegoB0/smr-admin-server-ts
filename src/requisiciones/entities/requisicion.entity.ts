@@ -27,7 +27,7 @@ export class Requisicion {
   @CreateDateColumn()
   fechaSolicitud: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, unique: true })
   rcp: number;
 
   @Column({ nullable: true })
