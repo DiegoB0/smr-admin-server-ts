@@ -6,11 +6,14 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors({
-    origin: process.env.FRONTEND_URL, 
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true, 
-  });
+  if (process.env.PROD !== 'true') {
+    app.enableCors({
+      origin: process.env.FRONTEND_URL,
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+      credentials: true,
+    });
+  } else {
+  }
 
   app.setGlobalPrefix('api');
 
@@ -50,10 +53,19 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
 
-  await app.listen(process.env.PORT ?? 3000);
-  console.log(`Application running on http://localhost:${process.env.PORT ?? 3000}`);
-  console.log(`Swagger Docs available at http://localhost:${process.env.PORT ?? 3000}/api/docs`);
+  if (process.env.PROD !== 'true') {
+    SwaggerModule.setup('api/docs', app, document);
+    console.log(
+      `Swagger Docs available at http://localhost:${process.env.PORT ?? 5000}/api/docs`,
+    );
+  } else {
+    console.log('Swagger disabled in PROD mode');
+  }
+
+  await app.listen(process.env.PORT ?? 5000);
+  console.log(
+    `🚀 Application running on http://localhost:${process.env.PORT ?? 5000}`,
+  );
 }
 bootstrap();
