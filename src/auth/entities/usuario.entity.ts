@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   OneToMany,
   ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiKey } from './api_key.entity';
 import { Log } from 'src/logs/entities/log.entity';
@@ -63,6 +64,7 @@ export class User {
   peticionesAprobadas: PeticionProducto[];
 
   @ManyToOne(() => Obra, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'obraId' })
   obra?: Obra;
 
   @OneToMany(() => Almacen, almacen => almacen.encargado)

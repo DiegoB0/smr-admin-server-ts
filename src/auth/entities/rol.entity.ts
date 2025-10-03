@@ -7,11 +7,11 @@ export class Rol {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column()
   name: string;
 
   // Key of each role
-  @Column()
+  @Column({ unique: true })
   slug: string;
 
   @OneToMany(() => RolPermiso, (rp) => rp.rol)

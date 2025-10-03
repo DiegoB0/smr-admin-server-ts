@@ -1,8 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, Unique } from 'typeorm';
 import { Rol } from './rol.entity';
 import { Permiso } from './permiso.entity';
 
 @Entity('rol_permiso')
+@Unique(['rol', 'permiso'])
 export class RolPermiso {
   @PrimaryGeneratedColumn('uuid')
   id: string;
