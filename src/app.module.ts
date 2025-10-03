@@ -26,7 +26,7 @@ import { SeedModule } from './seed/seed.module';
         port: cs.get<number>('DB_PORT'),
         username: cs.get<string>('DB_USERNAME'),
         password: cs.get<string>('DB_PASSWORD'),
-        database: cs.get<string>('DB_DATABASE'),
+        database: cs.get<string>('DB_NAME'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: true,
       }),
