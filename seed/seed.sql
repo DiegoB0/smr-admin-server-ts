@@ -1,0 +1,161 @@
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+/* Base permissions */
+INSERT INTO permisos (id, name, slug, description)
+VALUES
+  (gen_random_uuid(), 'Create User', 'create-user', 'Crear Usuario'),
+  (gen_random_uuid(), 'List User', 'list-user', 'Listar Usuario'),
+  (gen_random_uuid(), 'Delete User', 'delete-user', 'Eliminar usuario'),
+  (gen_random_uuid(), 'Edit User', 'update-user', 'Actualizar usuario'),
+  (gen_random_uuid(), 'Create API Key', 'create-api-key', 'Crear usuario'),
+  (gen_random_uuid(), 'Delete API KEY', 'delete-api-key', 'Eliminar usuario'),
+  (gen_random_uuid(), 'Create Almacen', 'create-almacen', 'Crear almacen'),
+  (gen_random_uuid(), 'List Almacen', 'list-almacen', 'Listar almacen'),
+  (gen_random_uuid(), 'Delete Almacen', 'delete-almacen', 'Eliminar almacen'),
+  (gen_random_uuid(), 'Edit Almacen', 'update-almacen', 'Actualizar almacen'),
+  (gen_random_uuid(), 'Create Producto', 'create-product', 'Crear producto'),
+  (gen_random_uuid(), 'List Producto', 'list-product', 'Listar producto'),
+  (gen_random_uuid(), 'Delete Producto', 'delete-product', 'Eliminar producto'),
+  (gen_random_uuid(), 'Edit Producto', 'update-product', 'Actualizar producto'),
+  (gen_random_uuid(), 'List stock', 'list-stock', 'listar stock'),
+  (gen_random_uuid(), 'Add Stock', 'add-stock', 'agregar stock al inventario'),
+  (gen_random_uuid(), 'Remove Stock', 'remove-stock', 'quitar stock al inventario'),
+  (gen_random_uuid(), 'Create Report', 'create-report', 'Crear reporte'),
+  (gen_random_uuid(), 'List Report', 'list-report', 'Listar reporte'),
+  (gen_random_uuid(), 'Delete Report', 'delete-report', 'Eliminar reporte'),
+  (gen_random_uuid(), 'Edit Report', 'update-report', 'Actualizar reporte'),
+  (gen_random_uuid(), 'Accept Report', 'accept-report', 'Aceptar reporte'),
+  (gen_random_uuid(), 'Create Requisicion', 'create-requisicion', 'Crear requisicion'),
+  (gen_random_uuid(), 'List Requisicion', 'list-requisicion', 'Listar requisicion'),
+  (gen_random_uuid(), 'Delete Requisicion', 'delete-requisicion', 'Eliminar requisicion'),
+  (gen_random_uuid(), 'Edit Requisicion', 'update-requisicion', 'Actualizar requisicion'),
+  (gen_random_uuid(), 'Accept Requisicion', 'accept-requisicion', 'Aceptar requisicion'),
+  (gen_random_uuid(), 'Create Obra', 'create-obra', 'Crear obra'),
+  (gen_random_uuid(), 'List Obra', 'list-obra', 'Listar obra'),
+  (gen_random_uuid(), 'Delete Obra', 'delete-obra', 'Eliminar obra'),
+  (gen_random_uuid(), 'Edit Obra', 'update-obra', 'Actualizar obra'),
+ON CONFLICT (nombre) DO NOTHING;
+
+/* Roles */
+INSERT INTO roles (id, name, slug)
+VALUES
+  (gen_random_uuid(),'Admin', 'admin'),
+  (gen_random_uuid(),'Blogger', 'blogger'),
+  (gen_random_uuid(),'Admin almacen', 'admin-almacen'),
+  (gen_random_uuid(),'Operador', 'operador'),
+  (gen_random_uuid(),'Admin Web', 'admin-web'),
+  (gen_random_uuid(),'Admin Compras', 'admin-compras')
+ON CONFLICT (nombre) DO NOTHING;
+
+/* Attach permissions to 'admin' (all relevant perms) */
+INSERT INTO rol_permiso (id, rol_id, permiso_id)
+SELECT gen_random_uuid(), r.id, p.id
+FROM roles r
+JOIN permisos p
+  ON p.nombre LIKE '%restaurante%'
+  OR p.nombre LIKE '%api-key%'
+  OR p.nombre LIKE '%client%'
+  OR p.nombre LIKE '%punto-venta%'
+  OR p.nombre LIKE '%config%'
+  OR p.nombre LIKE '%user%'
+  OR p.nombre LIKE '%menu%'
+  OR p.nombre LIKE '%expenses%'
+  OR p.nombre LIKE '%mesa%'
+  OR p.nombre LIKE '%cuenta%'
+  OR p.nombre LIKE '%orden%'
+WHERE r.nombre = 'admin'
+ON CONFLICT DO NOTHING;
+
+/* Attach base user perms explicitly to 'admin' as in first file */
+INSERT INTO rol_permiso (id, rol_id, permiso_id)
+SELECT gen_random_uuid(), r.id, p.id
+FROM roles r
+JOIN permisos p ON p.nombre IN ('create-user','delete-user','update-user','list-user')
+WHERE r.nombre = 'admin'
+ON CONFLICT DO NOTHING;
+
+/* 'admin-restaurante' */
+INSERT INTO rol_permiso (id, rol_id, permiso_id)
+SELECT gen_random_uuid(), r.id, p.id
+FROM roles r
+JOIN permisos p
+  ON p.nombre IN ('update-restaurante', 'list-restaurante')
+  OR p.nombre LIKE '%punto-venta%'
+  OR p.nombre LIKE '%config%'
+  OR p.nombre LIKE '%user%'
+  OR p.nombre LIKE '%menu%'
+  OR p.nombre LIKE '%expenses%'
+  OR p.nombre LIKE '%mesa%'
+  OR p.nombre LIKE '%cuenta%'
+  OR p.nombre LIKE '%orden%'
+WHERE r.nombre = 'admin-restaurante'
+ON CONFLICT DO NOTHING;
+
+/* 'admin-punto-venta' */
+INSERT INTO rol_permiso (id, rol_id, permiso_id)
+SELECT gen_random_uuid(), r.id, p.id
+FROM roles r
+JOIN permisos p
+  ON p.nombre IN ('list-punto-venta')
+  OR p.nombre IN ('list-menu')
+  OR p.nombre LIKE '%expenses%'
+  OR p.nombre LIKE '%mesa%'
+  OR p.nombre LIKE '%cuenta%'
+  OR p.nombre LIKE '%orden%'
+WHERE r.nombre = 'admin-punto-venta'
+ON CONFLICT DO NOTHING;
+
+/* 'chef' */
+INSERT INTO rol_permiso (id, rol_id, permiso_id)
+SELECT gen_random_uuid(), r.id, p.id
+FROM roles r
+JOIN permisos p
+  ON p.nombre IN ('list-punto-venta')
+  OR p.nombre IN ('update-orden', 'list-orden')
+WHERE r.nombre = 'chef'
+ON CONFLICT DO NOTHING;
+
+/* 'mesero' */
+INSERT INTO rol_permiso (id, rol_id, permiso_id)
+SELECT gen_random_uuid(), r.id, p.id
+FROM roles r
+JOIN permisos p
+  ON p.nombre IN ('list-punto-venta')
+  OR p.nombre IN ('list-menu')
+  OR p.nombre IN ('list-mesa')
+  OR p.nombre LIKE '%cuenta%'
+  OR p.nombre LIKE '%orden%'
+WHERE r.nombre = 'mesero'
+ON CONFLICT DO NOTHING;
+
+/* Default admin user */
+INSERT INTO usuarios (id, email, password, name, "imageUrl", "isActive", obraId)
+VALUES (
+  gen_random_uuid(),
+  'ola@ola.com',
+  '$2b$10$PhbJcXM2UIZDI5.yqquDEuAa2tkxczpo2gb1Agmj1BFZ/cS20ozqa',
+  'Dev Admin',
+  NULL,
+  TRUE,
+  NULL
+)
+ON CONFLICT (email) DO NOTHING;
+
+/* Attach ADMIN role to the default user */
+INSERT INTO usuario_rol (id, usuario_id, rol_id)
+SELECT gen_random_uuid(), u.id, r.id
+FROM usuarios u
+JOIN roles r ON r.nombre = 'admin'
+WHERE u.email = 'ola@ola.com'
+ON CONFLICT DO NOTHING;
+
+/* API key for the default user */
+INSERT INTO api_keys ("key", "createdAt", revoked, "userId")
+SELECT
+  '0b347279-68c5-4c77-9f4b-7f31302b7769',
+  now(),
+  FALSE,
+  u.id
+FROM usuarios u
+WHERE u.email = 'ola@ola.com'
+ON CONFLICT ("key") DO NOTHING;

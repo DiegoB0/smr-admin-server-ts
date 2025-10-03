@@ -5,6 +5,8 @@ import { Repository } from 'typeorm';
 import { EntradaItem } from './entities/entrada_item.entity';
 import { EntradaStatus } from './types/entradas-status';
 import { Inventario } from 'src/almacenes/entities/inventario.entity';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { GetEntradaDto, PaginatedEntradaDto } from './dto/response.dto';
 
 @Injectable()
 export class EntradasService {
@@ -19,10 +21,56 @@ export class EntradasService {
     private readonly itemRepo: Repository<EntradaItem>,
   ) { }
 
-  async findAll() {
-    return this.entradaRepo
+  async findAll(
+    pagination: PaginationDto
+  ): Promise<PaginatedEntradaDto> {
+    const { page = 1, limit = 10, order = 'DESC' } = pagination;
+    const skip = (page - 1) * limit;
+
+    // 1) Base QB for count + ids
+    const baseQB = this.entradaRepo
+      .createQueryBuilder('entrada');
+
+    const totalItems = await baseQB.getCount();
+    const totalPages = Math.ceil(totalItems / limit);
+
+    if (totalItems === 0) {
+      return new PaginatedEntradaDto([], {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      });
+    }
+
+    // 2) Page of IDs only
+    const idRows = await baseQB
+      .select('entrada.id', 'id')
+      .orderBy('entrada.fechaCreacion', order)
+      .skip(skip)
+      .take(limit)
+      .getRawMany<{ id: number }>();
+
+    const ids = idRows.map((r) => r.id);
+    if (ids.length === 0) {
+      return new PaginatedEntradaDto([], {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      });
+    }
+
+    // 3) Load full rows for those IDs
+    const entradas = await this.entradaRepo
       .createQueryBuilder('entrada')
-      .leftJoinAndSelect('entrada.items', 'items')
+      .select(['entrada.id', 'entrada.fechaCreacion'])
+      .leftJoin('entrada.items', 'items')
+      .addSelect(['items.id', 'items.cantidadRecibida', 'items.cantidadEsperada'])
       .leftJoin('items.producto', 'producto')
       .addSelect(['producto.id', 'producto.name'])
       .leftJoin('entrada.almacenDestino', 'almacen')
@@ -31,8 +79,47 @@ export class EntradasService {
       .addSelect(['creadoPor.id', 'creadoPor.name'])
       .leftJoin('entrada.requisicion', 'requisicion')
       .addSelect(['requisicion.id', 'requisicion.rcp'])
-      .orderBy('entrada.fechaCreacion', 'DESC')
+      .where('entrada.id IN (:...ids)', { ids })
+      .orderBy('entrada.fechaCreacion', order)
       .getMany();
+
+    // 4) Map to DTO
+    const mapped: GetEntradaDto[] = entradas.map((e) => ({
+      id: e.id,
+      fechaCreacion: e.fechaCreacion,
+      items: (e.items ?? []).map((i) => ({
+        id: i.id,
+        cantidadRecibida: i.cantidadRecibida,
+        cantidadEsperada: i.cantidadEsperada,
+        producto: {
+          id: i.producto.id,
+          name: i.producto.name,
+        },
+      })),
+      almacenDestino: {
+        id: e.almacenDestino?.id,
+        name: e.almacenDestino?.name,
+      },
+      creadoPor: {
+        id: e.creadoPor?.id,
+        name: e.creadoPor?.name,
+      },
+      requisicion: e.requisicion
+        ? {
+          id: e.requisicion.id,
+          rcp: e.requisicion.rcp,
+        }
+        : null,
+    }));
+
+    return new PaginatedEntradaDto(mapped, {
+      currentPage: page,
+      totalPages,
+      totalItems,
+      itemsPerPage: limit,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
+    });
   }
 
   async updateCantidadRecibida(
