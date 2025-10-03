@@ -116,7 +116,7 @@ VALUES (
   '$2b$10$PhbJcXM2UIZDI5.yqquDEuAa2tkxczpo2gb1Agmj1BFZ/cS20ozqa',
   'Dev Admin',
   NULL,
-  TRUE,
+  TRUE
 )
 ON CONFLICT (email) DO NOTHING;
 
