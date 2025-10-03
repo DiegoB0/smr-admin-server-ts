@@ -1,0 +1,31 @@
+name: Deploy to Linode
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to Linode via SSH
+        uses: appleboy/ssh-action@master
+        with:
+
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            cd /root/projects/smr-admin-server-ts
+            git fetch origin main
+            git pull --rebase origin main
+            npm ci
+            node manage.mjs build:nocache
+            node manage.mjs up:nocache

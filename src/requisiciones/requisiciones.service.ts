@@ -833,7 +833,7 @@ export class RequisicionesService {
         'pedidoPor',
         'revisadoPor',
       ],
-      where: { status: RequisicionStatus.APROBADA },
+      where: { status: In([RequisicionStatus.APROBADA, RequisicionStatus.PAGADA]) },
       skip,
       take: limit,
       order: { fechaSolicitud: order as any },
