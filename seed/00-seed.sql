@@ -109,7 +109,7 @@ WHERE r.slug = 'admin-almacen'
 ON CONFLICT DO NOTHING;
 
 /* Default admin user */
-INSERT INTO usuarios (id, email, password, name, "imageUrl", "isActive", obra_id)
+INSERT INTO usuarios (id, email, password, name, "imageUrl", "isActive")
 VALUES (
   gen_random_uuid(),
   'ola@ola.com',
@@ -117,7 +117,6 @@ VALUES (
   'Dev Admin',
   NULL,
   TRUE,
-  NULL
 )
 ON CONFLICT (email) DO NOTHING;
 
