@@ -64,7 +64,7 @@ export class User {
   peticionesAprobadas: PeticionProducto[];
 
   @ManyToOne(() => Obra, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'obraId' })
+  @JoinColumn({ name: 'obra_id' })
   obra?: Obra;
 
   @OneToMany(() => Almacen, almacen => almacen.encargado)
