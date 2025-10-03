@@ -21,5 +21,5 @@ COPY --from=deps /app/node_modules ./node_modules
 
 COPY --from=builder /app/dist ./dist
 USER nodeapp
-EXPOSE 5200
+EXPOSE 5000
 CMD ["node", "dist/main.js"]
