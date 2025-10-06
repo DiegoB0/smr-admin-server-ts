@@ -18,22 +18,21 @@ export class SalidasService {
     private readonly salidaRepo: Repository<Salida>,
   ) { }
 
-  async create(dto: CreateSalidaDto) {
+  async create(dto: CreateSalidaDto, user: User) {
     if (!dto.items?.length) {
       throw new BadRequestException('La salida requiere items.');
     }
 
     return this.dataSource.transaction(async (manager) => {
-      await manager.findOneByOrFail(User, { id: dto.recibidaPorId });
-      if (dto.authorizaId) {
-        await manager.findOneByOrFail(User, { id: dto.authorizaId });
+      if (user.id) {
+        await manager.findOneByOrFail(User, { id: user.id });
       }
 
       const salida = manager.create(Salida, {
         almacenOrigenId: dto.almacenOrigenId,
-        recibidaPor: { id: dto.recibidaPorId } as DeepPartial<User>,
-        authoriza: dto.authorizaId
-          ? ({ id: dto.authorizaId } as DeepPartial<User>)
+        recibidaPor: dto.recibidaPor,
+        authoriza: user.id
+          ? ({ id: user.id } as DeepPartial<User>)
           : undefined,
         items: [],
       });
@@ -90,7 +89,6 @@ export class SalidasService {
         where: { id: salida.id },
         relations: {
           items: { producto: true },
-          recibidaPor: true,
           authoriza: true,
           almacenOrigen: true,
         },
@@ -163,11 +161,9 @@ export class SalidasService {
     // Load full rows for those IDs with selective selects
     const salidas = await this.salidaRepo
       .createQueryBuilder('s')
-      .select(['s.id', 's.fecha'])
+      .select(['s.id', 's.fecha', 's.recibidaPor'])
       .leftJoin('s.almacenOrigen', 'almacen')
       .addSelect(['almacen.id', 'almacen.name'])
-      .leftJoin('s.recibidaPor', 'recibidaPor')
-      .addSelect(['recibidaPor.id', 'recibidaPor.name'])
       .leftJoin('s.authoriza', 'authoriza')
       .addSelect(['authoriza.id', 'authoriza.name'])
       .leftJoin('s.items', 'item')
@@ -187,9 +183,7 @@ export class SalidasService {
         id: s.almacenOrigen?.id,
         name: s.almacenOrigen?.name,
       } as any,
-      recibidaPor: s.recibidaPor
-        ? { id: s.recibidaPor.id, name: s.recibidaPor.name }
-        : null,
+      recibidaPor: s.recibidaPor,
       authoriza: s.authoriza
         ? { id: s.authoriza.id, name: s.authoriza.name }
         : null,

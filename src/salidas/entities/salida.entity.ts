@@ -17,8 +17,8 @@ export class Salida {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User, u => u.salidas)
-  recibidaPor: User;
+  @Column({nullable: true})
+  recibidaPor: string;
 
   @ManyToOne(() => User, { nullable: true })
   authoriza?: User;

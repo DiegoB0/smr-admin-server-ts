@@ -40,19 +40,11 @@ export class CreateSalidaDto {
   almacenOrigenId: number;
 
   @ApiProperty({
-    description: 'Usuario que recibe (UUID)',
-    example: 'a3b1c4d2-9f77-4a0c-9c3e-2efc1d9c1a22',
+    description: 'Persona que recibe los productos de salida',
+    example: 'Diego B',
   })
   @IsString()
-  recibidaPorId: string;
-
-  @ApiPropertyOptional({
-    description: 'Usuario que autoriza (UUID)',
-    example: 'c8f2a1b9-6d3e-4a7f-9e2b-1d0f5a6c7b8d',
-  })
-  @IsOptional()
-  @IsString()
-  authorizaId?: string;
+  recibidaPor: string;
 
   @ApiPropertyOptional({
     description: 'Equipo asociado (numérico)',

@@ -13,8 +13,10 @@ export class GetSalidaDto {
   @ApiProperty() fecha: Date;
   @ApiProperty({ type: () => Object })
   almacenOrigen: { id: number; name: string };
-  @ApiProperty({ type: () => Object, nullable: true })
-  recibidaPor?: { id: string; name: string } | null;
+
+  @ApiProperty()
+  recibidaPor?: string
+
   @ApiProperty({ type: () => Object, nullable: true })
   authoriza?: { id: string; name: string } | null;
   @ApiProperty({ type: [GetSalidaItemDto] })
