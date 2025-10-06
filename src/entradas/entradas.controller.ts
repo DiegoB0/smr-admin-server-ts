@@ -9,11 +9,12 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 export class EntradasController {
   constructor(private readonly entradasService: EntradasService) { }
 
-  @Get()
+  @Get(':almacenId')
   async findAll(
-    @Query() dto: PaginationDto,
+    @Param('almacenId', ParseIntPipe) almacenId: number,
+    @Query() pagination: PaginationDto
   ) {
-    return this.entradasService.findAll(dto);
+    return this.entradasService.findAll(almacenId, pagination);
   }
 
   @Patch(':id/recibir')

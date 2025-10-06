@@ -1,8 +1,10 @@
 import { Almacen } from "src/almacenes/entities/almacen.entity";
 import { Producto } from "src/productos/entities/producto.entity";
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
 
 @Entity({name: 'inventarios'})
+@Unique(['almacen', 'producto'])
+@Index(['almacen', 'producto'])
 export class Inventario {
   @PrimaryGeneratedColumn()
   id: number;

@@ -271,7 +271,7 @@ export class UsuariosService {
     if (password !== undefined && password !== '') {
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      usuario.password = password;
+      usuario.password = hashedPassword;
     }
 
     const updatedUser = await this.userRepo.save(usuario)

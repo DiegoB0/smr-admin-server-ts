@@ -23,6 +23,9 @@ export class RequisicionServiceItem {
   @Column()
   precio_unitario: number;
 
+  @Column({ nullable: true, default: true })
+  is_product: boolean;
+
   @ManyToOne(() => Requisicion, r => r.service_items, { onDelete: 'CASCADE' })
   requisicion: Requisicion;
 }

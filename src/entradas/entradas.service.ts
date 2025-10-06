@@ -22,14 +22,17 @@ export class EntradasService {
   ) { }
 
   async findAll(
+    almacenId: number,
     pagination: PaginationDto
   ): Promise<PaginatedEntradaDto> {
     const { page = 1, limit = 10, order = 'DESC' } = pagination;
     const skip = (page - 1) * limit;
 
-    // 1) Base QB for count + ids
+    // 1) Base QB filtered by almacén (required now)
     const baseQB = this.entradaRepo
-      .createQueryBuilder('entrada');
+      .createQueryBuilder('entrada')
+      .leftJoin('entrada.almacenDestino', 'almacen')
+      .where('almacen.id = :almacenId', { almacenId });
 
     const totalItems = await baseQB.getCount();
     const totalPages = Math.ceil(totalItems / limit);
@@ -46,14 +49,16 @@ export class EntradasService {
     }
 
     // 2) Page of IDs only
-    const idRows = await baseQB
-      .select('entrada.id', 'id')
-      .orderBy('entrada.fechaCreacion', order)
-      .skip(skip)
-      .take(limit)
-      .getRawMany<{ id: number }>();
+    const ids = (
+      await baseQB
+        .clone()
+        .select('entrada.id', 'id')
+        .orderBy('entrada.fechaCreacion', order)
+        .skip(skip)
+        .take(limit)
+        .getRawMany<{ id: number }>()
+    ).map((r) => r.id);
 
-    const ids = idRows.map((r) => r.id);
     if (ids.length === 0) {
       return new PaginatedEntradaDto([], {
         currentPage: page,
@@ -68,7 +73,7 @@ export class EntradasService {
     // 3) Load full rows for those IDs
     const entradas = await this.entradaRepo
       .createQueryBuilder('entrada')
-      .select(['entrada.id', 'entrada.fechaCreacion'])
+      .select(['entrada.id', 'entrada.fechaCreacion', 'entrada.status'])
       .leftJoin('entrada.items', 'items')
       .addSelect(['items.id', 'items.cantidadRecibida', 'items.cantidadEsperada'])
       .leftJoin('items.producto', 'producto')
@@ -87,28 +92,17 @@ export class EntradasService {
     const mapped: GetEntradaDto[] = entradas.map((e) => ({
       id: e.id,
       fechaCreacion: e.fechaCreacion,
+      status: e.status,
       items: (e.items ?? []).map((i) => ({
         id: i.id,
         cantidadRecibida: i.cantidadRecibida,
         cantidadEsperada: i.cantidadEsperada,
-        producto: {
-          id: i.producto.id,
-          name: i.producto.name,
-        },
+        producto: { id: i.producto.id, name: i.producto.name },
       })),
-      almacenDestino: {
-        id: e.almacenDestino?.id,
-        name: e.almacenDestino?.name,
-      },
-      creadoPor: {
-        id: e.creadoPor?.id,
-        name: e.creadoPor?.name,
-      },
+      almacenDestino: { id: e.almacenDestino?.id, name: e.almacenDestino?.name },
+      creadoPor: { id: e.creadoPor?.id, name: e.creadoPor?.name },
       requisicion: e.requisicion
-        ? {
-          id: e.requisicion.id,
-          rcp: e.requisicion.rcp,
-        }
+        ? { id: e.requisicion.id, rcp: e.requisicion.rcp }
         : null,
     }));
 

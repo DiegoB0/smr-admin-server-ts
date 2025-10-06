@@ -1,5 +1,6 @@
 import { PeticionProducto } from 'src/requisiciones/entities/peticion_producto.entity';
 import { Requisicion } from 'src/requisiciones/entities/requisicion.entity';
+import { Salida } from 'src/salidas/entities/salida.entity';
 import {
   Column,
   Entity,
@@ -32,6 +33,9 @@ export class Equipo {
 
   @OneToMany(() => PeticionProducto, (peticion) => peticion.equipo)
   reportes: PeticionProducto[];
+
+  @OneToMany(() => Salida, (salida) => salida.equipo)
+  salidas: Salida[];
 
   @OneToMany(() => Requisicion, (requisicion) => requisicion.equipo)
   requisiciones: Requisicion[];

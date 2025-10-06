@@ -21,9 +21,6 @@ export class RequisicionItem {
   @OneToMany(() => EntradaItem, ei => ei.requisicionItem)
   entradas: EntradaItem[];
 
-  @OneToMany(() => SalidaItem, si => si.requisicionItem)
-  salidas: SalidaItem[];
-
   @ManyToOne(() => Producto, { eager: true })
   producto: Producto;
 

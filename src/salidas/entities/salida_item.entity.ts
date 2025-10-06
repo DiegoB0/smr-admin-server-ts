@@ -4,8 +4,6 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Entrada } from '../../entradas/entities/entrada.entity';
-import { RequisicionItem } from 'src/requisiciones/entities/requisicion_item.entity';
 import { Producto } from '../../productos/entities/producto.entity';
 import { Salida } from './salida.entity';
 
@@ -23,6 +21,4 @@ export class SalidaItem {
   @ManyToOne(() => Salida, e => e.items, { onDelete: "CASCADE" })
   salida: Salida;
 
-  @ManyToOne(() => RequisicionItem, ri => ri.entradas, { nullable: true })
-  requisicionItem?: RequisicionItem;
 }
