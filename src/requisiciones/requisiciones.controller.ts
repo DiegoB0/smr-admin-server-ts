@@ -35,8 +35,9 @@ export class RequisicionesController {
   @RequirePermissions(CurrentPermissions.ListReport)
   findAll(
     @Query() dto: PaginationDto,
+    @GetUser() user: User
   ) {
-    return this.requisicionesService.getAllPeticiones(dto)
+    return this.requisicionesService.getAllPeticiones(dto, user)
 
   }
 

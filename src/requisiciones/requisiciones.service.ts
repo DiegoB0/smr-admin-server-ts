@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Requisicion } from './entities/requisicion.entity';
 import { LogsService } from 'src/logs/logs.service';
@@ -66,13 +66,26 @@ export class RequisicionesService {
   ) { }
 
   // TODO: Endpoint to get peticiones por almacen
+
   async getAllPeticiones(
-    pagination: PaginationDto
+    pagination: PaginationDto,
+    user: User
   ): Promise<PaginatedPeticionProductoDto> {
     const { page = 1, limit = 10, search, order = 'DESC' } = pagination;
     const skip = (page - 1) * limit;
 
-    // Base QB without M2M joins, for count + ids
+    // Load user with needed relations (roles + almacenesEncargados)
+    const fullUser = await this.userRepo.findOne({
+      where: { id: user.id },
+      relations: ['usuarioRoles', 'usuarioRoles.rol', 'almacenesEncargados'],
+    });
+    if (!fullUser) throw new UnauthorizedException();
+
+    const isAdminAlmacen = (fullUser.usuarioRoles || []).some(
+      (ur) => ur?.rol?.slug === 'admin-almacen'
+    );
+
+    // Base QB
     const baseQB = this.peticionRepo
       .createQueryBuilder('peticion')
       .leftJoin('peticion.almacen', 'almacen')
@@ -89,8 +102,30 @@ export class RequisicionesService {
       );
     }
 
+    // If admin-almacen, restrict to their assigned almacenes
+    if (isAdminAlmacen) {
+      const allowedIds = (fullUser.almacenesEncargados || [])
+        .map((a) => a?.id)
+        .filter((v) => v != null);
+
+      if (allowedIds.length === 0) {
+        // No assigned almacenes => no data
+        return new PaginatedPeticionProductoDto([], {
+          currentPage: page,
+          totalPages: 0,
+          totalItems: 0,
+          itemsPerPage: limit,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        });
+      }
+
+      baseQB.andWhere('almacen.id IN (:...allowedIds)', { allowedIds });
+    }
+
+    // Counts after filters
     const totalItems = await baseQB.getCount();
-    const totalPages = Math.ceil(totalItems / limit);
+    const totalPages = Math.max(1, Math.ceil(totalItems / limit));
     if (totalItems === 0) {
       return new PaginatedPeticionProductoDto([], {
         currentPage: page,
@@ -102,7 +137,7 @@ export class RequisicionesService {
       });
     }
 
-    // Get page of IDs only
+    // Page ids
     const idRows = await baseQB
       .select('peticion.id', 'id')
       .orderBy('peticion.fechaCreacion', order)
@@ -122,7 +157,7 @@ export class RequisicionesService {
       });
     }
 
-    // Load rows with all needed relations for those ids
+    // Load page rows
     const peticiones = await this.peticionRepo
       .createQueryBuilder('peticion')
       .select([
@@ -139,12 +174,7 @@ export class RequisicionesService {
       .leftJoin('peticion.revisadoPor', 'revisadoPor')
       .addSelect(['revisadoPor.email'])
       .leftJoin('peticion.equipo', 'equipo')
-      .addSelect([
-        'equipo.equipo',
-        'equipo.modelo',
-        'equipo.horometro',
-        'equipo.serie',
-      ])
+      .addSelect(['equipo.equipo', 'equipo.modelo', 'equipo.horometro', 'equipo.serie'])
       .leftJoin('peticion.items', 'items')
       .addSelect(['items.id', 'items.cantidad'])
       .leftJoin('items.producto', 'producto')
@@ -154,11 +184,9 @@ export class RequisicionesService {
       .leftJoin('peticion.fases', 'fases')
       .addSelect(['fases.key'])
       .where('peticion.id IN (:...ids)', { ids })
-      // preserve order by fechaCreacion (optional). To strictly keep page order, order by FIELD(ids...)
       .orderBy('peticion.fechaCreacion', order)
       .getMany();
 
-    // Map
     const mapped: GetPeticionProductDto[] = peticiones.map((p) => ({
       id: p.id,
       fechaCreacion: p.fechaCreacion,
