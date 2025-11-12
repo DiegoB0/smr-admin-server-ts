@@ -73,7 +73,7 @@ export class EntradasService {
     // 3) Load full rows for those IDs
     const entradas = await this.entradaRepo
       .createQueryBuilder('entrada')
-      .select(['entrada.id', 'entrada.fechaCreacion', 'entrada.status'])
+      .select(['entrada.id', 'entrada.fechaCreacion', 'entrada.fechaEsperada', 'entrada.status'])
       .leftJoin('entrada.items', 'items')
       .addSelect(['items.id', 'items.cantidadRecibida', 'items.cantidadEsperada'])
       .leftJoin('items.producto', 'producto')
@@ -92,6 +92,7 @@ export class EntradasService {
     const mapped: GetEntradaDto[] = entradas.map((e) => ({
       id: e.id,
       fechaCreacion: e.fechaCreacion,
+      fechaEsperada: e.fechaEsperada,
       status: e.status,
       items: (e.items ?? []).map((i) => ({
         id: i.id,
@@ -169,7 +170,6 @@ export class EntradasService {
     return entrada;
   }
 
-  // Example helper function (you already have something like this)
   async addStock(almacenId: number, productId: string, cantidad: number = 1) {
     let inventario = await this.inventarioRepo.findOne({
       where: {

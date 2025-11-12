@@ -7,6 +7,6 @@ export enum RequisicionAprovalLevel {
 export enum RequisicionType {
   PRODUCT = "product",
   REFACCIONES = "refaccion",
-  CONSUMIBLES = "consumibles",
-  SERVICE = "service"
+  CONSUMIBLES = "consumibles", // NOTE: For filters
+  SERVICE = "service" // NOTE: Legacy way of handling "REFACCIONES"
 }
