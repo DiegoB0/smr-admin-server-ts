@@ -12,7 +12,13 @@ export class FiltroItem {
   id: number;
 
   @Column('text')
-  nombre: string;
+  numero: string;
+
+  @Column('text', { nullable: true })
+  equivalente: string;
+
+  @Column('text', { nullable: true })
+  descripcion: string;
 
   @Column()
   cantidad: number;
