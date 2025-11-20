@@ -13,7 +13,10 @@ export class RequisicionFilterItem {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
+  @Column({nullable: true})
+  no_economico: string;
+
+  @Column()
   customId: string;
 
   @Column()

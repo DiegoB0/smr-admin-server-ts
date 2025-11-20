@@ -527,6 +527,9 @@ export class RequisicionesService {
         if (!proveedor) throw new NotFoundException('Proveedor not found');
       }
 
+      console.log('About to show the data from the frontend')
+      console.log(dto)
+
       const result = await queryRunner.manager
         .createQueryBuilder()
         .insert()
@@ -567,6 +570,7 @@ export class RequisicionesService {
           await this.addInsumoItems(saved, dto.items as CreateInsumoItemDto[], queryRunner);
           break;
         case RequisicionType.FILTROS:
+          console.log('Inserting filtros')
           await this.addFilterItems(saved, dto.items as CreateFilterItemDto[], queryRunner);
           break;
       }
@@ -575,7 +579,7 @@ export class RequisicionesService {
 
       await queryRunner.commitTransaction();
 
-      return queryRunner.manager.findOne(Requisicion, {
+      const finalResult = await queryRunner.manager.findOne(Requisicion, {
         where: { id: saved.id },
         relations: {
           refacciones: true,
@@ -583,9 +587,13 @@ export class RequisicionesService {
           filtros: true,
         },
       });
+
+      return finalResult;
+
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw new BadRequestException(`Failed to create requisicion: ${error.message}`);
+
     } finally {
       await queryRunner.release();
     }
@@ -763,26 +771,38 @@ export class RequisicionesService {
     items: CreateRefaccionItemDto[],
     queryRunner: QueryRunner,
   ) {
-    if (!items || items.length === 0) return;
+    try {
+      if (!items || items.length === 0) return;
 
-    const refacciones = items.map(item => {
-      const refaccionItem = new RequisicionRefaccionItem();
-      refaccionItem.customId = item.customId || `ref-${Date.now()}`;
-      refaccionItem.name = item.name;
-      refaccionItem.cantidad = item.cantidad;
-      refaccionItem.unidad = item.unidad;
-      refaccionItem.descripcion = item.descripcion;
-      refaccionItem.precio = item.precio;
-      refaccionItem.currency = item.currency;
-      refaccionItem.paid = false;
-      refaccionItem.requisicion = requisicion;
-      if (item.equipoId) {
-        refaccionItem.equipo = { id: item.equipoId } as any;
-      }
-      return refaccionItem;
-    });
+      console.log('Inserting refacciones...')
 
-    await queryRunner.manager.save(refacciones);
+      const refacciones = items.map(item => {
+        const refaccionItem = new RequisicionRefaccionItem();
+        refaccionItem.customId = item.customId || `ref-${Date.now()}`;
+        refaccionItem.no_economico = item.no_economico;
+        refaccionItem.name = item.name;
+        refaccionItem.cantidad = item.cantidad;
+        refaccionItem.unidad = item.unidad;
+        refaccionItem.descripcion = item.descripcion;
+        refaccionItem.precio = item.precio;
+        refaccionItem.currency = item.currency;
+        refaccionItem.paid = false;
+        refaccionItem.requisicion = requisicion;
+        if (item.equipoId) {
+          refaccionItem.equipo = { id: item.equipoId } as any;
+        }
+        return refaccionItem;
+      });
+
+      await queryRunner.manager.save(refacciones);
+
+    } catch (error) {
+      console.error('Error in addInsumoItems:', error);
+      throw error;
+    } finally {
+      console.log('finished trying to insert into refacciones')
+    }
+
   }
 
   private async addInsumoItems(
@@ -790,22 +810,33 @@ export class RequisicionesService {
     items: CreateInsumoItemDto[],
     queryRunner: QueryRunner,
   ) {
-    if (!items || items.length === 0) return;
+    try {
 
-    const insumos = items.map(item => {
-      const insumoItem = new RequisicionInsumoItem();
-      insumoItem.cantidad = item.cantidad;
-      insumoItem.unidad = item.unidad;
-      insumoItem.descripcion = item.descripcion;
-      insumoItem.precio = item.precio_unitario;
-      insumoItem.currency = item.currency;
-      insumoItem.is_product = item.is_product || false;
-      insumoItem.paid = false;
-      insumoItem.requisicion = requisicion;
-      return insumoItem;
-    });
+      if (!items || items.length === 0) {
+        console.log('No items, returning');
+        return;
+      }
 
-    await queryRunner.manager.save(insumos);
+      const insumos = items.map(item => {
+        const insumoItem = new RequisicionInsumoItem();
+        insumoItem.cantidad = item.cantidad;
+        insumoItem.unidad = item.unidad;
+        insumoItem.descripcion = item.descripcion;
+        insumoItem.precio = item.precio_unitario;
+        insumoItem.currency = item.currency;
+        insumoItem.is_product = item.is_product || false;
+        insumoItem.paid = false;
+        insumoItem.requisicion = requisicion;
+        return insumoItem;
+      });
+
+      await queryRunner.manager.save(insumos);
+    } catch (error) {
+      console.error('Error in addInsumoItems:', error);
+      throw error;
+    } finally {
+      console.log('finished trying to insert into insumos items')
+    }
   }
 
   private async addFilterItems(
@@ -813,25 +844,36 @@ export class RequisicionesService {
     items: CreateFilterItemDto[],
     queryRunner: QueryRunner,
   ) {
-    if (!items || items.length === 0) return;
+    try {
 
-    const filtros = items.map(item => {
-      const filtroItem = new RequisicionFilterItem();
-      filtroItem.customId = item.customId || `fil-${Date.now()}`;
-      filtroItem.cantidad = item.cantidad;
-      filtroItem.unidad = item.unidad;
-      filtroItem.descripcion = item.descripcion;
-      filtroItem.precio = item.precio;
-      filtroItem.currency = item.currency;
-      filtroItem.paid = false;
-      filtroItem.requisicion = requisicion;
-      if (item.equipoId) {
-        filtroItem.equipo = { id: item.equipoId } as any;
-      }
-      return filtroItem;
-    });
+      if (!items || items.length === 0) return;
 
-    await queryRunner.manager.save(filtros);
+      const filtros = items.map(item => {
+        const filtroItem = new RequisicionFilterItem();
+        filtroItem.customId = item.customId || `fil-${Date.now()}`;
+        filtroItem.no_economico = item.no_economico;
+        filtroItem.cantidad = item.cantidad;
+        filtroItem.unidad = item.unidad;
+        filtroItem.descripcion = item.descripcion;
+        filtroItem.precio = item.precio;
+        filtroItem.currency = item.currency;
+        filtroItem.paid = false;
+        filtroItem.requisicion = requisicion;
+        if (item.equipoId) {
+          filtroItem.equipo = { id: item.equipoId } as any;
+        }
+        return filtroItem;
+      });
+
+      await queryRunner.manager.save(filtros);
+
+    } catch (error) {
+      console.error('Error in addInsumoItems:', error);
+      throw error;
+    } finally {
+      console.log('finished trying to insert into filters items')
+    }
+
   }
 
 

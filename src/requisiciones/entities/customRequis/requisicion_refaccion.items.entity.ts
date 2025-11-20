@@ -12,7 +12,10 @@ export class RequisicionRefaccionItem {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
+  @Column({nullable: true})
+  no_economico: string;
+
+  @Column()
   customId: string;
 
   @Column({ nullable: true })

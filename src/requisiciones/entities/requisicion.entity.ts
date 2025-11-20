@@ -16,6 +16,7 @@ import { PrioridadType } from '../types/prioridad-type';
 import { Proveedor } from 'src/proveedores/entities/proveedor.entity';
 import { RequisicionRefaccionItem } from './customRequis/requisicion_refaccion.items.entity';
 import { RequisicionFilterItem } from './customRequis/requisicion_filter_items.entity';
+import { ConceptoType } from '../types/concepto-type';
 
 @Entity('requisiciones')
 export class Requisicion {
@@ -37,8 +38,8 @@ export class Requisicion {
   @Column({ nullable: true })
   hrm: number; 
 
-  @Column({ nullable: true })
-  concepto: string;
+  @Column({ enum: ConceptoType })
+  concepto: ConceptoType;
 
   @ManyToOne(() => Almacen, (almacen) => almacen.requisiciones)
   almacenCargo: Almacen

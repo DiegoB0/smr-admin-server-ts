@@ -2,17 +2,24 @@ import { ApiProperty } from '@nestjs/swagger';
 import { RequisicionType } from '../types/requisicion-type';
 import { PrioridadType } from '../types/prioridad-type';
 import { MetodoPago } from '../types/metodo-pago';
-import { IsEnum, IsNumber } from 'class-validator';
+import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
+import { ConceptoType } from '../types/concepto-type';
 
 export class CreateRequisicionDto {
   @ApiProperty({ example: 1, description: 'RCP number', required: false })
+  @IsOptional()
+  @IsNumber()
   rcp?: number;
 
   @ApiProperty({ example: 'Refacciones para máquina X' })
+  @IsString()
+  @IsNotEmpty()
   titulo: string;
 
   @ApiProperty({ example: 'Observaciones generales' })
+  @IsString()
+  @IsOptional()
   observaciones: string;
 
   @ApiProperty({
@@ -25,10 +32,14 @@ export class CreateRequisicionDto {
   @ApiProperty({ example: 250, description: 'Horas de servicio', required: false })
   hrm: number;
 
-  @ApiProperty({ example: 'Concepto del gasto' })
-  concepto: string;
+  @ApiProperty({ enum: ConceptoType, example: ConceptoType.VIATICOS })
+  @IsEnum(ConceptoType)
+  @IsNotEmpty()
+  concepto: ConceptoType;
 
   @ApiProperty({ enum: RequisicionType, example: RequisicionType.REFACCIONES })
+  @IsEnum(RequisicionType)
+  @IsNotEmpty()
   requisicionType: RequisicionType;
 
   @ApiProperty({ example: 1 })
@@ -40,11 +51,6 @@ export class CreateRequisicionDto {
   @Type(() => Number)
   @IsNumber()
   proveedorId?: number;
-
-  // @ApiProperty({ example: 1, required: false })
-  // @Type(() => Number)
-  // @IsNumber()
-  // equipoId?: number;
 
   @ApiProperty({
     enum: MetodoPago,
@@ -63,12 +69,17 @@ export class CreateRequisicionDto {
       { $ref: '#/components/schemas/CreateFilterItemDto' },
     ],
   })
+  @IsArray()
+  @Type(() => Object)
   items: CreateRefaccionItemDto[] | CreateInsumoItemDto[] | CreateFilterItemDto[];
 }
 
 export class CreateRefaccionItemDto {
   @ApiProperty({ example: 'PQ-100' })
   customId: string;
+
+  @ApiProperty({ example: '123as' })
+  no_economico: string;
 
   @ApiProperty({ example: 'Filtro de aire' })
   name: string;
@@ -116,6 +127,9 @@ export class CreateFilterItemDto {
   @ApiProperty({ example: 'PQ-100' })
   customId: string;
 
+  @ApiProperty({ example: '123as' })
+  no_economico: string;
+
   @ApiProperty({ example: 2 })
   cantidad: number;
 
@@ -128,7 +142,7 @@ export class CreateFilterItemDto {
   @ApiProperty({ example: 120.00 })
   precio: number;
 
-  @ApiProperty({ example: 'USD' }) 
+  @ApiProperty({ example: 'USD' })
   currency: string;
 
   hrs_snapshot: number;
