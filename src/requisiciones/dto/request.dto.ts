@@ -262,7 +262,7 @@ export class CreateRequisicionDto {
   @ApiProperty({
     description: 'Método de pago disponible',
     enum: RequisicionType,
-    example: RequisicionType.PRODUCT,
+    example: RequisicionType.REFACCIONES,
   })
   @IsEnum(RequisicionType, { message: 'Tipo de la requisicion' })
   @IsNotEmpty()

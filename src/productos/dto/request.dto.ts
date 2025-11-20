@@ -13,7 +13,7 @@ export class ParamProductoID {
 export class CreateProductoDto {
   @ApiProperty({ example: 'PR-234' })
   @IsString()
-  id: string;
+  customId: string;
 
   @ApiProperty({ example: 'Pieza Random' })
   @IsString()

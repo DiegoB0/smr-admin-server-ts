@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { RequisicionesService } from './requisiciones.service';
 import { GetUser } from 'src/auth/decorators/user.decorator';
 import { User } from 'src/auth/entities/usuario.entity';
@@ -8,121 +8,108 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from 'src/auth/guards/permiso.guard';
 import { CurrentPermissions } from 'src/auth/types/current-permissions';
 import { RequirePermissions } from 'src/auth/decorators/permiso.decorator';
-import { CreatePeticionProductoDto, CreateRequisicionDto, CreateServiceRequisicionDto, PagarRequisicionDto, UpdatePeticionProductoDto } from './dto/request.dto';
+import { PagarRequisicionDto } from './dto/request.dto';
+import { RequisicionType } from './types/requisicion-type';
+import { CreateRequisicionDto } from './dto/request.v2.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { ReporteQueryDto } from './dto/response.dto';
+import { RequisicionStatus } from './types/requisicion-status';
 
 @Controller('requisiciones')
 export class RequisicionesController {
   constructor(private readonly requisicionesService: RequisicionesService) { }
   /* REPORTES */
-  @Post('reportes/add')
-  @HttpCode(HttpStatus.OK)
-  @SwaggerAuthHeaders()
-  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  @RequirePermissions(CurrentPermissions.CreateReport)
-  createReport(
-    @Body() dto: CreatePeticionProductoDto,
-    @GetUser() user: User
-  ) {
-    return this.requisicionesService.createPeticionProducto(dto, user)
-
-  }
-
-  @Get('reportes/all_reports')
-  @SwaggerAuthHeaders()
-  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  @RequirePermissions(CurrentPermissions.ListReport)
-  findAll(
-    @Query() dto: PaginationDto,
-    @GetUser() user: User
-  ) {
-    return this.requisicionesService.getAllPeticiones(dto, user)
-
-  }
-
-
-  @Get('reportes/aproved_reports')
-  @SwaggerAuthHeaders()
-  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  @RequirePermissions(CurrentPermissions.ListReport)
-  findApprovedReports(
-    @Query() dto: PaginationDto,
-  ) {
-    return this.requisicionesService.getAllPeticionesAprobadas(dto)
-
-  }
-
-
-  @Get('reportes/reports_by_user')
-  @SwaggerAuthHeaders()
-  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  @RequirePermissions(CurrentPermissions.ListReport)
-  findOne(
-    @Query() dto: ReporteQueryDto,
-  ) {
-    return this.requisicionesService.getPeticionesByUser(dto)
-  }
-
-  @Patch('reportes/update_report/:id')
-  @SwaggerAuthHeaders()
-  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  @RequirePermissions(CurrentPermissions.EditReport)
-  updateReport(
-    @Param('id') id: number,
-    @Body() dto: UpdatePeticionProductoDto,
-    @GetUser() user: User
-  ) {
-    return this.requisicionesService.updatePeticionProducto(id, dto, user)
-  }
-
-  @Patch('reportes/:id/approve')
-  @SwaggerAuthHeaders()
-  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  @RequirePermissions(CurrentPermissions.AcceptReport)
-  approvePeticion(
-    @Param('id') id: number,
-    @GetUser() user: User
-  ) {
-    return this.requisicionesService.approvePeticionProducto(id, user);
-  }
-
-  @Patch('reportes/:id/reject')
-  @SwaggerAuthHeaders()
-  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  @RequirePermissions(CurrentPermissions.AcceptReport)
-  rejectPeticion(
-    @Param('id') id: number,
-    @GetUser() user: User
-  ) {
-    return this.requisicionesService.rejectPeticionProducto(id, user);
-  }
+  // @Post('reportes/add')
+  // @HttpCode(HttpStatus.OK)
+  // @SwaggerAuthHeaders()
+  // @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  // @RequirePermissions(CurrentPermissions.CreateReport)
+  // createReport(
+  //   @Body() dto: CreatePeticionProductoDto,
+  //   @GetUser() user: User
+  // ) {
+  //   return this.requisicionesService.createPeticionProducto(dto, user)
+  //
+  // }
+  //
+  // @Get('reportes/all_reports')
+  // @SwaggerAuthHeaders()
+  // @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  // @RequirePermissions(CurrentPermissions.ListReport)
+  // findAll(
+  //   @Query() dto: PaginationDto,
+  //   @GetUser() user: User
+  // ) {
+  //   return this.requisicionesService.getAllPeticiones(dto, user)
+  //
+  // }
+  //
+  //
+  // @Get('reportes/aproved_reports')
+  // @SwaggerAuthHeaders()
+  // @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  // @RequirePermissions(CurrentPermissions.ListReport)
+  // findApprovedReports(
+  //   @Query() dto: PaginationDto,
+  // ) {
+  //   return this.requisicionesService.getAllPeticionesAprobadas(dto)
+  //
+  // }
+  //
+  //
+  // @Get('reportes/reports_by_user')
+  // @SwaggerAuthHeaders()
+  // @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  // @RequirePermissions(CurrentPermissions.ListReport)
+  // findOne(
+  //   @Query() dto: ReporteQueryDto,
+  // ) {
+  //   return this.requisicionesService.getPeticionesByUser(dto)
+  // }
+  //
+  // @Patch('reportes/update_report/:id')
+  // @SwaggerAuthHeaders()
+  // @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  // @RequirePermissions(CurrentPermissions.EditReport)
+  // updateReport(
+  //   @Param('id') id: number,
+  //   @Body() dto: UpdatePeticionProductoDto,
+  //   @GetUser() user: User
+  // ) {
+  //   return this.requisicionesService.updatePeticionProducto(id, dto, user)
+  // }
+  //
+  // @Patch('reportes/:id/approve')
+  // @SwaggerAuthHeaders()
+  // @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  // @RequirePermissions(CurrentPermissions.AcceptReport)
+  // approvePeticion(
+  //   @Param('id') id: number,
+  //   @GetUser() user: User
+  // ) {
+  //   return this.requisicionesService.approvePeticionProducto(id, user);
+  // }
+  //
+  // @Patch('reportes/:id/reject')
+  // @SwaggerAuthHeaders()
+  // @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  // @RequirePermissions(CurrentPermissions.AcceptReport)
+  // rejectPeticion(
+  //   @Param('id') id: number,
+  //   @GetUser() user: User
+  // ) {
+  //   return this.requisicionesService.rejectPeticionProducto(id, user);
+  // }
 
   /* REQUISICIONES */
 
   // Requisiciones de productos (relacionadas con reportes)
-  @Post('create_requisicion')
+
+  @Get('stats')
   @SwaggerAuthHeaders()
   @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  @RequirePermissions(CurrentPermissions.CreateRequisicion)
-  createRequisicion(
-    @Body() dto: CreateRequisicionDto,
-    @GetUser() user: User
-  ) {
-    return this.requisicionesService.createRequisicion(dto, user);
-  }
-
-
-  // Requisiciones de servicios
-  @Post('create_service_requisicion')
-  @SwaggerAuthHeaders()
-  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  @RequirePermissions(CurrentPermissions.CreateRequisicion)
-  createServiceRequisicion(
-    @Body() dto: CreateServiceRequisicionDto,
-    @GetUser() user: User
-  ) {
-    return this.requisicionesService.createServiceRequisicion(dto, user);
+  @RequirePermissions(CurrentPermissions.ListRequisicion)
+  getStats() {
+    return this.requisicionesService.getStats();
   }
 
   @Get('all_requisiciones')
@@ -131,8 +118,9 @@ export class RequisicionesController {
   @RequirePermissions(CurrentPermissions.ListRequisicion)
   getAllRequisiciones(
     @Query() dto: PaginationDto,
+    @Query('status') status?: RequisicionStatus
   ) {
-    return this.requisicionesService.getAllRequisiciones(dto);
+    return this.requisicionesService.getAllRequisiciones(dto, status);
   }
 
 
@@ -144,6 +132,30 @@ export class RequisicionesController {
     @Query() dto: PaginationDto,
   ) {
     return this.requisicionesService.getRequisicionesAprobadas(dto);
+  }
+
+  @Post()
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.CreateRequisicion)
+  create(
+    @Body() dto: CreateRequisicionDto,
+    @GetUser() user: User
+  ) {
+    return this.requisicionesService.createRequisicion(dto, user);
+  }
+
+  @Patch(':id/items/:itemId/paid')
+  markItemAsPaid(
+    @Param('id', ParseIntPipe) requisicionId: number,
+    @Param('itemId') itemId: number,
+    @Body() body: { itemType: RequisicionType },
+  ) {
+    return this.requisicionesService.markItemAsPaid(
+      requisicionId,
+      itemId,
+      body.itemType,
+    );
   }
 
   @Patch(':id/approve')

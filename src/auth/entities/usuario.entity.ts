@@ -12,7 +12,6 @@ import { UsuarioRol } from './usuario_rol.entity';
 import { Requisicion } from 'src/requisiciones/entities/requisicion.entity';
 import { Entrada } from 'src/entradas/entities/entrada.entity';
 import { Salida } from 'src/salidas/entities/salida.entity';
-import { PeticionProducto } from 'src/requisiciones/entities/peticion_producto.entity';
 import { Almacen } from 'src/almacenes/entities/almacen.entity';
 import { Obra } from 'src/obras/entities/obra.entity';
 
@@ -56,12 +55,6 @@ export class User {
 
   @OneToMany(() => Salida, (salida) => salida.recibidaPor)
   salidas: Salida[];
-
-  @OneToMany(() => PeticionProducto, (peticion) => peticion.creadoPor)
-  peticionesCreadas: PeticionProducto[];
-
-  @OneToMany(() => PeticionProducto, (peticion) => peticion.revisadoPor)
-  peticionesAprobadas: PeticionProducto[];
 
   @ManyToOne(() => Obra, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'obra_id' })

@@ -353,118 +353,118 @@ export class AlmacenesService {
   /* PRODUCTOS POR ALMACEN */
 
   // Add one to stock
-  async addStock(almacenId: number, productId: string, cantidad: number = 1) {
-    let inventario = await this.inventarioRepo.findOne({
-      where: {
-        almacen: { id: almacenId },
-        producto: { id: productId }
-      },
-      relations: ['almacen', 'producto']
-    })
-
-    if (!inventario) {
-      inventario = this.inventarioRepo.create({
-        almacen: { id: almacenId },
-        producto: { id: productId },
-        stock: cantidad
-      })
-    } else {
-      inventario.stock += cantidad;
-    }
-
-    return this.inventarioRepo.save(inventario);
-
-  }
-
-  async addMultipleStock(stockData: StockInput[]) {
-    const updatedInventory: Inventario[] = [];
-
-    for (const { almacenId, productId, cantidad } of stockData) {
-      const inventario = await this.addStock(almacenId, productId, cantidad);
-      updatedInventory.push(inventario);
-    }
-
-    return updatedInventory;
-
-  }
-
-  async removeStock(almacenId: number, productId: string, cantidad: number) {
-    let inventario = await this.inventarioRepo.findOne({
-      where: {
-        almacen: { id: almacenId },
-        producto: { id: productId }
-      },
-      relations: ['almacen', 'producto']
-    })
-
-    if (!inventario) throw new NotFoundException('No inventory found');
-
-    if (inventario.stock < cantidad) throw new BadRequestException('No hay suficiente stock disponible')
-
-    inventario.stock -= cantidad;
-
-    return this.inventarioRepo.save(inventario);
-  }
-
-  async getProducts(almacenId: number, pagination: PaginationDto): Promise<PaginatedInventarioDto> {
-    const { page = 1, limit = 10, search, order = 'ASC' } = pagination;
-    const skip = (page - 1) * limit;
-
-    const queryBuilder = this.inventarioRepo.createQueryBuilder('inventario')
-      .leftJoinAndSelect('inventario.producto', 'producto')
-      .where('inventario.almacenId = :almacenId', { almacenId })
-      .andWhere('inventario.stock > 0');
-
-
-    if (search) {
-      const term = `%${search}%`;
-      queryBuilder.andWhere(
-        new Brackets(qb => {
-          qb.where('producto.name ILIKE :term', { term })
-            .orWhere('producto.id ILIKE :term', { term });
-        }),
-      );
-    }
-
-    queryBuilder.orderBy('producto.name', order);
-
-    const [inventarios, totalItems] = await queryBuilder
-      .skip(skip)
-      .take(limit)
-      .getManyAndCount();
-
-    const totalPages = Math.ceil(totalItems / limit);
-    const hasNextPage = page < totalPages;
-    const hasPreviousPage = page > 1;
-
-    const mappedInventario: GetInventarioDto[] = inventarios.map((inv) => ({
-      id: inv.id,
-      producto: inv.producto,
-      stock: inv.stock,
-    }));
-
-    const meta: PaginationMetaData = {
-      currentPage: page,
-      totalPages,
-      totalItems,
-      itemsPerPage: limit,
-      hasNextPage,
-      hasPreviousPage,
-    };
-
-    return new PaginatedInventarioDto(mappedInventario, meta);
-  }
-
-  async getProduct(almacenId: number, productId: string) {
-    const inventario = await this.inventarioRepo.findOne({
-      where: {
-        almacen: { id: almacenId },
-        producto: { id: productId }
-      },
-      relations: ['producto']
-    })
-
-    return inventario;
-  }
-
+  // async addStock(almacenId: number, productId: string, cantidad: number = 1) {
+  //   let inventario = await this.inventarioRepo.findOne({
+  //     where: {
+  //       almacen: { id: almacenId },
+  //       producto: { id: productId }
+  //     },
+  //     relations: ['almacen', 'producto']
+  //   })
+  //
+  //   if (!inventario) {
+  //     inventario = this.inventarioRepo.create({
+  //       almacen: { id: almacenId },
+  //       producto: { id: productId },
+  //       stock: cantidad
+  //     })
+  //   } else {
+  //     inventario.stock += cantidad;
+  //   }
+  //
+  //   return this.inventarioRepo.save(inventario);
+  //
+  // }
+  //
+  // async addMultipleStock(stockData: StockInput[]) {
+  //   const updatedInventory: Inventario[] = [];
+  //
+  //   for (const { almacenId, productId, cantidad } of stockData) {
+  //     const inventario = await this.addStock(almacenId, productId, cantidad);
+  //     updatedInventory.push(inventario);
+  //   }
+  //
+  //   return updatedInventory;
+  //
+  // }
+  //
+  // async removeStock(almacenId: number, productId: string, cantidad: number) {
+  //   let inventario = await this.inventarioRepo.findOne({
+  //     where: {
+  //       almacen: { id: almacenId },
+  //       producto: { id: productId }
+  //     },
+  //     relations: ['almacen', 'producto']
+  //   })
+  //
+  //   if (!inventario) throw new NotFoundException('No inventory found');
+  //
+  //   if (inventario.stock < cantidad) throw new BadRequestException('No hay suficiente stock disponible')
+  //
+  //   inventario.stock -= cantidad;
+  //
+  //   return this.inventarioRepo.save(inventario);
+  // }
+  //
+  // async getProducts(almacenId: number, pagination: PaginationDto): Promise<PaginatedInventarioDto> {
+  //   const { page = 1, limit = 10, search, order = 'ASC' } = pagination;
+  //   const skip = (page - 1) * limit;
+  //
+  //   const queryBuilder = this.inventarioRepo.createQueryBuilder('inventario')
+  //     .leftJoinAndSelect('inventario.producto', 'producto')
+  //     .where('inventario.almacenId = :almacenId', { almacenId })
+  //     .andWhere('inventario.stock > 0');
+  //
+  //
+  //   if (search) {
+  //     const term = `%${search}%`;
+  //     queryBuilder.andWhere(
+  //       new Brackets(qb => {
+  //         qb.where('producto.name ILIKE :term', { term })
+  //           .orWhere('producto.id ILIKE :term', { term });
+  //       }),
+  //     );
+  //   }
+  //
+  //   queryBuilder.orderBy('producto.name', order);
+  //
+  //   const [inventarios, totalItems] = await queryBuilder
+  //     .skip(skip)
+  //     .take(limit)
+  //     .getManyAndCount();
+  //
+  //   const totalPages = Math.ceil(totalItems / limit);
+  //   const hasNextPage = page < totalPages;
+  //   const hasPreviousPage = page > 1;
+  //
+  //   const mappedInventario: GetInventarioDto[] = inventarios.map((inv) => ({
+  //     id: inv.id,
+  //     producto: inv.producto,
+  //     stock: inv.stock,
+  //   }));
+  //
+  //   const meta: PaginationMetaData = {
+  //     currentPage: page,
+  //     totalPages,
+  //     totalItems,
+  //     itemsPerPage: limit,
+  //     hasNextPage,
+  //     hasPreviousPage,
+  //   };
+  //
+  //   return new PaginatedInventarioDto(mappedInventario, meta);
+  // }
+  //
+  // async getProduct(almacenId: number, productId: string) {
+  //   const inventario = await this.inventarioRepo.findOne({
+  //     where: {
+  //       almacen: { id: almacenId },
+  //       producto: { id: productId }
+  //     },
+  //     relations: ['producto']
+  //   })
+  //
+  //   return inventario;
+  // }
+  //
 }

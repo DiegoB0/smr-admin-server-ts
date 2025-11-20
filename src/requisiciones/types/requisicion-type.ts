@@ -4,9 +4,9 @@ export enum RequisicionAprovalLevel {
   SPECIAL_PERMISSION = 'special_permission' // > 5000 $
 }
 
+// TODO: Change all the PRODUCT types on the backend for REFACCIONES type
 export enum RequisicionType {
-  PRODUCT = "product",
-  REFACCIONES = "refaccion",
-  CONSUMIBLES = "consumibles", // NOTE: For filters
-  SERVICE = "service" // NOTE: Legacy way of handling "REFACCIONES"
+  REFACCIONES = "refacciones",
+  CONSUMIBLES = "consumibles",  
+  FILTROS = "filtros",
 }

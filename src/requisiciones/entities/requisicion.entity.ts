@@ -1,38 +1,32 @@
 import { User } from 'src/auth/entities/usuario.entity';
-import { Equipo } from 'src/equipos/entities/equipo.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { RequisicionStatus } from '../types/requisicion-status';
 import { Almacen } from 'src/almacenes/entities/almacen.entity';
-import { RequisicionItem } from './requisicion_item.entity';
 import { RequisicionAprovalLevel, RequisicionType } from '../types/requisicion-type';
 import { MetodoPago } from '../types/metodo-pago';
-import { PeticionProducto } from './peticion_producto.entity';
-import { RequisicionServiceItem } from './requisicion_service_item.entity';
+import { RequisicionInsumoItem } from './customRequis/requisicion_insumo_items.entity';
 import { PrioridadType } from '../types/prioridad-type';
 import { Proveedor } from 'src/proveedores/entities/proveedor.entity';
+import { RequisicionRefaccionItem } from './customRequis/requisicion_refaccion.items.entity';
+import { RequisicionFilterItem } from './customRequis/requisicion_filter_items.entity';
 
 @Entity('requisiciones')
 export class Requisicion {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @CreateDateColumn()
-  fechaSolicitud: Date;
-
   @Column({ nullable: true, unique: true })
   rcp: number;
 
   @Column({ nullable: true })
   titulo: string;
-
 
   @Column({ nullable: true })
   observaciones: string;
@@ -41,28 +35,13 @@ export class Requisicion {
   prioridad: PrioridadType;
 
   @Column({ nullable: true })
-  hrm: number; // Horas de servicio
+  hrm: number; 
 
   @Column({ nullable: true })
   concepto: string;
 
   @ManyToOne(() => Almacen, (almacen) => almacen.requisiciones)
   almacenCargo: Almacen
-
-  @Column({ type: 'enum', enum: RequisicionStatus, default: RequisicionStatus.PENDIENTE })
-  status: RequisicionStatus;
-
-  @Column({ type: 'enum', enum: RequisicionAprovalLevel, default: RequisicionAprovalLevel.NONE })
-  aprovalType: RequisicionAprovalLevel;
-
-  @Column({ type: 'enum', enum: RequisicionType, default: RequisicionType.PRODUCT })
-  requisicionType: RequisicionType;
-
-  @Column('int')
-  cantidad_dinero: number;
-
-  @Column({ type: 'enum', enum: MetodoPago, default: MetodoPago.SIN_PAGAR })
-  metodo_pago: MetodoPago;
 
   @ManyToOne(() => Almacen, (almacen) => almacen.requisiciones)
   almacenDestino: Almacen;
@@ -73,31 +52,43 @@ export class Requisicion {
   @ManyToOne(() => User, { nullable: true })
   revisadoPor?: User;
 
+  @Column({ type: 'enum', enum: RequisicionStatus, default: RequisicionStatus.PENDIENTE })
+  status: RequisicionStatus;
+
   @ManyToOne(() => Proveedor, { nullable: true })
   proveedor?: Proveedor;
+
+  @Column({ type: 'enum', enum: RequisicionAprovalLevel, default: RequisicionAprovalLevel.NONE })
+  aprovalType: RequisicionAprovalLevel;
+
+  @Column({ type: 'enum', enum: RequisicionType, default: RequisicionType.REFACCIONES })
+  requisicionType: RequisicionType;
+
+  @Column('int', { nullable: true })
+  cantidadEstimada: number;
+
+  @Column('int', { nullable: true })
+  cantidadActual: number;
+
+  @Column({ type: 'enum', enum: MetodoPago, default: MetodoPago.SIN_PAGAR })
+  metodo_pago: MetodoPago;
+
+  @CreateDateColumn()
+  fechaSolicitud: Date;
 
   @Column({ type: 'timestamptz', nullable: true })
   fechaRevision?: Date;
 
-  @ManyToOne(() => PeticionProducto, { eager: true, nullable: true })
-  @JoinColumn({ name: 'peticionId' })
-  peticion: PeticionProducto;
+  // REFACCIONES type
+  @OneToMany(() => RequisicionRefaccionItem, ri => ri.requisicion, { cascade: true })
+  refacciones: RequisicionRefaccionItem[];
 
-  @Column({ name: 'peticionId', unique: true, nullable: true })
-  peticionId: number;
+  // INSUMOS type
+  @OneToMany(() => RequisicionInsumoItem, ri => ri.requisicion, { cascade: true })
+  insumos: RequisicionInsumoItem[];
 
-  // Relacion con cada item
-  @OneToMany(() => RequisicionItem, ri => ri.requisicion, { cascade: true })
-  items: RequisicionItem[];
-
-  @OneToMany(() => RequisicionServiceItem, ri => ri.requisicion, { cascade: true })
-  service_items: RequisicionServiceItem[];
-
-  @ManyToOne(() => Equipo, (equipo) => equipo.requisiciones, { nullable: true })
-  equipo: Equipo;
-
-  // TODO:
-  // - Add the obra the requisicion belongs
-  // - Add description of the equipment
+  // FILTROS type
+  @OneToMany(() => RequisicionFilterItem, ri => ri.requisicion, { cascade: true })
+  filtros: RequisicionFilterItem[];
 
 }

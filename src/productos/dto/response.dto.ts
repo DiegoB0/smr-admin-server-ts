@@ -2,15 +2,13 @@ import { ApiProperty } from "@nestjs/swagger";
 import { PaginatedResponseDto } from "src/common/dto/pagination.dto";
 
 export class GetProductDto {
-  id: string;
+  id: number;
 
   name: string;
 
   description: string;
 
   unidad: string;
-
-  precio: number;
 
   imageUrl?: string;
 

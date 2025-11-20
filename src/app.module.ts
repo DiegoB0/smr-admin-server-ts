@@ -13,6 +13,7 @@ import { EquiposModule } from './equipos/equipos.module';
 import { ObrasModule } from './obras/obras.module';
 import { ProveedoresModule } from './proveedores/proveedores.module';
 import { SeedModule } from './seed/seed.module';
+import { FiltrosModule } from './filtros/filtros.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { SeedModule } from './seed/seed.module';
     ObrasModule,
     ProveedoresModule,
     SeedModule,
+    FiltrosModule,
   ],
 })
 export class AppModule { }

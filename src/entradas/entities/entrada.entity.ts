@@ -11,6 +11,9 @@ import { Almacen } from 'src/almacenes/entities/almacen.entity';
 import { User } from 'src/auth/entities/usuario.entity';
 import { EntradaItem } from './entrada_item.entity';
 import { Requisicion } from 'src/requisiciones/entities/requisicion.entity';
+import { RequisicionRefaccionItem } from 'src/requisiciones/entities/customRequis/requisicion_refaccion.items.entity';
+import { RequisicionFilterItem } from 'src/requisiciones/entities/customRequis/requisicion_filter_items.entity';
+import { RequisicionInsumoItem } from 'src/requisiciones/entities/customRequis/requisicion_insumo_items.entity';
 
 @Entity('entradas')
 export class Entrada {

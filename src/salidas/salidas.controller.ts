@@ -15,22 +15,22 @@ import { User } from 'src/auth/entities/usuario.entity';
 export class SalidasController {
   constructor(private readonly salidasService: SalidasService) { }
 
-  @Post()
-  @SwaggerAuthHeaders()
-  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  @RequirePermissions(CurrentPermissions.ListAlmacen)
-  create(
-    @Body() dto: CreateSalidaDto,
-    @GetUser() user: User
-  ) {
-    return this.salidasService.create(dto, user);
-  }
-
-  @Get('almacen/:almacenId')
-  findByAlmacen(
-    @Param('almacenId', ParseIntPipe) almacenId: number,
-    @Query() pagination: PaginationDto
-  ) {
-    return this.salidasService.findByAlmacen(almacenId, pagination);
-  }
+  // @Post()
+  // @SwaggerAuthHeaders()
+  // @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  // @RequirePermissions(CurrentPermissions.ListAlmacen)
+  // create(
+  //   @Body() dto: CreateSalidaDto,
+  //   @GetUser() user: User
+  // ) {
+  //   return this.salidasService.create(dto, user);
+  // }
+  //
+  // @Get('almacen/:almacenId')
+  // findByAlmacen(
+  //   @Param('almacenId', ParseIntPipe) almacenId: number,
+  //   @Query() pagination: PaginationDto
+  // ) {
+  //   return this.salidasService.findByAlmacen(almacenId, pagination);
+  // }
 }

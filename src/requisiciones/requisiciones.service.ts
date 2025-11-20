@@ -1,27 +1,25 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Requisicion } from './entities/requisicion.entity';
 import { LogsService } from 'src/logs/logs.service';
-import { Brackets, DataSource, In, Repository } from 'typeorm';
-import { RequisicionItem } from './entities/requisicion_item.entity';
-import { Componente, Fase, PeticionProducto } from './entities/peticion_producto.entity';
-import { PeticionProductoItem } from './entities/peticion_producto_item.entity';
-import { CreatePeticionProductoDto, CreateRequisicionDto, CreateServiceRequisicionDto, PagarRequisicionDto, UpdatePeticionProductoDto } from './dto/request.dto';
-import { PeticionStatus } from './types/peticion-status';
+import { Brackets, DataSource, QueryRunner, Repository } from 'typeorm';
 import { User } from 'src/auth/entities/usuario.entity';
-import { GetPeticionProductDto, GetRequisicionDto, PaginatedPeticionProductoDto, PaginatedRequisicionDto, ReporteQueryDto } from './dto/response.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { RequisicionStatus } from './types/requisicion-status';
 import { RequisicionAprovalLevel, RequisicionType } from './types/requisicion-type';
-import { Producto } from 'src/productos/entities/producto.entity';
 import { Almacen } from 'src/almacenes/entities/almacen.entity';
-import { PeticionGenerada } from './types/peticion-generada';
 import { Equipo } from 'src/equipos/entities/equipo.entity';
-import { RequisicionServiceItem } from './entities/requisicion_service_item.entity';
+import { RequisicionInsumoItem } from './entities/customRequis/requisicion_insumo_items.entity';
 import { Proveedor } from 'src/proveedores/entities/proveedor.entity';
 import { EntradaStatus } from 'src/entradas/types/entradas-status';
 import { Entrada } from 'src/entradas/entities/entrada.entity';
 import { EntradaItem } from 'src/entradas/entities/entrada_item.entity';
+import { RequisicionRefaccionItem } from './entities/customRequis/requisicion_refaccion.items.entity';
+import { RequisicionFilterItem } from './entities/customRequis/requisicion_filter_items.entity';
+import { CreateFilterItemDto, CreateInsumoItemDto, CreateRefaccionItemDto, CreateRequisicionDto } from './dto/request.v2.dto';
+import { PagarRequisicionDto } from './dto/request.dto';
+import { MetodoPago } from './types/metodo-pago';
+import { GetRequisicionDto, PaginatedRequisicionDto } from './dto/response.dto';
 
 @Injectable()
 export class RequisicionesService {
@@ -29,17 +27,14 @@ export class RequisicionesService {
     @InjectRepository(Requisicion)
     private requisicionRepo: Repository<Requisicion>,
 
-    @InjectRepository(RequisicionItem)
-    private requisicionItemRepo: Repository<RequisicionItem>,
+    @InjectRepository(RequisicionInsumoItem)
+    private insumoItemRepo: Repository<RequisicionInsumoItem>,
 
-    @InjectRepository(RequisicionServiceItem)
-    private serviceItemRepo: Repository<RequisicionServiceItem>,
+    @InjectRepository(RequisicionRefaccionItem)
+    private refaccionItemRepo: Repository<RequisicionRefaccionItem>,
 
-    @InjectRepository(PeticionProducto)
-    private peticionRepo: Repository<PeticionProducto>,
-
-    @InjectRepository(PeticionProductoItem)
-    private peticionItemRepo: Repository<PeticionProductoItem>,
+    @InjectRepository(RequisicionFilterItem)
+    private filterItemRepo: Repository<RequisicionFilterItem>,
 
     @InjectRepository(User)
     private userRepo: Repository<User>,
@@ -56,710 +51,120 @@ export class RequisicionesService {
     @InjectRepository(Entrada)
     private entradaRepo: Repository<Entrada>,
 
-    @InjectRepository(Componente)
-    private readonly componenteRepo: Repository<Componente>,
-    @InjectRepository(Fase)
-    private readonly faseRepo: Repository<Fase>,
-
     private readonly logService: LogsService,
-    private readonly dataSource: DataSource
+    private readonly dataSource: DataSource,
   ) { }
 
   // TODO: Endpoint to get peticiones por almacen
+  async getStats() {
+    const [pagada, aprobada, pendiente, rechazada] = await Promise.all([
+      this.requisicionRepo.count({ where: { status: RequisicionStatus.PAGADA } }),
+      this.requisicionRepo.count({ where: { status: RequisicionStatus.APROBADA } }),
+      this.requisicionRepo.count({ where: { status: RequisicionStatus.PENDIENTE } }),
+      this.requisicionRepo.count({ where: { status: RequisicionStatus.RECHAZADA } }),
+    ]);
 
-  async getAllPeticiones(
-    pagination: PaginationDto,
-    user: User
-  ): Promise<PaginatedPeticionProductoDto> {
-    const { page = 1, limit = 10, search, order = 'DESC' } = pagination;
-    const skip = (page - 1) * limit;
-
-    // Load user with needed relations (roles + almacenesEncargados)
-    const fullUser = await this.userRepo.findOne({
-      where: { id: user.id },
-      relations: ['usuarioRoles', 'usuarioRoles.rol', 'almacenesEncargados'],
-    });
-    if (!fullUser) throw new UnauthorizedException();
-
-    const isAdminAlmacen = (fullUser.usuarioRoles || []).some(
-      (ur) => ur?.rol?.slug === 'admin-almacen'
-    );
-
-    // Base QB
-    const baseQB = this.peticionRepo
-      .createQueryBuilder('peticion')
-      .leftJoin('peticion.almacen', 'almacen')
-      .leftJoin('peticion.creadoPor', 'creadoPor');
-
-    if (search) {
-      const term = `%${search}%`;
-      baseQB.andWhere(
-        new Brackets((qb) => {
-          qb.where('peticion.observaciones ILIKE :term', { term })
-            .orWhere('almacen.name ILIKE :term', { term })
-            .orWhere('creadoPor.email ILIKE :term', { term });
-        })
-      );
-    }
-
-    // If admin-almacen, restrict to their assigned almacenes
-    if (isAdminAlmacen) {
-      const allowedIds = (fullUser.almacenesEncargados || [])
-        .map((a) => a?.id)
-        .filter((v) => v != null);
-
-      if (allowedIds.length === 0) {
-        // No assigned almacenes => no data
-        return new PaginatedPeticionProductoDto([], {
-          currentPage: page,
-          totalPages: 0,
-          totalItems: 0,
-          itemsPerPage: limit,
-          hasNextPage: false,
-          hasPreviousPage: false,
-        });
-      }
-
-      baseQB.andWhere('almacen.id IN (:...allowedIds)', { allowedIds });
-    }
-
-    // Counts after filters
-    const totalItems = await baseQB.getCount();
-    const totalPages = Math.max(1, Math.ceil(totalItems / limit));
-    if (totalItems === 0) {
-      return new PaginatedPeticionProductoDto([], {
-        currentPage: page,
-        totalPages,
-        totalItems,
-        itemsPerPage: limit,
-        hasNextPage: page < totalPages,
-        hasPreviousPage: page > 1,
-      });
-    }
-
-    // Page ids
-    const idRows = await baseQB
-      .select('peticion.id', 'id')
-      .orderBy('peticion.fechaCreacion', order)
-      .skip(skip)
-      .take(limit)
-      .getRawMany<{ id: number }>();
-
-    const ids = idRows.map((r) => r.id);
-    if (ids.length === 0) {
-      return new PaginatedPeticionProductoDto([], {
-        currentPage: page,
-        totalPages,
-        totalItems,
-        itemsPerPage: limit,
-        hasNextPage: page < totalPages,
-        hasPreviousPage: page > 1,
-      });
-    }
-
-    // Load page rows
-    const peticiones = await this.peticionRepo
-      .createQueryBuilder('peticion')
-      .select([
-        'peticion.id',
-        'peticion.fechaCreacion',
-        'peticion.status',
-        'peticion.observaciones',
-        'peticion.fechaRevision',
-      ])
-      .leftJoin('peticion.almacen', 'almacen')
-      .addSelect(['almacen.name'])
-      .leftJoin('peticion.creadoPor', 'creadoPor')
-      .addSelect(['creadoPor.email'])
-      .leftJoin('peticion.revisadoPor', 'revisadoPor')
-      .addSelect(['revisadoPor.email'])
-      .leftJoin('peticion.equipo', 'equipo')
-      .addSelect(['equipo.equipo', 'equipo.modelo', 'equipo.horometro', 'equipo.serie'])
-      .leftJoin('peticion.items', 'items')
-      .addSelect(['items.id', 'items.cantidad'])
-      .leftJoin('items.producto', 'producto')
-      .addSelect(['producto.id', 'producto.name'])
-      .leftJoin('peticion.componentes', 'componentes')
-      .addSelect(['componentes.key'])
-      .leftJoin('peticion.fases', 'fases')
-      .addSelect(['fases.key'])
-      .where('peticion.id IN (:...ids)', { ids })
-      .orderBy('peticion.fechaCreacion', order)
-      .getMany();
-
-    const mapped: GetPeticionProductDto[] = peticiones.map((p) => ({
-      id: p.id,
-      fechaCreacion: p.fechaCreacion,
-      status: p.status,
-      observaciones: p.observaciones,
-      fechaRevision: p.fechaRevision ?? null,
-      equipo: p.equipo?.equipo,
-      modelo: p.equipo?.modelo,
-      horometro: p.equipo?.horometro,
-      serie: p.equipo?.serie,
-      almacen: { name: p.almacen?.name },
-      creadoPor: { email: p.creadoPor?.email },
-      revisadoPor: p.revisadoPor ? { email: p.revisadoPor.email } : null,
-      componentes: (p.componentes ?? []).map((c) => c.key),
-      fases: (p.fases ?? []).map((f) => f.key),
-      items: (p.items ?? []).map((i) => ({
-        id: i.id,
-        cantidad: i.cantidad,
-        producto: {
-          id: i.producto.id,
-          name: i.producto.name,
-        },
-      })),
-    }));
-
-    return new PaginatedPeticionProductoDto(mapped, {
-      currentPage: page,
-      totalPages,
-      totalItems,
-      itemsPerPage: limit,
-      hasNextPage: page < totalPages,
-      hasPreviousPage: page > 1,
-    });
+    return {
+      pagada,
+      aprobada,
+      pendiente,
+      rechazada,
+      total: pagada + aprobada + pendiente + rechazada,
+    };
   }
 
-  // TODO: FIX THE REST OF GETS FO REQUISICIONES
-  async getAllPeticionesAprobadas(
-    pagination: PaginationDto
-  ): Promise<PaginatedPeticionProductoDto> {
-    const { page = 1, limit = 10, search, order = 'DESC' } = pagination;
-    const skip = (page - 1) * limit;
 
-    // 1) Base QB for count + ids (no M2M joins)
-    const baseQB = this.peticionRepo
-      .createQueryBuilder('peticion')
-      .leftJoin('peticion.almacen', 'almacen')
-      .leftJoin('peticion.creadoPor', 'creadoPor')
-      .where('peticion.status = :status', {
-        status: PeticionStatus.APROBADO,
-      })
-      .andWhere('peticion.generado = :generado', {
-        generado: PeticionGenerada.PENDIENTE,
-      });
-
-    if (search) {
-      const term = `%${search}%`;
-      baseQB.andWhere(
-        new Brackets((qb) => {
-          qb.where('peticion.observaciones ILIKE :term', { term })
-            .orWhere('almacen.name ILIKE :term', { term })
-            .orWhere('creadoPor.email ILIKE :term', { term });
-        })
-      );
-    }
-
-    const totalItems = await baseQB.getCount();
-    const totalPages = Math.ceil(totalItems / limit);
-
-    if (totalItems === 0) {
-      return new PaginatedPeticionProductoDto([], {
-        currentPage: page,
-        totalPages,
-        totalItems,
-        itemsPerPage: limit,
-        hasNextPage: page < totalPages,
-        hasPreviousPage: page > 1,
-      });
-    }
-
-    // 2) Page of IDs only
-    const idRows = await baseQB
-      .select('peticion.id', 'id')
-      .orderBy('peticion.fechaCreacion', order)
-      .skip(skip)
-      .take(limit)
-      .getRawMany<{ id: number }>();
-
-    const ids = idRows.map((r) => r.id);
-    if (ids.length === 0) {
-      return new PaginatedPeticionProductoDto([], {
-        currentPage: page,
-        totalPages,
-        totalItems,
-        itemsPerPage: limit,
-        hasNextPage: page < totalPages,
-        hasPreviousPage: page > 1,
-      });
-    }
-
-    // 3) Load full rows for those IDs with all needed relations
-    const peticiones = await this.peticionRepo
-      .createQueryBuilder('peticion')
-      .select([
-        'peticion.id',
-        'peticion.fechaCreacion',
-        'peticion.status',
-        'peticion.generado',
-        'peticion.observaciones',
-        'peticion.fechaRevision',
-      ])
-      .leftJoin('peticion.almacen', 'almacen')
-      .addSelect(['almacen.name'])
-      .leftJoin('peticion.creadoPor', 'creadoPor')
-      .addSelect(['creadoPor.email'])
-      .leftJoin('peticion.revisadoPor', 'revisadoPor')
-      .addSelect(['revisadoPor.email'])
-      .leftJoin('peticion.equipo', 'equipo')
-      .addSelect([
-        'equipo.equipo',
-        'equipo.modelo',
-        'equipo.horometro',
-        'equipo.serie',
-      ])
-      .leftJoin('peticion.items', 'items')
-      .addSelect(['items.id', 'items.cantidad'])
-      .leftJoin('items.producto', 'producto')
-      .addSelect(['producto.id', 'producto.name'])
-      .leftJoin('peticion.componentes', 'componentes')
-      .addSelect(['componentes.key'])
-      .leftJoin('peticion.fases', 'fases')
-      .addSelect(['fases.key'])
-      .where('peticion.id IN (:...ids)', { ids })
-      .orderBy('peticion.fechaCreacion', order)
-      .getMany();
-
-    // 4) Map
-    const mapped: GetPeticionProductDto[] = peticiones.map((p) => ({
-      id: p.id,
-      fechaCreacion: p.fechaCreacion,
-      status: p.status,
-      generado: p.generado,
-      observaciones: p.observaciones,
-      fechaRevision: p.fechaRevision ?? null,
-      equipo: p.equipo?.equipo,
-      modelo: p.equipo?.modelo,
-      horometro: p.equipo?.horometro,
-      serie: p.equipo?.serie,
-      almacen: { name: p.almacen?.name },
-      creadoPor: { email: p.creadoPor?.email },
-      revisadoPor: p.revisadoPor ? { email: p.revisadoPor.email } : null,
-      componentes: (p.componentes ?? []).map((c) => c.key),
-      fases: (p.fases ?? []).map((f) => f.key),
-      items: (p.items ?? []).map((i) => ({
-        id: i.id,
-        cantidad: i.cantidad,
-        producto: {
-          id: i.producto.id,
-          name: i.producto.name,
-        },
-      })),
-    }));
-
-    return new PaginatedPeticionProductoDto(mapped, {
-      currentPage: page,
-      totalPages,
-      totalItems,
-      itemsPerPage: limit,
-      hasNextPage: page < totalPages,
-      hasPreviousPage: page > 1,
-    });
-  }
-
-  async getPeticionesByUser(
-    dto: ReporteQueryDto
-  ): Promise<PaginatedPeticionProductoDto> {
-    const { userId, page = 1, limit = 10, search, order = 'DESC' } = dto;
-    const skip = (page - 1) * limit;
-
-    const baseQB = this.peticionRepo
-      .createQueryBuilder('peticion')
-      .leftJoin('peticion.almacen', 'almacen')
-      .leftJoin('peticion.creadoPor', 'creadoPor')
-      .where('creadoPor.id = :userId', { userId });
-
-    if (search) {
-      const term = `%${search}%`;
-      baseQB.andWhere(
-        new Brackets((qb) => {
-          qb.where('peticion.status::text ILIKE :term', { term })
-            .orWhere('almacen.name ILIKE :term', { term })
-            .orWhere('creadoPor.email ILIKE :term', { term });
-        })
-      );
-    }
-
-    const totalItems = await baseQB.getCount();
-    const totalPages = Math.ceil(totalItems / limit);
-
-    if (totalItems === 0) {
-      return new PaginatedPeticionProductoDto([], {
-        currentPage: page,
-        totalPages,
-        totalItems,
-        itemsPerPage: limit,
-        hasNextPage: page < totalPages,
-        hasPreviousPage: page > 1,
-      });
-    }
-
-    // 2) Page of IDs only
-    const idRows = await baseQB
-      .select('peticion.id', 'id')
-      .orderBy('peticion.fechaCreacion', order)
-      .skip(skip)
-      .take(limit)
-      .getRawMany<{ id: number }>();
-
-    const ids = idRows.map((r) => r.id);
-    if (ids.length === 0) {
-      return new PaginatedPeticionProductoDto([], {
-        currentPage: page,
-        totalPages,
-        totalItems,
-        itemsPerPage: limit,
-        hasNextPage: page < totalPages,
-        hasPreviousPage: page > 1,
-      });
-    }
-
-    // 3) Load full rows for those IDs with all needed relations
-    const peticiones = await this.peticionRepo
-      .createQueryBuilder('peticion')
-      .select([
-        'peticion.id',
-        'peticion.fechaCreacion',
-        'peticion.status',
-        'peticion.observaciones',
-        'peticion.fechaRevision',
-      ])
-      .leftJoin('peticion.almacen', 'almacen')
-      .addSelect(['almacen.name'])
-      .leftJoin('peticion.creadoPor', 'creadoPor')
-      .addSelect(['creadoPor.email'])
-      .leftJoin('peticion.revisadoPor', 'revisadoPor')
-      .addSelect(['revisadoPor.email'])
-      .leftJoin('peticion.equipo', 'equipo')
-      .addSelect(['equipo.equipo', 'equipo.modelo', 'equipo.horometro', 'equipo.serie'])
-      .leftJoin('peticion.items', 'items')
-      .addSelect(['items.id', 'items.cantidad'])
-      .leftJoin('items.producto', 'producto')
-      .addSelect(['producto.id', 'producto.name'])
-      .leftJoin('peticion.componentes', 'componentes')
-      .addSelect(['componentes.key'])
-      .leftJoin('peticion.fases', 'fases')
-      .addSelect(['fases.key'])
-      .where('peticion.id IN (:...ids)', { ids })
-      .orderBy('peticion.fechaCreacion', order)
-      .getMany();
-
-    // 4) Map
-    const mapped: GetPeticionProductDto[] = peticiones.map((p) => ({
-      id: p.id,
-      fechaCreacion: p.fechaCreacion,
-      status: p.status,
-      observaciones: p.observaciones,
-      fechaRevision: p.fechaRevision ?? null,
-      almacen: { name: p.almacen?.name },
-      creadoPor: { email: p.creadoPor?.email },
-      revisadoPor: p.revisadoPor ? { email: p.revisadoPor.email } : null,
-      equipo: p.equipo?.equipo,
-      modelo: p.equipo?.modelo,
-      horometro: p.equipo?.horometro,
-      serie: p.equipo?.serie,
-      componentes: (p.componentes ?? []).map((c) => c.key),
-      fases: (p.fases ?? []).map((f) => f.key),
-      items: (p.items ?? []).map((i) => ({
-        id: i.id,
-        cantidad: i.cantidad,
-        producto: { id: i.producto.id, name: i.producto.name },
-      })),
-    }));
-
-    return new PaginatedPeticionProductoDto(mapped, {
-      currentPage: page,
-      totalPages,
-      totalItems,
-      itemsPerPage: limit,
-      hasNextPage: page < totalPages,
-      hasPreviousPage: page > 1,
-    });
-  }
-
-  async createPeticionProducto(dto: CreatePeticionProductoDto, user: User) {
-    if (!dto.items || dto.items.length === 0) {
-      throw new BadRequestException(
-        'Debe incluir al menos un producto en la petición.'
-      );
-    }
-
-    const currentUser = await this.userRepo.findOne({
-      where: { id: user.id },
-      relations: ['obra', 'obra.almacenes'],
-    });
-    if (!currentUser) throw new NotFoundException('User not found');
-    if (!currentUser?.obra?.almacenes?.length) {
-      throw new BadRequestException(
-        'El usuario no tiene un almacén asignado a su obra.'
-      );
-    }
-    const almacenId = currentUser.obra.almacenes[0].id;
-
-    const equipo = await this.equipoRepo.findOne({
-      where: { id: dto.equipoId },
-    });
-    if (!equipo) throw new NotFoundException('No se encontro el equipo');
-
-    // Resolve componentes and fases from keys
-    const componentes = await this.componenteRepo.findBy({
-      key: In(dto.componentes),
-    });
-    if (componentes.length !== dto.componentes.length) {
-      throw new BadRequestException('Componente(s) inválidos');
-    }
-    if (componentes.length === 0) {
-      throw new BadRequestException(
-        'Debe seleccionar al menos un componente.'
-      );
-    }
-
-    const fases = await this.faseRepo.findBy({
-      key: In(dto.fases),
-    });
-    if (fases.length !== dto.fases.length) {
-      throw new BadRequestException('Fase(s) inválidas');
-    }
-    if (fases.length === 0) {
-      throw new BadRequestException('Debe seleccionar al menos una fase.');
-    }
-
-    return await this.dataSource.transaction(async (manager) => {
-      const peticion = this.peticionRepo.create({
-        observaciones: dto.observaciones,
-        almacen: { id: almacenId } as any,
-        creadoPor: { id: user.id } as any,
-        equipo,
-        status: PeticionStatus.PENDIENTE,
-        componentes,
-        fases,
-        items: [],
-      });
-
-      const saved = await manager.getRepository(PeticionProducto).save(peticion);
-
-      for (const item of dto.items) {
-        const peticionItem = this.peticionItemRepo.create({
-          cantidad: item.cantidad,
-          producto: { id: item.productoId } as any,
-          reporte: saved,
-        });
-        await manager.getRepository(PeticionProductoItem).save(peticionItem);
-      }
-
-      await this.logService.createLog(
-        user,
-        `El usuario ${user.name} creó el reporte ${saved.id}`,
-        'CREATE_REPORTE',
-        JSON.stringify({ id: saved.id })
-      );
-
-      return await manager.getRepository(PeticionProducto).findOne({
-        where: { id: saved.id },
-        relations: ['componentes', 'fases', 'items', 'equipo', 'almacen'],
-      });
-    });
-  }
-
-  async updatePeticionProducto(
-    id: number,
-    dto: UpdatePeticionProductoDto,
-    user: User
-  ) {
-    // Load current entity with relations we might replace
-    const peticion = await this.peticionRepo.findOne({
-      where: { id },
-      relations: ['items', 'componentes', 'fases'],
-    });
-
-    if (!peticion) {
-      throw new NotFoundException('Petición no encontrada.');
-    }
-
-    if (peticion.status !== PeticionStatus.PENDIENTE) {
-      throw new BadRequestException(
-        'Solo se pueden modificar peticiones pendientes.'
-      );
-    }
-
-    // Resolve componentes/fases if provided
-    let componentesToSet = undefined as undefined | typeof peticion.componentes;
-    let fasesToSet = undefined as undefined | typeof peticion.fases;
-
-    if (dto.componentes !== undefined) {
-      if (!Array.isArray(dto.componentes)) {
-        throw new BadRequestException('Componentes inválidos.');
-      }
-      if (dto.componentes.length === 0) {
-        // enforce at least one if field is provided
-        throw new BadRequestException(
-          'Debe seleccionar al menos un componente.'
-        );
-      }
-      const comps = await this.componenteRepo.findBy({
-        key: In(dto.componentes),
-      });
-      if (comps.length !== dto.componentes.length) {
-        throw new BadRequestException('Componente(s) inválidos.');
-      }
-      componentesToSet = comps;
-    }
-
-    if (dto.fases !== undefined) {
-      if (!Array.isArray(dto.fases)) {
-        throw new BadRequestException('Fases inválidas.');
-      }
-      if (dto.fases.length === 0) {
-        // enforce at least one if field is provided
-        throw new BadRequestException('Debe seleccionar al menos una fase.');
-      }
-      const fs = await this.faseRepo.findBy({
-        key: In(dto.fases),
-      });
-      if (fs.length !== dto.fases.length) {
-        throw new BadRequestException('Fase(s) inválidas.');
-      }
-      fasesToSet = fs;
-    }
-
-    // Apply simple fields
-    if (dto.observaciones !== undefined) {
-      peticion.observaciones = dto.observaciones;
-    }
-    if (dto.equipoId !== undefined) {
-      peticion.equipo = { id: dto.equipoId } as any;
-    }
-
-    // Transaction: replace items and M2M sets atomically
-    return await this.dataSource.transaction(async (manager) => {
-      const peticionRepository = manager.getRepository(PeticionProducto);
-      const peticionItemRepository = manager.getRepository(PeticionProductoItem);
-
-      // Replace items if provided
-      if (dto.items !== undefined) {
-        await peticionItemRepository.delete({ reporte: { id } as any });
-        peticion.items = dto.items.map((i) =>
-          peticionItemRepository.create({
-            cantidad: i.cantidad,
-            producto: { id: i.productoId } as any,
-          })
-        );
-      }
-
-      // Replace componentes/fases if provided
-      if (componentesToSet !== undefined) {
-        peticion.componentes = componentesToSet;
-      }
-      if (fasesToSet !== undefined) {
-        peticion.fases = fasesToSet;
-      }
-
-      const updated = await peticionRepository.save(peticion);
-
-      await this.logService.createLog(
-        user,
-        `El usuario ${user.name} actualizó el reporte ${updated.id}`,
-        'UPDATE_REPORTE',
-        JSON.stringify({ id: updated.id })
-      );
-
-      // Optionally return with relations
-      return await peticionRepository.findOne({
-        where: { id: updated.id },
-        relations: ['componentes', 'fases', 'items', 'equipo', 'almacen'],
-      });
-    });
-  }
-
-  async approvePeticionProducto(id: number, user: User) {
-    const peticion = await this.peticionRepo.findOne({
-      where: { id },
-      relations: ['almacen', 'creadoPor', 'revisadoPor'],
-    });
-
-    if (!peticion) {
-      throw new NotFoundException('Petición no encontrada.');
-    }
-
-    if (peticion.status !== PeticionStatus.PENDIENTE) {
-      throw new BadRequestException(
-        `No se puede aprobar una petición con estado ${peticion.status}.`
-      );
-    }
-
-    peticion.status = PeticionStatus.APROBADO;
-    peticion.revisadoPor = { id: user.id } as any;
-    peticion.fechaRevision = new Date();
-
-    const updated = await this.peticionRepo.save(peticion);
-
-    await this.logService.createLog(
-      user,
-      `El usuario ${user.id} aprobo el reporte ${id}`,
-      'APROVE_REPORTE',
-      JSON.stringify(updated),
-    )
-
-    return updated;
-  }
-
-  async rejectPeticionProducto(id: number, user: User) {
-    const peticion = await this.peticionRepo.findOne({
-      where: { id },
-      relations: ['almacen', 'creadoPor', 'revisadoPor'],
-    });
-
-    if (!peticion) {
-      throw new NotFoundException('Petición no encontrada.');
-    }
-
-    if (peticion.status !== PeticionStatus.PENDIENTE) {
-      throw new BadRequestException(
-        `No se puede rechazar una petición con estado ${peticion.status}.`
-      );
-    }
-
-    peticion.status = PeticionStatus.RECHAZADO;
-    peticion.revisadoPor = { id: user.id } as any;
-    peticion.fechaRevision = new Date();
-
-    const updated = await this.peticionRepo.save(peticion);
-
-    await this.logService.createLog(
-      user,
-      `El usuario ${user.id} rechazo el reporte ${id}`,
-      'REJECT_REPORT',
-      JSON.stringify(updated),
-    )
-
-    return updated;
-  }
-
-  // TODO: CHECK IF THERE'S ENOUGH STOCK BEFORE DOING THE REQUISICION. IF THERE'S ENOUGH CREATE an ENTRADA
-  // TODO: METODOS PARA LAS REQUISICIONES
   async getAllRequisiciones(
-    pagination: PaginationDto
+    pagination: PaginationDto,
+    status?: RequisicionStatus
   ): Promise<PaginatedRequisicionDto> {
-    const { page = 1, limit = 10, order = 'DESC' } = pagination;
+    const { search, page = 1, limit = 10, order = 'DESC' } = pagination;
     const skip = (page - 1) * limit;
 
-    const [requisiciones, totalItems] = await this.requisicionRepo.findAndCount({
-      relations: [
-        'items',
-        'items.producto',
-        'service_items',
-        'equipo',
-        'almacenCargo',
-        'almacenDestino',
-        'pedidoPor',
-        'revisadoPor',
-      ],
-      skip,
-      take: limit,
-      order: { fechaSolicitud: order as any },
-    });
+    const query = this.requisicionRepo
+      .createQueryBuilder('r')
+      .select([
+        'r.id',
+        'r.fechaSolicitud',
+        'r.rcp',
+        'r.titulo',
+        'r.prioridad',
+        'r.hrm',
+        'r.concepto',
+        'r.status',
+        'r.aprovalType',
+        'r.requisicionType',
+        'r.cantidadEstimada',
+        'r.cantidadActual',
+        'r.metodo_pago',
+        'r.fechaRevision',
+      ])
+      .leftJoinAndSelect('r.almacenCargo', 'almacenCargo')
+      .addSelect(['almacenCargo.id', 'almacenCargo.name'])
+      .leftJoinAndSelect('r.almacenDestino', 'almacenDestino')
+      .addSelect(['almacenDestino.id', 'almacenDestino.name'])
+      .leftJoinAndSelect('r.pedidoPor', 'pedidoPor')
+      .addSelect(['pedidoPor.email', 'pedidoPor.name'])
+      .leftJoinAndSelect('r.revisadoPor', 'revisadoPor')
+      .addSelect(['revisadoPor.email', 'revisadoPor.name'])
+      .leftJoinAndSelect('r.refacciones', 'refacciones')
+      .addSelect([
+        'refacciones.id',
+        'refacciones.customId',
+        'refacciones.name',
+        'refacciones.cantidad',
+        'refacciones.descripcion',
+        'refacciones.unidad',
+        'refacciones.precio',
+        'refacciones.currency',
+      ])
+      .leftJoinAndSelect('refacciones.equipo', 'refaccionEquipo')
+      .addSelect(['refaccionEquipo.id'])
+      .leftJoinAndSelect('r.insumos', 'insumos')
+      .addSelect([
+        'insumos.id',
+        'insumos.cantidad',
+        'insumos.descripcion',
+        'insumos.unidad',
+        'insumos.precio',
+        'insumos.currency',
+      ])
+      .leftJoinAndSelect('r.filtros', 'filtros')
+      .addSelect([
+        'filtros.id',
+        'filtros.customId',
+        'filtros.cantidad',
+        'filtros.descripcion',
+        'filtros.unidad',
+        'filtros.precio',
+        'filtros.currency',
+      ])
+      .leftJoinAndSelect('filtros.equipo', 'filtroEquipo')
+      .addSelect(['filtroEquipo.id'])
+      .orderBy('r.fechaSolicitud', order as 'ASC' | 'DESC');
+
+    if (status) {
+      query.where('r.status = :status', { status });
+    }
+
+    if (search) {
+      const term = `%${search}%`;
+      query.andWhere(
+        new Brackets((qb2) => {
+          qb2
+            .where('r.rcp::text ILIKE :term', { term })
+            .orWhere('r.titulo ILIKE :term', { term })
+            .orWhere('refacciones.customId ILIKE :term', { term })
+            .orWhere('insumos.descripcion ILIKE :term', { term })
+            .orWhere('filtros.customId ILIKE :term', { term })
+        })
+      );
+    }
+
+    const [requisiciones, totalItems] = await query
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
 
     const totalPages = Math.ceil(totalItems / limit);
 
@@ -774,64 +179,57 @@ export class RequisicionesService {
       status: r.status,
       aprovalType: r.aprovalType,
       requisicionType: r.requisicionType,
-      cantidad_dinero: r.cantidad_dinero,
+      cantidadEstimada: r.cantidadEstimada,
+      cantidadActual: r.cantidadActual,
       metodo_pago: r.metodo_pago,
-      equipo: r.equipo
-        ? {
-          equipo: r.equipo.equipo,
-          serie: r.equipo.serie,
-          no_economico: r.equipo.no_economico,
-        }
-        : null,
       almacenDestino: {
         id: r.almacenDestino.id,
         name: r.almacenDestino.name,
-        location: r.almacenDestino.location,
-        isActive: r.almacenDestino.isActive,
       },
       almacenCargo: {
         id: r.almacenCargo.id,
         name: r.almacenCargo.name,
-        location: r.almacenCargo.location,
-        isActive: r.almacenCargo.isActive,
       },
       pedidoPor: {
-        id: r.pedidoPor.id,
         email: r.pedidoPor.email,
         name: r.pedidoPor.name,
-        imageUrl: r.pedidoPor.imageUrl,
-        isActive: r.pedidoPor.isActive,
       },
       revisadoPor: r.revisadoPor
         ? {
-          id: r.revisadoPor.id,
           email: r.revisadoPor.email,
           name: r.revisadoPor.name,
-          imageUrl: r.revisadoPor.imageUrl,
-          isActive: r.revisadoPor.isActive,
         }
         : null,
       fechaRevision: r.fechaRevision ?? null,
-      items: r.requisicionType === RequisicionType.PRODUCT
-        ? r.items.map((i) => ({
-          id: i.id,
-          cantidadSolicitada: i.cantidadSolicitada,
-          producto: {
-            id: i.producto.id,
-            name: i.producto.name,
-            description: i.producto.description,
-            unidad: i.producto.unidad,
-            precio: i.producto.precio,
-            isActive: i.producto.isActive,
-          },
-        }))
-        : r.service_items.map((si) => ({
-          id: si.id,
-          cantidad: si.cantidad,
-          unidad: si.unidad,
-          descripcion: si.descripcion,
-          precio_unitario: si.precio_unitario,
-        })),
+      refacciones: r.refacciones.map((ref) => ({
+        id: ref.id,
+        customId: ref.customId,
+        name: ref.name,
+        cantidad: ref.cantidad,
+        descripcion: ref.descripcion,
+        unidad: ref.unidad,
+        precio: ref.precio || 0,
+        currency: ref.currency,
+        equipo: ref.equipo || null,
+      })),
+      insumos: r.insumos.map((ins) => ({
+        id: ins.id,
+        cantidad: ins.cantidad,
+        descripcion: ins.descripcion,
+        unidad: ins.unidad,
+        precio: ins.precio || 0,
+        currency: ins.currency,
+      })),
+      filtros: r.filtros.map((fil) => ({
+        id: fil.id,
+        customId: fil.customId,
+        cantidad: fil.cantidad,
+        descripcion: fil.descripcion,
+        unidad: fil.unidad,
+        precio: fil.precio || 0,
+        currency: fil.currency,
+        equipo: fil.equipo || null,
+      })),
     }));
 
     return new PaginatedRequisicionDto(mappedData, {
@@ -847,25 +245,92 @@ export class RequisicionesService {
   async getRequisicionesAprobadas(
     pagination: PaginationDto
   ): Promise<PaginatedRequisicionDto> {
-    const { page = 1, limit = 10, order = 'DESC' } = pagination;
+    const { search, page = 1, limit = 10, order = 'DESC' } = pagination;
     const skip = (page - 1) * limit;
 
-    const [requisiciones, totalItems] = await this.requisicionRepo.findAndCount({
-      relations: [
-        'items',
-        'items.producto',
-        'service_items',
-        'equipo',
-        'almacenCargo',
-        'almacenDestino',
-        'pedidoPor',
-        'revisadoPor',
-      ],
-      where: { status: In([RequisicionStatus.APROBADA, RequisicionStatus.PAGADA]) },
-      skip,
-      take: limit,
-      order: { fechaSolicitud: order as any },
-    });
+    const query = this.requisicionRepo
+      .createQueryBuilder('r')
+      .select([
+        'r.id',
+        'r.fechaSolicitud',
+        'r.rcp',
+        'r.titulo',
+        'r.prioridad',
+        'r.hrm',
+        'r.concepto',
+        'r.status',
+        'r.aprovalType',
+        'r.requisicionType',
+        'r.cantidadActual',
+        'r.cantidadEstimada',
+        'r.metodo_pago',
+        'r.fechaRevision',
+      ])
+      .leftJoinAndSelect('r.almacenCargo', 'almacenCargo')
+      .addSelect(['almacenCargo.id', 'almacenCargo.name'])
+      .leftJoinAndSelect('r.almacenDestino', 'almacenDestino')
+      .addSelect(['almacenDestino.id', 'almacenDestino.name'])
+      .leftJoinAndSelect('r.pedidoPor', 'pedidoPor')
+      .addSelect(['pedidoPor.email', 'pedidoPor.name'])
+      .leftJoinAndSelect('r.revisadoPor', 'revisadoPor')
+      .addSelect(['revisadoPor.email', 'revisadoPor.name'])
+      .leftJoinAndSelect('r.refacciones', 'refacciones')
+      .addSelect([
+        'refacciones.id',
+        'refacciones.customId',
+        'refacciones.name',
+        'refacciones.cantidad',
+        'refacciones.descripcion',
+        'refacciones.unidad',
+        'refacciones.precio',
+        'refacciones.currency',
+      ])
+      .leftJoinAndSelect('refacciones.equipo', 'refaccionEquipo')
+      .addSelect(['refaccionEquipo.id'])
+      .leftJoinAndSelect('r.insumos', 'insumos')
+      .addSelect([
+        'insumos.id',
+        'insumos.cantidad',
+        'insumos.descripcion',
+        'insumos.unidad',
+        'insumos.precio',
+        'insumos.currency',
+      ])
+      .leftJoinAndSelect('r.filtros', 'filtros')
+      .addSelect([
+        'filtros.id',
+        'filtros.customId',
+        'filtros.cantidad',
+        'filtros.descripcion',
+        'filtros.unidad',
+        'filtros.precio',
+        'filtros.currency',
+      ])
+      .leftJoinAndSelect('filtros.equipo', 'filtroEquipo')
+      .addSelect(['filtroEquipo.id'])
+      .where('r.status IN (:...statuses)', {
+        statuses: [RequisicionStatus.APROBADA, RequisicionStatus.PAGADA]
+      })
+      .orderBy('r.fechaSolicitud', order as 'ASC' | 'DESC');
+
+    if (search) {
+      const term = `%${search}%`;
+      query.andWhere(
+        new Brackets((qb2) => {
+          qb2
+            .where('r.rcp::text ILIKE :term', { term })
+            .orWhere('r.titulo ILIKE :term', { term })
+            .orWhere('refacciones.customId ILIKE :term', { term })
+            .orWhere('insumos.descripcion ILIKE :term', { term })
+            .orWhere('filtros.customId ILIKE :term', { term })
+        })
+      );
+    }
+
+    const [requisiciones, totalItems] = await query
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
 
     const totalPages = Math.ceil(totalItems / limit);
 
@@ -880,64 +345,57 @@ export class RequisicionesService {
       status: r.status,
       aprovalType: r.aprovalType,
       requisicionType: r.requisicionType,
-      cantidad_dinero: r.cantidad_dinero,
+      cantidadEstimada: r.cantidadEstimada,
+      cantidadActual: r.cantidadActual,
       metodo_pago: r.metodo_pago,
-      equipo: r.equipo
-        ? {
-          equipo: r.equipo.equipo,
-          serie: r.equipo.serie,
-          no_economico: r.equipo.no_economico,
-        }
-        : null,
       almacenDestino: {
         id: r.almacenDestino.id,
         name: r.almacenDestino.name,
-        location: r.almacenDestino.location,
-        isActive: r.almacenDestino.isActive,
       },
       almacenCargo: {
         id: r.almacenCargo.id,
         name: r.almacenCargo.name,
-        location: r.almacenCargo.location,
-        isActive: r.almacenCargo.isActive,
       },
       pedidoPor: {
-        id: r.pedidoPor.id,
         email: r.pedidoPor.email,
         name: r.pedidoPor.name,
-        imageUrl: r.pedidoPor.imageUrl,
-        isActive: r.pedidoPor.isActive,
       },
       revisadoPor: r.revisadoPor
         ? {
-          id: r.revisadoPor.id,
           email: r.revisadoPor.email,
           name: r.revisadoPor.name,
-          imageUrl: r.revisadoPor.imageUrl,
-          isActive: r.revisadoPor.isActive,
         }
         : null,
       fechaRevision: r.fechaRevision ?? null,
-      items: r.requisicionType === RequisicionType.PRODUCT
-        ? r.items.map((i) => ({
-          id: i.id,
-          cantidadSolicitada: i.cantidadSolicitada,
-          producto: {
-            id: i.producto.id,
-            name: i.producto.name,
-            description: i.producto.description,
-            unidad: i.producto.unidad,
-            precio: i.producto.precio,
-            isActive: i.producto.isActive,
-          },
-        }))
-        : r.service_items.map((si) => ({
-          id: si.id,
-          cantidad: si.cantidad,
-          unidad: si.unidad,
-          descripcion: si.descripcion,
-          precio_unitario: si.precio_unitario,
-        })),
+      refacciones: r.refacciones.map((ref) => ({
+        id: ref.id,
+        customId: ref.customId,
+        name: ref.name,
+        cantidad: ref.cantidad,
+        descripcion: ref.descripcion,
+        unidad: ref.unidad,
+        precio: ref.precio || 0,
+        currency: ref.currency,
+        equipo: ref.equipo || null,
+      })),
+      insumos: r.insumos.map((ins) => ({
+        id: ins.id,
+        cantidad: ins.cantidad,
+        descripcion: ins.descripcion,
+        unidad: ins.unidad,
+        precio: ins.precio || 0,
+        currency: ins.currency,
+      })),
+      filtros: r.filtros.map((fil) => ({
+        id: fil.id,
+        customId: fil.customId,
+        cantidad: fil.cantidad,
+        descripcion: fil.descripcion,
+        unidad: fil.unidad,
+        precio: fil.precio || 0,
+        currency: fil.currency,
+        equipo: fil.equipo || null,
+      })),
     }));
 
     return new PaginatedRequisicionDto(mappedData, {
@@ -950,204 +408,6 @@ export class RequisicionesService {
     });
   }
 
-  async createServiceRequisicion(
-    dto: CreateServiceRequisicionDto,
-    user: User
-  ) {
-    const {
-      almacenCargoId,
-      almacenDestinoId,
-      proveedorId,
-      concepto,
-      prioridad,
-      titulo,
-      rcp,
-      items
-    } = dto;
-
-    const almacenCargo = await this.almacenRepo.findOne({
-      where: { id: almacenCargoId }
-    })
-
-    if (!almacenCargo) {
-      throw new NotFoundException('No se encontro el almacen')
-    }
-
-    const almacenDestino = await this.almacenRepo.findOne({
-      where: { id: almacenDestinoId }
-    })
-
-    if (!almacenDestino) {
-      throw new NotFoundException('No se encontro el almacen')
-    }
-
-    const proveedor = await this.proveedorRepo.findOne({
-      where: { id: dto.proveedorId }
-    })
-
-    if (!proveedor) {
-      throw new NotFoundException('Proveedor not found')
-    }
-
-
-    let totalCost = 0;
-    for (const item of items) {
-      if (item.precio_unitario == null) {
-        throw new BadRequestException(
-          `El item no tiene precio asignado.`
-        );
-      }
-      totalCost += Number(item.cantidad) * Number(item.precio_unitario);
-    }
-
-    // Same approval logic as product path
-    let aprovalType: RequisicionAprovalLevel;
-    if (totalCost < 2000) {
-      aprovalType = RequisicionAprovalLevel.NONE;
-    } else if (totalCost <= 5000) {
-      aprovalType = RequisicionAprovalLevel.ADMIN;
-    } else {
-      aprovalType = RequisicionAprovalLevel.SPECIAL_PERMISSION;
-    }
-
-    const requisicion = this.requisicionRepo.create({
-      status: RequisicionStatus.PENDIENTE,
-      aprovalType,
-      cantidad_dinero: totalCost,
-      prioridad,
-      rcp,
-      titulo,
-      concepto,
-      almacenCargo,
-      almacenDestino,
-      proveedor,
-      requisicionType: RequisicionType.CONSUMIBLES,
-      pedidoPor: user ?? null,
-    });
-
-    const saved = await this.requisicionRepo.save(requisicion);
-
-    const serviceItems = items.map(item => ({
-      cantidad: item.cantidad,
-      unidad: item.unidad,
-      descripcion: item.descripcion,
-      precio_unitario: item.precio_unitario,
-      requisicion: saved,
-    }));
-
-    await this.serviceItemRepo.save(serviceItems);
-
-    return this.requisicionRepo.findOne({
-      where: { id: saved.id },
-      relations: ['almacenCargo', 'pedidoPor', 'service_items'],
-    });
-  }
-
-  async createRequisicion(dto: CreateRequisicionDto, user: User) {
-    const { peticionId, prioridad, hrm, concepto, almacenCargoId, titulo, rcp } = dto;
-
-    const almacenCargo = await this.almacenRepo.findOne({
-      where: { id: almacenCargoId }
-    })
-
-    if (!almacenCargo) {
-      throw new NotFoundException('No se encontro el almacen')
-    }
-
-    const exists = await this.requisicionRepo.findOne({
-      where: { peticion: { id: peticionId } },
-    });
-    if (exists) {
-      throw new BadRequestException('Ya existe una requisición para esta petición.');
-    }
-
-    const peticion = await this.peticionRepo.findOne({
-      where: { id: peticionId },
-      relations: ['items', 'items.producto', 'almacen', 'equipo'],
-    });
-
-    if (!peticion) {
-      throw new NotFoundException('Petición no encontrada.');
-    }
-
-    if (peticion.status !== 'APROBADO') {
-      throw new BadRequestException('Solo se pueden crear requisiciones de peticiones aprobadas.');
-    }
-
-
-    const proveedor = await this.proveedorRepo.findOne({
-      where: { id: dto.proveedorId }
-    })
-
-    if (!proveedor) {
-      throw new NotFoundException('Proveedor not found')
-    }
-
-    let totalCost = 0;
-    for (const item of peticion.items) {
-      if (item.producto.precio == null) {
-        throw new BadRequestException(
-          `El producto ${item.producto.id} no tiene precio asignado.`
-        );
-      }
-      totalCost += Number(item.cantidad) * Number(item.producto.precio);
-    }
-
-
-    let aprovalType: RequisicionAprovalLevel;
-    if (totalCost < 2000) {
-      aprovalType = RequisicionAprovalLevel.NONE;
-    } else if (totalCost <= 5000) {
-      aprovalType = RequisicionAprovalLevel.ADMIN;
-    } else {
-      aprovalType = RequisicionAprovalLevel.SPECIAL_PERMISSION;
-    }
-
-    const savedRequisicion = await this.requisicionRepo.save(
-      this.requisicionRepo.create({
-        status: RequisicionStatus.PENDIENTE,
-        aprovalType,
-        cantidad_dinero: totalCost,
-        prioridad,
-        concepto,
-        rcp,
-        titulo,
-        almacenCargo,
-        almacenDestino: peticion.almacen,
-        requisicionType: RequisicionType.PRODUCT,
-        pedidoPor: user ?? null,
-        peticion,
-        proveedor,
-        hrm,
-        equipo: peticion?.equipo,
-      })
-    );
-
-
-    const items = peticion.items.map((item) => {
-
-      return this.requisicionItemRepo.create({
-        cantidadSolicitada: Number(item.cantidad),
-        producto: { id: item.producto.id } as Producto,
-        requisicion: savedRequisicion,
-      });
-    });
-
-    await this.requisicionItemRepo.save(items);
-
-    await this.peticionRepo.update(peticion.id, {
-      generado: PeticionGenerada.GENERADA,
-      status: PeticionStatus.PROCESADO
-    });
-
-    return this.requisicionRepo.findOne({
-      where: { id: savedRequisicion.id },
-      relations: ['items', 'items.producto', 'almacenDestino', 'pedidoPor'],
-    });
-  }
-
-
-  // TODO: LET DIFFERENT ROLES DO THIS OPERATION BASED ON THE RequisicionType field
   async acceptRequisicion(id: number, user: User) {
     const requisicion = await this.requisicionRepo.findOne({
       where: { id },
@@ -1208,16 +468,13 @@ export class RequisicionesService {
       );
     }
     // Only generate entrada for product requisiciones
-    if (requisicion.requisicionType !== RequisicionType.PRODUCT) {
+    if (requisicion.requisicionType !== RequisicionType.REFACCIONES) {
       throw new BadRequestException(
         'Solo las requisiciones de productos generan entradas automáticas.'
       );
     }
-    if (!requisicion.items || requisicion.items.length === 0) {
-      throw new BadRequestException(
-        'La requisición no tiene items de productos.'
-      );
-    }
+
+
     // Mark requisicion as PAGADA
     requisicion.status = RequisicionStatus.PAGADA;
     requisicion.metodo_pago = dto.metodo_pago;
@@ -1229,14 +486,6 @@ export class RequisicionesService {
       almacenDestino: requisicion.almacenDestino,
       creadoPor: user,
       requisicion: requisicion,
-      items: requisicion.items.map(reqItem => {
-        const entradaItem = new EntradaItem();
-        entradaItem.cantidadEsperada = reqItem.cantidadSolicitada;
-        entradaItem.cantidadRecibida = 0;
-        entradaItem.producto = reqItem.producto;
-        entradaItem.requisicionItem = reqItem;
-        return entradaItem;
-      }),
     });
     await this.requisicionRepo.save(requisicion);
     const savedEntrada = await this.entradaRepo.save(entrada);
@@ -1245,5 +494,345 @@ export class RequisicionesService {
       entrada: savedEntrada,
     };
   }
+
+  async createRequisicion(dto: CreateRequisicionDto, user: User) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      let rcp: number;
+      try {
+        rcp = await this.getNextRcp();
+      } catch (error) {
+        throw new BadRequestException('Failed to generate RCP number');
+      }
+
+      const userWithAlmacen = await queryRunner.manager.findOne(User, {
+        where: { id: user.id },
+        relations: ['almacenesEncargados'],
+      });
+
+      if (!userWithAlmacen?.almacenesEncargados?.length) {
+        throw new BadRequestException('User is not assigned to any almacen');
+      }
+
+      const almacenDestino = userWithAlmacen.almacenesEncargados[0];
+
+      let proveedor: Proveedor | null = null;
+      if (dto.proveedorId) {
+        proveedor = await queryRunner.manager.findOne(Proveedor, {
+          where: { id: dto.proveedorId },
+        });
+        if (!proveedor) throw new NotFoundException('Proveedor not found');
+      }
+
+      const result = await queryRunner.manager
+        .createQueryBuilder()
+        .insert()
+        .into(Requisicion)
+        .values({
+          rcp,
+          titulo: dto.titulo,
+          observaciones: dto.observaciones,
+          prioridad: dto.prioridad,
+          hrm: dto.hrm,
+          concepto: dto.concepto,
+          requisicionType: dto.requisicionType,
+          almacenCargo: { id: dto.almacenCargoId },
+          almacenDestino: { id: almacenDestino.id },
+          pedidoPor: { id: user.id },
+          ...(proveedor && { proveedor: { id: proveedor.id } }),
+          metodo_pago: MetodoPago.SIN_PAGAR,
+          status: RequisicionStatus.PENDIENTE,
+          aprovalType: RequisicionAprovalLevel.NONE,
+          cantidadEstimada: 0,
+          cantidadActual: 0,
+          fechaSolicitud: new Date(),
+        })
+        .execute();
+
+      const saved = await queryRunner.manager.findOne(Requisicion, {
+        where: { id: result.identifiers[0].id },
+      });
+
+      if (!saved) throw new Error('Requisicion not found after creation');
+
+      // Add items using queryRunner
+      switch (dto.requisicionType) {
+        case RequisicionType.REFACCIONES:
+          await this.addRefaccionItems(saved, dto.items as CreateRefaccionItemDto[], queryRunner);
+          break;
+        case RequisicionType.CONSUMIBLES:
+          await this.addInsumoItems(saved, dto.items as CreateInsumoItemDto[], queryRunner);
+          break;
+        case RequisicionType.FILTROS:
+          await this.addFilterItems(saved, dto.items as CreateFilterItemDto[], queryRunner);
+          break;
+      }
+
+      await this.calculateAndSetApprovalLevel(saved.id, queryRunner);
+
+      await queryRunner.commitTransaction();
+
+      return queryRunner.manager.findOne(Requisicion, {
+        where: { id: saved.id },
+        relations: {
+          refacciones: true,
+          insumos: true,
+          filtros: true,
+        },
+      });
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new BadRequestException(`Failed to create requisicion: ${error.message}`);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+
+  async markItemAsPaid(
+    requisicionId: number,
+    itemId: number,
+    itemType: RequisicionType,
+  ) {
+    let item: any;
+
+    switch (itemType) {
+      case RequisicionType.REFACCIONES:
+        item = await this.refaccionItemRepo.findOne({
+          where: { id: itemId },
+        });
+        if (!item) throw new NotFoundException('Refaccion item not found');
+        item.paid = true;
+        await this.refaccionItemRepo.save(item);
+        break;
+
+      case RequisicionType.CONSUMIBLES:
+        item = await this.insumoItemRepo.findOne({
+          where: { id: itemId as number },
+        });
+        if (!item) throw new NotFoundException('Insumo item not found');
+        item.paid = true;
+        await this.insumoItemRepo.save(item);
+        break;
+
+      case RequisicionType.FILTROS:
+        item = await this.filterItemRepo.findOne({
+          where: { id: itemId as number },
+        });
+        if (!item) throw new NotFoundException('Filter item not found');
+        item.paid = true;
+        await this.filterItemRepo.save(item);
+        break;
+
+      default:
+        throw new BadRequestException('Invalid requisicion type');
+    }
+
+    return this.recalculateRequisicionAmounts(requisicionId);
+  }
+
+
+  private async recalculateRequisicionAmounts(requisicionId: number) {
+    const requisicion = await this.requisicionRepo.findOne({
+      where: { id: requisicionId },
+      relations: {
+        refacciones: true,
+        insumos: true,
+        filtros: true,
+      },
+    });
+
+    if (!requisicion) throw new NotFoundException('Requisicion not found');
+
+    // Calculate estimated (all items)
+    const items = [
+      ...requisicion.refacciones,
+      ...requisicion.insumos,
+      ...requisicion.filtros,
+    ];
+
+    const cantidadEstimada = items.reduce((sum, item) => {
+      return sum + item.cantidad * item.precio;
+    }, 0);
+
+    // Calculate actual (only paid items)
+    const cantidadActual = items
+      .filter(item => item.paid === true)
+      .reduce((sum, item) => {
+        return sum + item.cantidad * item.precio;
+      }, 0);
+
+    requisicion.cantidadEstimada = cantidadEstimada;
+    requisicion.cantidadActual = cantidadActual;
+
+    await this.requisicionRepo.save(requisicion);
+
+    return {
+      cantidadEstimada,
+      cantidadActual,
+    };
+  }
+
+
+  private async getNextRcp(): Promise<number> {
+    const lastRequisicion = await this.requisicionRepo.findOne({
+      where: {},
+      order: { rcp: 'DESC' },
+    });
+
+    return lastRequisicion?.rcp ? lastRequisicion.rcp + 1 : 1;
+  }
+
+  private async calculateAndSetApprovalLevel(
+    requisicionId: number,
+    queryRunner: QueryRunner,
+  ) {
+    const requisicion = await queryRunner.manager.findOne(Requisicion, {
+      where: { id: requisicionId },
+      relations: ['refacciones', 'insumos', 'filtros'],
+    });
+
+    if (!requisicion) throw new Error('Requisicion not found');
+
+    const totalUSD = await this.calculateTotalInUSD(requisicion);
+    const cantidadEstimada = Math.round(totalUSD);
+
+    let aprovalType = RequisicionAprovalLevel.NONE;
+    if (totalUSD >= 2000 && totalUSD < 5000) {
+      aprovalType = RequisicionAprovalLevel.ADMIN;
+    } else if (totalUSD >= 5000) {
+      aprovalType = RequisicionAprovalLevel.SPECIAL_PERMISSION;
+    }
+
+    await queryRunner.manager.update(
+      Requisicion,
+      { id: requisicionId },
+      { cantidadEstimada, aprovalType },
+    );
+  }
+
+
+  private async calculateTotalInUSD(requisicion: Requisicion): Promise<number> {
+    let totalUSD = 0;
+
+    if (requisicion.refacciones?.length) {
+      requisicion.refacciones.forEach(item => {
+        if (item.precio && item.cantidad) {
+          const itemTotal = item.cantidad * item.precio;
+          const usdAmount = this.convertToUSD(itemTotal, item.currency || 'USD');
+          totalUSD += usdAmount;
+        }
+      });
+    }
+
+    if (requisicion.insumos?.length) {
+      requisicion.insumos.forEach(item => {
+        if (item.precio && item.cantidad) {
+          const itemTotal = item.cantidad * item.precio;
+          const usdAmount = this.convertToUSD(itemTotal, item.currency || 'USD');
+          totalUSD += usdAmount;
+        }
+      });
+    }
+
+    if (requisicion.filtros?.length) {
+      requisicion.filtros.forEach(item => {
+        if (item.precio && item.cantidad) {
+          const itemTotal = item.cantidad * item.precio;
+          const usdAmount = this.convertToUSD(itemTotal, item.currency || 'USD');
+          totalUSD += usdAmount;
+        }
+      });
+    }
+
+    return totalUSD;
+  }
+
+  private convertToUSD(amount: number, currency: string): number {
+    if (currency === 'MXN') {
+      return amount / 18;
+    }
+    return amount;
+  }
+
+  private async addRefaccionItems(
+    requisicion: Requisicion,
+    items: CreateRefaccionItemDto[],
+    queryRunner: QueryRunner,
+  ) {
+    if (!items || items.length === 0) return;
+
+    const refacciones = items.map(item => {
+      const refaccionItem = new RequisicionRefaccionItem();
+      refaccionItem.customId = item.customId || `ref-${Date.now()}`;
+      refaccionItem.name = item.name;
+      refaccionItem.cantidad = item.cantidad;
+      refaccionItem.unidad = item.unidad;
+      refaccionItem.descripcion = item.descripcion;
+      refaccionItem.precio = item.precio;
+      refaccionItem.currency = item.currency;
+      refaccionItem.paid = false;
+      refaccionItem.requisicion = requisicion;
+      if (item.equipoId) {
+        refaccionItem.equipo = { id: item.equipoId } as any;
+      }
+      return refaccionItem;
+    });
+
+    await queryRunner.manager.save(refacciones);
+  }
+
+  private async addInsumoItems(
+    requisicion: Requisicion,
+    items: CreateInsumoItemDto[],
+    queryRunner: QueryRunner,
+  ) {
+    if (!items || items.length === 0) return;
+
+    const insumos = items.map(item => {
+      const insumoItem = new RequisicionInsumoItem();
+      insumoItem.cantidad = item.cantidad;
+      insumoItem.unidad = item.unidad;
+      insumoItem.descripcion = item.descripcion;
+      insumoItem.precio = item.precio_unitario;
+      insumoItem.currency = item.currency;
+      insumoItem.is_product = item.is_product || false;
+      insumoItem.paid = false;
+      insumoItem.requisicion = requisicion;
+      return insumoItem;
+    });
+
+    await queryRunner.manager.save(insumos);
+  }
+
+  private async addFilterItems(
+    requisicion: Requisicion,
+    items: CreateFilterItemDto[],
+    queryRunner: QueryRunner,
+  ) {
+    if (!items || items.length === 0) return;
+
+    const filtros = items.map(item => {
+      const filtroItem = new RequisicionFilterItem();
+      filtroItem.customId = item.customId || `fil-${Date.now()}`;
+      filtroItem.cantidad = item.cantidad;
+      filtroItem.unidad = item.unidad;
+      filtroItem.descripcion = item.descripcion;
+      filtroItem.precio = item.precio;
+      filtroItem.currency = item.currency;
+      filtroItem.paid = false;
+      filtroItem.requisicion = requisicion;
+      if (item.equipoId) {
+        filtroItem.equipo = { id: item.equipoId } as any;
+      }
+      return filtroItem;
+    });
+
+    await queryRunner.manager.save(filtros);
+  }
+
 
 }

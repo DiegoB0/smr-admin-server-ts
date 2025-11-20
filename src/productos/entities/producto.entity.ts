@@ -8,10 +8,14 @@ import {
 
 @Entity('productos')
 export class Producto {
-  @PrimaryColumn({ type: 'varchar', length: 20 })
-  id: string;
 
-  @Column('text')
+  @PrimaryColumn()
+  id: number;
+
+  @Column({ nullable: true, unique: true })
+  customId: string;
+
+  @Column('text', { unique: true })
   name: string;
 
   @Column('text')
@@ -20,9 +24,6 @@ export class Producto {
   // 1 pieza, 1 litro, etc.
   @Column('text')
   unidad: string;
-
-  @Column('decimal', {nullable: true})
-  precio: number;
 
   @Column({ nullable: true })
   imageUrl?: string;

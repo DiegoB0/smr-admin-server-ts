@@ -1,0 +1,44 @@
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Requisicion } from '../requisicion.entity';
+import { Equipo } from 'src/equipos/entities/equipo.entity';
+
+@Entity('requisicion_refaccion_items')
+export class RequisicionRefaccionItem {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ unique: true })
+  customId: string;
+
+  @Column({ nullable: true })
+  name: string;
+
+  @Column({ nullable: true })
+  descripcion: string;
+
+  @Column()
+  unidad: string;
+
+  @Column()
+  cantidad: number;
+
+  @Column({ nullable: true })
+  precio: number;
+
+  @Column({ nullable: true, default: false })
+  paid: boolean;
+
+  @Column({ nullable: true })
+  currency: string;
+
+  @ManyToOne(() => Requisicion, r => r.refacciones, { onDelete: 'CASCADE' })
+  requisicion: Requisicion;
+
+  @ManyToOne(() => Equipo, (equipo) => equipo.refacciones, { nullable: true })
+  equipo: Equipo;
+}

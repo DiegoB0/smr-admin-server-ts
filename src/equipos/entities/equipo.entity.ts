@@ -1,9 +1,11 @@
-import { PeticionProducto } from 'src/requisiciones/entities/peticion_producto.entity';
-import { Requisicion } from 'src/requisiciones/entities/requisicion.entity';
+import { CategoriaFiltro } from 'src/filtros/entities/filtro-category.entity';
+import { RequisicionFilterItem } from 'src/requisiciones/entities/customRequis/requisicion_filter_items.entity';
+import { RequisicionRefaccionItem } from 'src/requisiciones/entities/customRequis/requisicion_refaccion.items.entity';
 import { Salida } from 'src/salidas/entities/salida.entity';
 import {
   Column,
   Entity,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -31,12 +33,16 @@ export class Equipo {
   @Column('bool', { default: true })
   isActive: boolean;
 
-  @OneToMany(() => PeticionProducto, (peticion) => peticion.equipo)
-  reportes: PeticionProducto[];
-
   @OneToMany(() => Salida, (salida) => salida.equipo)
   salidas: Salida[];
 
-  @OneToMany(() => Requisicion, (requisicion) => requisicion.equipo)
-  requisiciones: Requisicion[];
+  @OneToMany(() => RequisicionFilterItem, (filtro) => filtro.equipo)
+  filtros: RequisicionFilterItem[];
+
+  @OneToMany(() => RequisicionRefaccionItem, (refaccion) => refaccion.equipo)
+  refacciones: RequisicionRefaccionItem[];
+
+  @ManyToOne(() => CategoriaFiltro, (cat) => cat.equipos)
+  filtro_categoria: CategoriaFiltro;
+
 }

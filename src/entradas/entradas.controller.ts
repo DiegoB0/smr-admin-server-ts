@@ -9,22 +9,22 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 export class EntradasController {
   constructor(private readonly entradasService: EntradasService) { }
 
-  @Get(':almacenId')
-  async findAll(
-    @Param('almacenId', ParseIntPipe) almacenId: number,
-    @Query() pagination: PaginationDto
-  ) {
-    return this.entradasService.findAll(almacenId, pagination);
-  }
-
-  @Patch(':id/recibir')
-  @ApiOperation({ summary: 'Update cantidadRecibida of entrada items' })
-  @ApiResponse({ status: 200, description: 'Entrada updated successfully', type: Entrada })
-  async recibirItems(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateCantidadRecibidaDto,
-  ): Promise<Entrada> {
-    // Pass the entrada ID + items array to the service
-    return this.entradasService.updateCantidadRecibida(id, dto.items);
-  }
+  // @Get(':almacenId')
+  // async findAll(
+  //   @Param('almacenId', ParseIntPipe) almacenId: number,
+  //   @Query() pagination: PaginationDto
+  // ) {
+  //   return this.entradasService.findAll(almacenId, pagination);
+  // }
+  //
+  // @Patch(':id/recibir')
+  // @ApiOperation({ summary: 'Update cantidadRecibida of entrada items' })
+  // @ApiResponse({ status: 200, description: 'Entrada updated successfully', type: Entrada })
+  // async recibirItems(
+  //   @Param('id', ParseIntPipe) id: number,
+  //   @Body() dto: UpdateCantidadRecibidaDto,
+  // ): Promise<Entrada> {
+  //   // Pass the entrada ID + items array to the service
+  //   return this.entradasService.updateCantidadRecibida(id, dto.items);
+  // }
 }

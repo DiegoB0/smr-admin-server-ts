@@ -9,7 +9,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Inventario } from './inventario.entity';
-import { PeticionProducto } from 'src/requisiciones/entities/peticion_producto.entity';
 import { Obra } from 'src/obras/entities/obra.entity';
 import { User } from 'src/auth/entities/usuario.entity';
 
@@ -39,12 +38,11 @@ export class Almacen {
   @OneToMany(() => Salida, s => s.almacenOrigen)
   salidas: Salida[];
 
-  @OneToMany(() => PeticionProducto, (peticion) => peticion.almacen)
-  peticionesProducto: PeticionProducto[];
 
   @ManyToOne(() => Obra, obra => obra.almacenes, { onDelete: 'SET NULL' })
   obra: Obra
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   encargado?: User;
+
 }
