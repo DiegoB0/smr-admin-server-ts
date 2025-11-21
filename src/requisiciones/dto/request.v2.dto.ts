@@ -30,7 +30,9 @@ export class CreateRequisicionDto {
   prioridad: PrioridadType;
 
   @ApiProperty({ example: 250, description: 'Horas de servicio', required: false })
-  hrm: number;
+  @IsOptional()
+  @IsNumber()
+  hrs: number;
 
   @ApiProperty({ enum: ConceptoType, example: ConceptoType.VIATICOS })
   @IsEnum(ConceptoType)
@@ -81,9 +83,6 @@ export class CreateRefaccionItemDto {
   @ApiProperty({ example: '123as' })
   no_economico: string;
 
-  @ApiProperty({ example: 'Filtro de aire' })
-  name: string;
-
   @ApiProperty({ example: 'Filtro de aire para motor' })
   descripcion: string;
 
@@ -98,9 +97,6 @@ export class CreateRefaccionItemDto {
 
   @ApiProperty({ example: 'USD' })
   currency: string;
-
-  @ApiProperty({ example: 1, required: false })
-  equipoId?: number;
 }
 
 export class CreateInsumoItemDto {
@@ -145,6 +141,7 @@ export class CreateFilterItemDto {
   @ApiProperty({ example: 'USD' })
   currency: string;
 
+  @ApiProperty({ example: 250 })
   hrs_snapshot: number;
 
   @ApiProperty({ example: 1, required: false })

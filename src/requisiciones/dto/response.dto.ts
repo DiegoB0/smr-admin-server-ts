@@ -25,9 +25,6 @@ export class RequisicionRefaccionItemDto {
   @ApiProperty({ example: "Shi-432" })
   customId: string;
 
-  @ApiProperty({ example: 'Pieza Random' })
-  name: string;
-
   @ApiProperty({ example: 10 })
   cantidad: number;
 
@@ -42,16 +39,6 @@ export class RequisicionRefaccionItemDto {
 
   @ApiProperty({ example: 'MXN' })
   currency: string;
-
-  @ApiProperty({
-    example: {
-      equipo: 'Compresor',
-      serie: 'SN123456',
-      no_economico: 'ECO001',
-    },
-    nullable: true,
-  })
-  equipo?: { equipo: string; serie: string; no_economico: string } | null;
 }
 
 
@@ -126,7 +113,7 @@ export class GetRequisicionDto {
   prioridad: string;
 
   @ApiProperty({ example: 123 })
-  hrm: number;
+  hrs: number;
 
   @ApiProperty({ example: 'Mantenimiento preventivo' })
   concepto: string;

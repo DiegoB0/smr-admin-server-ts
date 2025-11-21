@@ -27,7 +27,7 @@ export class Equipo {
   @Column('text')
   serie: string;
 
-  @Column('numeric', {nullable: true})
+  @Column('numeric', { nullable: true })
   horometro: number;
 
   @Column('bool', { default: true })
@@ -36,13 +36,6 @@ export class Equipo {
   @OneToMany(() => Salida, (salida) => salida.equipo)
   salidas: Salida[];
 
-  @OneToMany(() => RequisicionFilterItem, (filtro) => filtro.equipo)
-  filtros: RequisicionFilterItem[];
-
-  @OneToMany(() => RequisicionRefaccionItem, (refaccion) => refaccion.equipo)
-  refacciones: RequisicionRefaccionItem[];
-
   @ManyToOne(() => CategoriaFiltro, (cat) => cat.equipos)
   filtro_categoria: CategoriaFiltro;
-
 }

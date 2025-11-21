@@ -14,13 +14,14 @@ export class GetEquipoDto {
 
   isActive: boolean;
 
+  filtroCategoriaNombre: string | null;
 }
 
 export class PaginatedEquipoDto extends PaginatedResponseDto<GetEquipoDto> {
   @ApiProperty({
     description: 'Array de productos mas la paginacion',
-    type: [GetEquipoDto], 
+    type: [GetEquipoDto],
   })
- declare data: GetEquipoDto[];
+  declare data: GetEquipoDto[];
 
 }

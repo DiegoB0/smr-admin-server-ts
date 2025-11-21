@@ -36,7 +36,7 @@ export class Requisicion {
   prioridad: PrioridadType;
 
   @Column({ nullable: true })
-  hrm: number; 
+  hrs: number; 
 
   @Column({ enum: ConceptoType })
   concepto: ConceptoType;

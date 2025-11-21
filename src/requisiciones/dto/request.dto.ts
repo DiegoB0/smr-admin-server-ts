@@ -224,7 +224,7 @@ export class CreateRequisicionDto {
   @IsInt()
   @IsPositive()
   @IsOptional()
-  hrm?: number;
+  hrs?: number;
 
   @ApiProperty({
     description: 'Numero de la requisicion',

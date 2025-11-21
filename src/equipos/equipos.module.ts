@@ -5,11 +5,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Equipo } from './entities/equipo.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { LogsModule } from 'src/logs/logs.module';
+import { CategoriaFiltro } from 'src/filtros/entities/filtro-category.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      Equipo
+      Equipo,
+      CategoriaFiltro
     ]),
     LogsModule,
     AuthModule

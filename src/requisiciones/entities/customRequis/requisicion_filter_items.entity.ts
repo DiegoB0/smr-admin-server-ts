@@ -42,10 +42,4 @@ export class RequisicionFilterItem {
 
   @Column({ nullable: true })
   hrs_snapshot: number; 
-
-  @ManyToOne(() => FiltroRequirement, { nullable: true })
-  filtro_requirement?: FiltroRequirement;
-
-  @ManyToOne(() => Equipo, (equipo) => equipo.filtros, { nullable: true })
-  equipo: Equipo;
 }

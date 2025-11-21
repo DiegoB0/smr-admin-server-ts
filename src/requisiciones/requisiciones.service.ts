@@ -89,7 +89,7 @@ export class RequisicionesService {
         'r.rcp',
         'r.titulo',
         'r.prioridad',
-        'r.hrm',
+        'r.hrs',
         'r.concepto',
         'r.status',
         'r.aprovalType',
@@ -111,15 +111,12 @@ export class RequisicionesService {
       .addSelect([
         'refacciones.id',
         'refacciones.customId',
-        'refacciones.name',
         'refacciones.cantidad',
         'refacciones.descripcion',
         'refacciones.unidad',
         'refacciones.precio',
         'refacciones.currency',
       ])
-      .leftJoinAndSelect('refacciones.equipo', 'refaccionEquipo')
-      .addSelect(['refaccionEquipo.id'])
       .leftJoinAndSelect('r.insumos', 'insumos')
       .addSelect([
         'insumos.id',
@@ -139,8 +136,6 @@ export class RequisicionesService {
         'filtros.precio',
         'filtros.currency',
       ])
-      .leftJoinAndSelect('filtros.equipo', 'filtroEquipo')
-      .addSelect(['filtroEquipo.id'])
       .orderBy('r.fechaSolicitud', order as 'ASC' | 'DESC');
 
     if (status) {
@@ -155,8 +150,10 @@ export class RequisicionesService {
             .where('r.rcp::text ILIKE :term', { term })
             .orWhere('r.titulo ILIKE :term', { term })
             .orWhere('refacciones.customId ILIKE :term', { term })
-            .orWhere('insumos.descripcion ILIKE :term', { term })
+            .orWhere('refacciones.no_economico ILIKE :term', { term })
             .orWhere('filtros.customId ILIKE :term', { term })
+            .orWhere('filtros.no_economico ILIKE :term', { term })
+            .orWhere('insumos.descripcion ILIKE :term', { term })
         })
       );
     }
@@ -174,7 +171,7 @@ export class RequisicionesService {
       rcp: r.rcp,
       titulo: r.titulo,
       prioridad: r.prioridad,
-      hrm: r.hrm,
+      hrs: r.hrs,
       concepto: r.concepto,
       status: r.status,
       aprovalType: r.aprovalType,
@@ -204,13 +201,11 @@ export class RequisicionesService {
       refacciones: r.refacciones.map((ref) => ({
         id: ref.id,
         customId: ref.customId,
-        name: ref.name,
         cantidad: ref.cantidad,
         descripcion: ref.descripcion,
         unidad: ref.unidad,
         precio: ref.precio || 0,
         currency: ref.currency,
-        equipo: ref.equipo || null,
       })),
       insumos: r.insumos.map((ins) => ({
         id: ins.id,
@@ -228,7 +223,6 @@ export class RequisicionesService {
         unidad: fil.unidad,
         precio: fil.precio || 0,
         currency: fil.currency,
-        equipo: fil.equipo || null,
       })),
     }));
 
@@ -256,7 +250,7 @@ export class RequisicionesService {
         'r.rcp',
         'r.titulo',
         'r.prioridad',
-        'r.hrm',
+        'r.hrs',
         'r.concepto',
         'r.status',
         'r.aprovalType',
@@ -278,15 +272,12 @@ export class RequisicionesService {
       .addSelect([
         'refacciones.id',
         'refacciones.customId',
-        'refacciones.name',
         'refacciones.cantidad',
         'refacciones.descripcion',
         'refacciones.unidad',
         'refacciones.precio',
         'refacciones.currency',
       ])
-      .leftJoinAndSelect('refacciones.equipo', 'refaccionEquipo')
-      .addSelect(['refaccionEquipo.id'])
       .leftJoinAndSelect('r.insumos', 'insumos')
       .addSelect([
         'insumos.id',
@@ -306,8 +297,6 @@ export class RequisicionesService {
         'filtros.precio',
         'filtros.currency',
       ])
-      .leftJoinAndSelect('filtros.equipo', 'filtroEquipo')
-      .addSelect(['filtroEquipo.id'])
       .where('r.status IN (:...statuses)', {
         statuses: [RequisicionStatus.APROBADA, RequisicionStatus.PAGADA]
       })
@@ -340,7 +329,7 @@ export class RequisicionesService {
       rcp: r.rcp,
       titulo: r.titulo,
       prioridad: r.prioridad,
-      hrm: r.hrm,
+      hrs: r.hrs,
       concepto: r.concepto,
       status: r.status,
       aprovalType: r.aprovalType,
@@ -370,13 +359,11 @@ export class RequisicionesService {
       refacciones: r.refacciones.map((ref) => ({
         id: ref.id,
         customId: ref.customId,
-        name: ref.name,
         cantidad: ref.cantidad,
         descripcion: ref.descripcion,
         unidad: ref.unidad,
         precio: ref.precio || 0,
         currency: ref.currency,
-        equipo: ref.equipo || null,
       })),
       insumos: r.insumos.map((ins) => ({
         id: ins.id,
@@ -394,7 +381,6 @@ export class RequisicionesService {
         unidad: fil.unidad,
         precio: fil.precio || 0,
         currency: fil.currency,
-        equipo: fil.equipo || null,
       })),
     }));
 
@@ -527,8 +513,6 @@ export class RequisicionesService {
         if (!proveedor) throw new NotFoundException('Proveedor not found');
       }
 
-      console.log('About to show the data from the frontend')
-      console.log(dto)
 
       const result = await queryRunner.manager
         .createQueryBuilder()
@@ -539,7 +523,7 @@ export class RequisicionesService {
           titulo: dto.titulo,
           observaciones: dto.observaciones,
           prioridad: dto.prioridad,
-          hrm: dto.hrm,
+          hrs: dto.hrs,
           concepto: dto.concepto,
           requisicionType: dto.requisicionType,
           almacenCargo: { id: dto.almacenCargoId },
@@ -570,7 +554,6 @@ export class RequisicionesService {
           await this.addInsumoItems(saved, dto.items as CreateInsumoItemDto[], queryRunner);
           break;
         case RequisicionType.FILTROS:
-          console.log('Inserting filtros')
           await this.addFilterItems(saved, dto.items as CreateFilterItemDto[], queryRunner);
           break;
       }
@@ -774,13 +757,11 @@ export class RequisicionesService {
     try {
       if (!items || items.length === 0) return;
 
-      console.log('Inserting refacciones...')
 
       const refacciones = items.map(item => {
         const refaccionItem = new RequisicionRefaccionItem();
         refaccionItem.customId = item.customId || `ref-${Date.now()}`;
         refaccionItem.no_economico = item.no_economico;
-        refaccionItem.name = item.name;
         refaccionItem.cantidad = item.cantidad;
         refaccionItem.unidad = item.unidad;
         refaccionItem.descripcion = item.descripcion;
@@ -788,9 +769,6 @@ export class RequisicionesService {
         refaccionItem.currency = item.currency;
         refaccionItem.paid = false;
         refaccionItem.requisicion = requisicion;
-        if (item.equipoId) {
-          refaccionItem.equipo = { id: item.equipoId } as any;
-        }
         return refaccionItem;
       });
 
@@ -851,6 +829,7 @@ export class RequisicionesService {
       const filtros = items.map(item => {
         const filtroItem = new RequisicionFilterItem();
         filtroItem.customId = item.customId || `fil-${Date.now()}`;
+        filtroItem.hrs_snapshot = item.hrs_snapshot;
         filtroItem.no_economico = item.no_economico;
         filtroItem.cantidad = item.cantidad;
         filtroItem.unidad = item.unidad;
@@ -859,9 +838,6 @@ export class RequisicionesService {
         filtroItem.currency = item.currency;
         filtroItem.paid = false;
         filtroItem.requisicion = requisicion;
-        if (item.equipoId) {
-          filtroItem.equipo = { id: item.equipoId } as any;
-        }
         return filtroItem;
       });
 

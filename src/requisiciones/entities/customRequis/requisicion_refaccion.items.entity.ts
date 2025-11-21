@@ -19,9 +19,6 @@ export class RequisicionRefaccionItem {
   customId: string;
 
   @Column({ nullable: true })
-  name: string;
-
-  @Column({ nullable: true })
   descripcion: string;
 
   @Column()
@@ -41,7 +38,4 @@ export class RequisicionRefaccionItem {
 
   @ManyToOne(() => Requisicion, r => r.refacciones, { onDelete: 'CASCADE' })
   requisicion: Requisicion;
-
-  @ManyToOne(() => Equipo, (equipo) => equipo.refacciones, { nullable: true })
-  equipo: Equipo;
 }

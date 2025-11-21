@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsBoolean, IsOptional, MinLength } from 'class-validator';
+import { IsString, IsBoolean, IsOptional, MinLength, IsInt } from 'class-validator';
 
 export class CreateEquipoDto {
   @ApiProperty({ example: 'Tractor Komatsu' })
@@ -21,6 +21,14 @@ export class CreateEquipoDto {
   @IsString()
   @MinLength(3, { message: 'El nombre debe tener al menos 3 caracteres' })
   serie: string;
+
+  @ApiPropertyOptional({
+    example: 1,
+    description: 'ID de la categoria de filtros asignada al equipo',
+  })
+  @IsOptional()
+  @IsInt()
+  filtroCategoriaId?: number;
 
 }
 
@@ -53,4 +61,12 @@ export class UpdateEquipoDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @ApiPropertyOptional({
+    example: 1,
+    description: 'ID de la categoria de filtros asignada al equipo',
+  })
+  @IsOptional()
+  @IsInt()
+  filtroCategoriaId?: number;
 }
