@@ -2187,7 +2187,7 @@ export class LookupSeeder implements OnModuleInit {
       }),
     ]);
 
-
+    //2000
 
     await Promise.all([
       upsertItem(ex350G_2000, {
@@ -2305,13 +2305,2097 @@ export class LookupSeeder implements OnModuleInit {
 
 
 
+
     // TODO: Here is what's left
     const retro416 = await upsertCategoria('Retro 416 CAT 0352');
+
+    const retro416_250 = await upsertRequirement(
+      retro416.id,
+      250,
+      'Mantenimiento 250 HRS'
+    );
+    const retro416_500 = await upsertRequirement(
+      retro416.id,
+      500,
+      'Mantenimiento 500 HRS'
+    );
+    const retro416_1000 = await upsertRequirement(
+      retro416.id,
+      1000,
+      'Mantenimiento 1000 HRS'
+    );
+    const retro416_2000 = await upsertRequirement(
+      retro416.id,
+      2000,
+      'Mantenimiento 2000 HRS'
+    );
+    
+     // 250
+    await Promise.all([
+      upsertItem(retro416_250, {
+        numero: '7W2326',
+        equivalente: '',
+        descripcion: ' FILTRO DE ACEITE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416_250, {
+        numero: "2934053",
+        equivalente: '',
+        descripcion: 'FILTRO PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416_250, {
+        numero: "2277449",
+        equivalente: '',
+        descripcion: 'FILTRO SECUNDARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(retro416_250, {
+        numero: "3619554",
+        equivalente: '',
+        descripcion: 'FILTRO DIESEL SUMERGIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(retro416_250, {
+        numero: "1561200",
+        equivalente: '',
+        descripcion: 'FILTRO SEPARADOR',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416_250, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 19,
+        unidad: 'lts',
+      }),
+    ]);
+
+    // 500
+    await Promise.all([
+      upsertItem(retro416_500, {
+        numero: '7W2326',
+        equivalente: '',
+        descripcion: ' FILTRO DE ACEITE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416_500, {
+        numero: "2934053",
+        equivalente: '',
+        descripcion: 'FILTRO PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416_500, {
+        numero: "2277449",
+        equivalente: '',
+        descripcion: 'FILTRO SECUNDARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(retro416_500, {
+        numero: "3619554",
+        equivalente: '',
+        descripcion: 'FILTRO DIESEL SUMERGIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(retro416_500, {
+        numero: "1561200",
+        equivalente: '',
+        descripcion: 'FILTRO SEPARADOR',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416_500, {
+        numero: "4656505",
+        equivalente: '',
+        descripcion: 'FILTRO HIDRAULICO SUMERGIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416_500, {
+        numero: "4717003 ",
+        equivalente: '',
+        descripcion: 'FILTRO TRANSMISIÓN',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416_500, {
+        numero: "2112660",
+        equivalente: '',
+        descripcion: 'FILTRO AC INTERIOR',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416_500, {
+        numero: "2112661",
+        equivalente: '',
+        descripcion: 'FILTRO AC EXTERIOR',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416_500, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 19,
+        unidad: 'lts',
+      }),
+    ]);
+
+    // 1000
+
+    await Promise.all([
+      upsertItem(retro416_1000, {
+        numero: '7W2326',
+        equivalente: '',
+        descripcion: ' FILTRO DE ACEITE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416_1000, {
+        numero: "2934053",
+        equivalente: '',
+        descripcion: 'FILTRO PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416_1000, {
+        numero: "2277449",
+        equivalente: '',
+        descripcion: 'FILTRO SECUNDARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(retro416_1000, {
+        numero: "3619554",
+        equivalente: '',
+        descripcion: 'FILTRO DIESEL SUMERGIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(retro416_1000, {
+        numero: "1561200",
+        equivalente: '',
+        descripcion: 'FILTRO SEPARADOR',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416_1000, {
+        numero: "4656505",
+        equivalente: '',
+        descripcion: 'FILTRO HIDRAULICO SUMERGIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416_1000, {
+        numero: "4717003 ",
+        equivalente: '',
+        descripcion: 'FILTRO TRANSMISIÓN',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416_1000, {
+        numero: "2112660",
+        equivalente: '',
+        descripcion: 'FILTRO AC INTERIOR',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416_1000, {
+        numero: "2112661",
+        equivalente: '',
+        descripcion: 'FILTRO AC EXTERIOR',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416_1000, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 19,
+        unidad: 'lts',
+      }),
+      upsertItem(retro416_1000, {
+        numero: "SAE 30",
+        equivalente: '',
+        descripcion: 'ACEITE DE TRANSMICIÓN SAE 30',
+        cantidad: 19,
+        unidad: 'lts',
+      }),
+      upsertItem(retro416_1000, {
+        numero: "SAE 50",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MANDOS Y DIFERENCIALES SAE 50',
+        cantidad: 19,
+        unidad: 'lts',
+      }),
+    ]);
+
+    //2000 NO ESTABA EN EL EXCEL 
+
+    //Retro 416 T CAT 214
+
     const retro416T = await upsertCategoria('Retro 416 T CAT 214');
+
+    const retro416T_250 = await upsertRequirement(
+      retro416T.id,
+      250,
+      'Mantenimiento 250 HRS'
+    );
+    const retro416T_500 = await upsertRequirement(
+      retro416T.id,
+      500,
+      'Mantenimiento 500 HRS'
+    );
+    const retro416T_1000 = await upsertRequirement(
+      retro416T.id,
+      1000,
+      'Mantenimiento 1000 HRS'
+    );
+    const retro416T_2000 = await upsertRequirement(
+      retro416T.id,
+      2000,
+      'Mantenimiento 2000 HRS'
+    );
+
+     // 250
+    await Promise.all([
+      upsertItem(retro416T_250, {
+        numero: '7W2326',
+        equivalente: '',
+        descripcion: ' FILTRO DE ACEITE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_250, {
+        numero: "5280585",
+        equivalente: '',
+        descripcion: 'FILTRO PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_250, {
+        numero: "3466688",
+        equivalente: '',
+        descripcion: 'FILTRO SECUNDARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(retro416T_250, {
+        numero: "1R1804",
+        equivalente: '',
+        descripcion: 'FILTRO DIESEL SUMERGIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(retro416T_250, {
+        numero: "4600310",
+        equivalente: '',
+        descripcion: 'FILTRO SEPARADOR',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_250, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 38,
+        unidad: 'lts',
+      }),
+    ]);
+
+    // 500
+
+    await Promise.all([
+      upsertItem(retro416T_500, {
+        numero: '7W2326',
+        equivalente: '',
+        descripcion: ' FILTRO DE ACEITE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_500, {
+        numero: "5280585",
+        equivalente: '',
+        descripcion: 'FILTRO PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_500, {
+        numero: "3466688",
+        equivalente: '',
+        descripcion: 'FILTRO SECUNDARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(retro416T_500, {
+        numero: "1R1804",
+        equivalente: '',
+        descripcion: 'FILTRO DIESEL SUMERGIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(retro416T_500, {
+        numero: "4600310",
+        equivalente: '',
+        descripcion: 'FILTRO SEPARADOR',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_500, {
+        numero: "3621163",
+        equivalente: '',
+        descripcion: 'FILTRO HIDRAULICO SUMERGIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_500, {
+        numero: "4717003",
+        equivalente: '',
+        descripcion: 'FILTRO TRASMICION',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_500, {
+        numero: "22112660",
+        equivalente: '',
+        descripcion: 'FILTRO A/C INTERIOR CABINA',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_500, {
+        numero: "4178134",
+        equivalente: '',
+        descripcion: 'FILTRO A/C EXTERIOR',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_500, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 19,
+        unidad: 'lts',
+      }),
+    ]);
+
+      // 1000
+
+    await Promise.all([
+      upsertItem(retro416T_1000, {
+        numero: '7W2326',
+        equivalente: '',
+        descripcion: ' FILTRO DE ACEITE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_1000, {
+        numero: "5280585",
+        equivalente: '',
+        descripcion: 'FILTRO PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_1000, {
+        numero: "3466688",
+        equivalente: '',
+        descripcion: 'FILTRO SECUNDARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(retro416T_1000, {
+        numero: "1R1804",
+        equivalente: '',
+        descripcion: 'FILTRO DIESEL SUMERGIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(retro416T_1000, {
+        numero: "4600310",
+        equivalente: '',
+        descripcion: 'FILTRO SEPARADOR',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_1000, {
+        numero: "3621163",
+        equivalente: '',
+        descripcion: 'FILTRO HIDRAULICO SUMERGIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_1000, {
+        numero: "4717003",
+        equivalente: '',
+        descripcion: 'FILTRO TRASMICION',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_1000, {
+        numero: "22112660",
+        equivalente: '',
+        descripcion: 'FILTRO A/C INTERIOR CABINA',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_1000, {
+        numero: "4178134",
+        equivalente: '',
+        descripcion: 'FILTRO A/C EXTERIOR',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_1000, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 19,
+        unidad: 'lts',
+      }),
+      upsertItem(retro416T_1000, {
+        numero: "SAE 30",
+        equivalente: '',
+        descripcion: 'ACEITE DE TRANSMICIÓN SAE 30',
+        cantidad: 19,
+        unidad: 'lts',
+      }),
+      upsertItem(retro416T_1000, {
+        numero: "SAE 50",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MANDOS Y DIFERENCIALES SAE 50',
+        cantidad: 19,
+        unidad: 'lts',
+      }),
+    ]);
+
+    // 2000
+
+    await Promise.all([
+      upsertItem(retro416T_2000, {
+        numero: '7W2326',
+        equivalente: '',
+        descripcion: ' FILTRO DE ACEITE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_2000, {
+        numero: "5280585",
+        equivalente: '',
+        descripcion: 'FILTRO PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_2000, {
+        numero: "3466688",
+        equivalente: '',
+        descripcion: 'FILTRO SECUNDARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(retro416T_2000, {
+        numero: "1R1804",
+        equivalente: '',
+        descripcion: 'FILTRO DIESEL SUMERGIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(retro416T_2000, {
+        numero: "4600310",
+        equivalente: '',
+        descripcion: 'FILTRO SEPARADOR',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_2000, {
+        numero: "3621163",
+        equivalente: '',
+        descripcion: 'FILTRO HIDRAULICO SUMERGIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_2000, {
+        numero: "4717003",
+        equivalente: '',
+        descripcion: 'FILTRO TRASMICION',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_2000, {
+        numero: "9S8006",
+        equivalente: '',
+        descripcion: 'TAPON DE FILTRO DE HIDRAULICO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_2000, {
+        numero: "22112660",
+        equivalente: '',
+        descripcion: 'FILTRO A/C INTERIOR CABINA',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_2000, {
+        numero: "4178134",
+        equivalente: '',
+        descripcion: 'FILTRO A/C EXTERIOR',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(retro416T_2000, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 19,
+        unidad: 'lts',
+      }),
+      upsertItem(retro416T_2000, {
+        numero: "SAE 30",
+        equivalente: '',
+        descripcion: 'ACEITE DE TRANSMICIÓN SAE 30',
+        cantidad: 19,
+        unidad: 'lts',
+      }),
+      upsertItem(retro416T_2000, {
+        numero: "SAE 50",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MANDOS Y DIFERENCIALES SAE 50',
+        cantidad: 38,
+        unidad: 'lts',
+      }),
+      upsertItem(retro416T_2000, {
+        numero: "10 W",
+        equivalente: '',
+        descripcion: 'ACEITE HIDRAULICO  10W',
+        cantidad: 38,
+        unidad: 'lts',
+      }),
+    ]);
+
+    //MOTO 140K CAT 656
     const moto140k = await upsertCategoria('MOTO 140K CAT 656');
+
+     const moto140k_250 = await upsertRequirement(
+      moto140k.id,
+      250,
+      'Mantenimiento 250 HRS'
+    );
+    const moto140k_500 = await upsertRequirement(
+      moto140k.id,
+      500,
+      'Mantenimiento 500 HRS'
+    );
+    const moto140k_1000 = await upsertRequirement(
+      moto140k.id,
+      1000,
+      'Mantenimiento 1000 HRS'
+    );
+    const moto140k_2000 = await upsertRequirement(
+      moto140k.id,
+      2000,
+      'Mantenimiento 2000 HRS'
+    );
+
+    //250
+
+    await Promise.all([
+      upsertItem(moto140k_250, {
+        numero: '1R1807',
+        equivalente: '',
+        descripcion: ' FILTRO DE ACEITE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(moto140k_250, {
+        numero: "3261644",
+        equivalente: '',
+        descripcion: 'FILTRO SEPARADOR',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(moto140k_250, {
+        numero: "1R0749",
+        equivalente: '',
+        descripcion: 'FILTRO DE DIESEL',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(moto140k_250, {
+        numero: "2456375",
+        equivalente: '',
+        descripcion: 'FILTRO DE ADMICION PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(moto140k_250, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 38,
+        unidad: 'lts',
+      }),
+    ]);
+
+    //500
+
+    await Promise.all([
+      upsertItem(moto140k_500, {
+        numero: '1R1807',
+        equivalente: '',
+        descripcion: ' FILTRO DE ACEITE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(moto140k_500, {
+        numero: "3261644",
+        equivalente: '',
+        descripcion: 'FILTRO SEPARADOR',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(moto140k_500, {
+        numero: "1R0749",
+        equivalente: '',
+        descripcion: 'FILTRO DE DIESEL',
+        cantidad: 2,
+        unidad: 'pieza',
+      }),
+       upsertItem(moto140k_500, {
+        numero: "3283655",
+        equivalente: '',
+        descripcion: 'FILTRO DE TRANSMISICIÓN',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(moto140k_500, {
+        numero: "1R0774",
+        equivalente: '',
+        descripcion: 'FILTRO HIDRAULICO SUMERJIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(moto140k_500, {
+        numero: "2456375",
+        equivalente: '',
+        descripcion: 'FILTRO DE ADMICION PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+
+      upsertItem(moto140k_500, {
+        numero: "2456376",
+        equivalente: '',
+        descripcion: 'FILTRO DE ADMICION SECUNDARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+  
+      upsertItem(moto140k_500, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 38,
+        unidad: 'lts',
+      }),
+    ]);
+
+    //1000
+  
+    await Promise.all([
+      upsertItem(moto140k_1000, {
+        numero: '1R1807',
+        equivalente: '',
+        descripcion: ' FILTRO DE ACEITE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(moto140k_1000, {
+        numero: "3261644",
+        equivalente: '',
+        descripcion: 'FILTRO SEPARADOR',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(moto140k_1000, {
+        numero: "1R0749",
+        equivalente: '',
+        descripcion: 'FILTRO DE DIESEL',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+       upsertItem(moto140k_1000, {
+        numero: "3283655",
+        equivalente: '',
+        descripcion: 'FILTRO DE TRANSMISICIÓN',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(moto140k_1000, {
+        numero: "1R0774",
+        equivalente: '',
+        descripcion: 'FILTRO HIDRAULICO SUMERJIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(moto140k_1000, {
+        numero: "2456375",
+        equivalente: '',
+        descripcion: 'FILTRO DE ADMICION PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+
+      upsertItem(moto140k_1000, {
+        numero: "2456376",
+        equivalente: '',
+        descripcion: 'FILTRO DE ADMICION SECUNDARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(moto140k_1000, {
+        numero: "7T7358",
+        equivalente: '',
+        descripcion: 'FILTRO AC INTERIOR',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(moto140k_1000, {
+        numero: "2314487",
+        equivalente: '',
+        descripcion: 'FILTRO AC EXTERIOR',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+  
+      upsertItem(moto140k_1000, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 38,
+        unidad: 'lts',
+      }),
+
+      upsertItem(moto140k_1000, {
+        numero: "SAE 30",
+        equivalente: '',
+        descripcion: 'ACEITE DE TRANSMICIÓN 30',
+        cantidad: 57,
+        unidad: 'lts',
+      }),
+    ]);
+
+    //2000
+  
+    await Promise.all([
+      upsertItem(moto140k_2000, {
+        numero: '1R1807',
+        equivalente: '',
+        descripcion: ' FILTRO DE ACEITE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(moto140k_2000, {
+        numero: "3261644",
+        equivalente: '',
+        descripcion: 'FILTRO SEPARADOR',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(moto140k_2000, {
+        numero: "1R0749",
+        equivalente: '',
+        descripcion: 'FILTRO DE DIESEL',
+        cantidad: 2,
+        unidad: 'pieza',
+      }),
+       upsertItem(moto140k_2000, {
+        numero: "3283655",
+        equivalente: '',
+        descripcion: 'FILTRO DE TRANSMISICIÓN',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(moto140k_2000, {
+        numero: "1R0774",
+        equivalente: '',
+        descripcion: 'FILTRO HIDRAULICO SUMERJIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(moto140k_2000, {
+        numero: "2456375",
+        equivalente: '',
+        descripcion: 'FILTRO DE ADMICION PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+
+      upsertItem(moto140k_2000, {
+        numero: "2456376",
+        equivalente: '',
+        descripcion: 'FILTRO DE ADMICION SECUNDARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(moto140k_2000, {
+        numero: "7T7358",
+        equivalente: '',
+        descripcion: 'FILTRO AC INTERIOR',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(moto140k_2000, {
+        numero: "2314487",
+        equivalente: '',
+        descripcion: 'FILTRO AC',
+        cantidad: 2,
+        unidad: 'pieza',
+
+      }),
+  
+      upsertItem(moto140k_2000, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 38,
+        unidad: 'lts',
+      }),
+
+      upsertItem(moto140k_2000, {
+        numero: "SAE 50",
+        equivalente: '',
+        descripcion: 'ACEITE DE TRANMICION 50 TAMDEM',
+        cantidad: 133,
+        unidad: 'lts',
+      }),
+      upsertItem(moto140k_2000, {
+        numero: "SAE 50",
+        equivalente: '',
+        descripcion: 'ACEITE DE TRANSMICION, DIFERENCIAL MANDOS 50',
+        cantidad: 76,
+        unidad: 'lts',
+      }),
+       upsertItem(moto140k_2000, {
+        numero: "85W-140",
+        equivalente: '',
+        descripcion: 'ACEITE SAE 85W-140 MASAS',
+        cantidad: 38,
+        unidad: 'lts',
+      }),
+      upsertItem(moto140k_2000, {
+        numero: "10W",
+        equivalente: '',
+        descripcion: 'ACEITE HIDRAULICO',
+        cantidad: 114,
+        unidad: 'lts',
+      }),
+      upsertItem(moto140k_2000, {
+        numero: "85W-140",
+        equivalente: '',
+        descripcion: 'ACEITE SAE 85W-140 CIRCULO',
+        cantidad: 19,
+        unidad: 'lts',
+      }),
+    ]);
+
+    //MOTO JD 770G 3659
     const motoJd77 = await upsertCategoria('MOTO JD 770G 3659');
+
+    const motoJd77_250 = await upsertRequirement(
+      motoJd77.id,
+      250,
+      'Mantenimiento 250 HRS'
+    );
+    const motoJd77_500 = await upsertRequirement(
+      motoJd77.id,
+      500,
+      'Mantenimiento 500 HRS'
+    );
+    const motoJd77_1000 = await upsertRequirement(
+      motoJd77.id,
+      1000,
+      'Mantenimiento 1000 HRS'
+    );
+    const motoJd77_2000 = await upsertRequirement(
+      motoJd77.id,
+      2000,
+      'Mantenimiento 2000 HRS'
+    );
+
+    //250
+
+    await Promise.all([
+      upsertItem(motoJd77_250, {
+        numero: 'DZ101884',
+        equivalente: '',
+        descripcion: ' FILTRO DE ACEITE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(motoJd77_250, {
+        numero: "RE525523",
+        equivalente: '',
+        descripcion: 'FILTRO DIESEL',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(motoJd77_250, {
+        numero: "AT365869",
+        equivalente: '',
+        descripcion: 'FILTRO SEPARADOR DIESEL',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(motoJd77_250, {
+        numero: "AT175223",
+        equivalente: '',
+        descripcion: 'FILTRO DE ADMICION PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(motoJd77_250, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 38,
+        unidad: 'lts',
+      }),
+    ]);
+
+     //500
+
+    await Promise.all([
+      upsertItem(motoJd77_500, {
+        numero: 'DZ101884',
+        equivalente: '',
+        descripcion: ' FILTRO DE ACEITE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(motoJd77_500, {
+        numero: "RE525523",
+        equivalente: '',
+        descripcion: 'FILTRO DIESEL',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(motoJd77_500, {
+        numero: "AT365869",
+        equivalente: '',
+        descripcion: 'FILTRO SEPARADOR DIESEL',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(motoJd77_500, {
+        numero: "AT175223",
+        equivalente: '',
+        descripcion: 'FILTRO DE ADMICION PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(motoJd77_500, {
+        numero: "AT175224",
+        equivalente: '',
+        descripcion: 'FILTRO DE ADMICION SECUNDARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(motoJd77_500, {
+        numero: "AT335492",
+        equivalente: '',
+        descripcion: 'FILTRO TRANSMICIÓN y DIRECCIÓN',
+        cantidad: 2,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(motoJd77_500, {
+        numero: "AT191102",
+        equivalente: '',
+        descripcion: 'FILTRO A/C',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(motoJd77_500, {
+        numero: "AT307501",
+        equivalente: '',
+        descripcion: 'FILTRO INTERNO A/C',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(motoJd77_500, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 38,
+        unidad: 'lts',
+      }),
+    ]);
+
+     //1000
+
+    await Promise.all([
+      upsertItem(motoJd77_1000, {
+        numero: 'DZ101884',
+        equivalente: '',
+        descripcion: ' FILTRO DE ACEITE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(motoJd77_1000, {
+        numero: "RE525523",
+        equivalente: '',
+        descripcion: 'FILTRO DIESEL',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(motoJd77_1000, {
+        numero: "AT365869",
+        equivalente: '',
+        descripcion: 'FILTRO SEPARADOR DIESEL',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(motoJd77_1000, {
+        numero: "AT175223",
+        equivalente: '',
+        descripcion: 'FILTRO DE ADMICION PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(motoJd77_1000, {
+        numero: "AT175224",
+        equivalente: '',
+        descripcion: 'FILTRO DE ADMICION SECUNDARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(motoJd77_1000, {
+        numero: "AT335492",
+        equivalente: '',
+        descripcion: 'FILTRO TRANSMICIÓN y DIRECCIÓN',
+        cantidad: 2,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(motoJd77_1000, {
+        numero: "AT191102",
+        equivalente: '',
+        descripcion: 'FILTRO A/C',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(motoJd77_1000, {
+        numero: "AT307501",
+        equivalente: '',
+        descripcion: 'FILTRO INTERNO A/C',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(motoJd77_1000, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 38,
+        unidad: 'lts',
+      }),
+
+       upsertItem(motoJd77_1000, {
+        numero: "10W",
+        equivalente: '',
+        descripcion: 'ACEITE HIDRAULICO',
+        cantidad: 90,
+        unidad: 'lts',
+      }),
+    ]);
+
+    //2000
+
+    await Promise.all([
+      upsertItem(motoJd77_2000, {
+        numero: 'DZ101884',
+        equivalente: '',
+        descripcion: ' FILTRO DE ACEITE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(motoJd77_2000, {
+        numero: "RE525523",
+        equivalente: '',
+        descripcion: 'FILTRO DIESEL',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(motoJd77_2000, {
+        numero: "AT365869",
+        equivalente: '',
+        descripcion: 'FILTRO SEPARADOR DIESEL',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(motoJd77_2000, {
+        numero: "AT175223",
+        equivalente: '',
+        descripcion: 'FILTRO DE ADMICION PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(motoJd77_2000, {
+        numero: "AT175224",
+        equivalente: '',
+        descripcion: 'FILTRO DE ADMICION SECUNDARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(motoJd77_2000, {
+        numero: "AT335492",
+        equivalente: '',
+        descripcion: 'FILTRO TRANSMICIÓN y DIRECCIÓN',
+        cantidad: 2,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(motoJd77_2000, {
+        numero: "AT337840",
+        equivalente: '',
+        descripcion: 'FILTRO HIDRAULICO',
+        cantidad: 2,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(motoJd77_2000, {
+        numero: "AT191102",
+        equivalente: '',
+        descripcion: 'FILTRO A/C',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(motoJd77_2000, {
+        numero: "AT307501",
+        equivalente: '',
+        descripcion: 'FILTRO INTERNO A/C',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(motoJd77_2000, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 38,
+        unidad: 'lts',
+      }),
+
+       upsertItem(motoJd77_2000, {
+        numero: "10W",
+        equivalente: '',
+        descripcion: 'ACEITE HIDRAULICO',
+        cantidad: 95,
+        unidad: 'lts',
+      }),
+    ]);
+
+    
+    //MOTO JD 670P
     const motoJd67 = await upsertCategoria('MOTO JD 670P');
+
+    const motoJd67_250 = await upsertRequirement(
+      motoJd67.id,
+      250,
+      'Mantenimiento 250 HRS'
+    );
+    const motoJd67_500 = await upsertRequirement(
+      motoJd67.id,
+      500,
+      'Mantenimiento 500 HRS'
+    );
+    const motoJd67_1000 = await upsertRequirement(
+      motoJd67.id,
+      1000,
+      'Mantenimiento 1000 HRS'
+    );
+    const motoJd67_2000 = await upsertRequirement(
+      motoJd67.id,
+      2000,
+      'Mantenimiento 2000 HRS'
+    );
+
+    //250
+
+    await Promise.all([
+      upsertItem(motoJd67_250, {
+        numero: 'AT365869',
+        equivalente: '',
+        descripcion: 'FILTRO DE SEPARADOR DE AGUA/COMBUSTIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(motoJd67_250, {
+        numero: "AT175223",
+        equivalente: '',
+        descripcion: 'FILTRO PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(motoJd67_250, {
+        numero: "RE520906",
+        equivalente: '',
+        descripcion: 'FILTRO DE CARTUCHO DE COMBUSTIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(motoJd67_250, {
+        numero: "RE539766",
+        equivalente: '',
+        descripcion: 'FILTRO DE ACEITE COMBUSTIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(motoJd67_250, {
+        numero: "DZ118583 ",
+        equivalente: '',
+        descripcion: 'FILTRO DE ACEITE MOTOR',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(motoJd67_250, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 38,
+        unidad: 'lts',
+      }),
+    ]);
+
+    
+    //500
+
+    await Promise.all([
+      upsertItem(motoJd67_500, {
+        numero: 'AT365869',
+        equivalente: '',
+        descripcion: 'FILTRO DE SEPARADOR DE AGUA/COMBUSTIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(motoJd67_500, {
+        numero: "AT175223",
+        equivalente: '',
+        descripcion: 'FILTRO PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(motoJd67_500, {
+        numero: "RE520906",
+        equivalente: '',
+        descripcion: 'FILTRO DE CARTUCHO DE COMBUSTIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(motoJd67_500, {
+        numero: "RE539766",
+        equivalente: '',
+        descripcion: 'FILTRO DE ACEITE COMBUSTIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(motoJd67_500, {
+        numero: "DZ118583 ",
+        equivalente: '',
+        descripcion: 'FILTRO DE ACEITE MOTOR',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(motoJd67_500, {
+        numero: "AT335492",
+        equivalente: '',
+        descripcion: 'FILTRO DE TRANSMICION ',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(motoJd67_500, {
+        numero: "AT175224",
+        equivalente: '',
+        descripcion: 'FILTRO ACEITE SECUNDARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(motoJd67_500, {
+        numero: "AT191102",
+        equivalente: '',
+        descripcion: 'FILTRO DE CABINA',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(motoJd67_500, {
+        numero: "6409205",
+        equivalente: '',
+        descripcion: 'FILTRO DE CABINA',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+
+      upsertItem(motoJd67_500, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 38,
+        unidad: 'lts',
+      }),
+    ]);
+
+    //1000
+
+     await Promise.all([
+      upsertItem(motoJd67_1000, {
+        numero: 'AT365869',
+        equivalente: '',
+        descripcion: 'FILTRO DE SEPARADOR DE AGUA/COMBUSTIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(motoJd67_1000, {
+        numero: "AT175223",
+        equivalente: '',
+        descripcion: 'FILTRO PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(motoJd67_1000, {
+        numero: "RE520906",
+        equivalente: '',
+        descripcion: 'FILTRO DE CARTUCHO DE COMBUSTIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(motoJd67_1000, {
+        numero: "RE539766",
+        equivalente: '',
+        descripcion: 'FILTRO DE ACEITE COMBUSTIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(motoJd67_1000, {
+        numero: "DZ118583 ",
+        equivalente: '',
+        descripcion: 'FILTRO DE ACEITE MOTOR',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(motoJd67_1000, {
+        numero: "AT335492",
+        equivalente: '',
+        descripcion: 'FILTRO DE TRANSMICION ',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(motoJd67_1000, {
+        numero: "AT175224",
+        equivalente: '',
+        descripcion: 'FILTRO ACEITE SECUNDARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(motoJd67_1000, {
+        numero: "AT191102",
+        equivalente: '',
+        descripcion: 'FILTRO DE CABINA',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(motoJd67_1000, {
+        numero: "6409205",
+        equivalente: '',
+        descripcion: 'FILTRO DE CABINA',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+
+      upsertItem(motoJd67_1000, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 38,
+        unidad: 'lts',
+      }),
+    ]);
+
+    
+    //2000
+
+     await Promise.all([
+      upsertItem(motoJd67_2000, {
+        numero: 'AT365869',
+        equivalente: '',
+        descripcion: 'FILTRO DE SEPARADOR DE AGUA/COMBUSTIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(motoJd67_2000, {
+        numero: "AT175223",
+        equivalente: '',
+        descripcion: 'FILTRO PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(motoJd67_2000, {
+        numero: "RE520906",
+        equivalente: '',
+        descripcion: 'FILTRO DE CARTUCHO DE COMBUSTIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(motoJd67_2000, {
+        numero: "RE539766",
+        equivalente: '',
+        descripcion: 'FILTRO DE ACEITE COMBUSTIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(motoJd67_2000, {
+        numero: "DZ118583 ",
+        equivalente: '',
+        descripcion: 'FILTRO DE ACEITE MOTOR',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(motoJd67_2000, {
+        numero: "AT335492",
+        equivalente: '',
+        descripcion: 'FILTRO DE TRANSMICION ',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(motoJd67_2000, {
+        numero: "AT175224",
+        equivalente: '',
+        descripcion: 'FILTRO ACEITE SECUNDARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(motoJd67_2000, {
+        numero: "AT191102",
+        equivalente: '',
+        descripcion: 'FILTRO DE CABINA',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(motoJd67_2000, {
+        numero: "6409205",
+        equivalente: '',
+        descripcion: 'FILTRO DE CABINA',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+
+      upsertItem(motoJd67_2000, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 38,
+        unidad: 'lts',
+      }),
+    ]);
+
+    //VIBRO CAT 457
     const vibroCat457 = await upsertCategoria('VIBRO CAT 457');
+
+      const vibroCat457_250 = await upsertRequirement(
+      vibroCat457.id,
+      250,
+      'Mantenimiento 250 HRS'
+    );
+    const vibroCat457_500 = await upsertRequirement(
+      vibroCat457.id,
+      500,
+      'Mantenimiento 500 HRS'
+    );
+    const vibroCat457_1000 = await upsertRequirement(
+      vibroCat457.id,
+      1000,
+      'Mantenimiento 1000 HRS'
+    );
+    const vibroCat457_2000 = await upsertRequirement(
+      vibroCat457.id,
+      2000,
+      'Mantenimiento 2000 HRS'
+    );
+
+    //250
+
+    await Promise.all([
+      upsertItem(vibroCat457_250, {
+        numero: '7W2326',
+        equivalente: '',
+        descripcion: 'FILTRO DE ACEITE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(vibroCat457_250, {
+        numero: "2229020",
+        equivalente: '',
+        descripcion: 'FILTRO PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(vibroCat457_250, {
+        numero: "2998229",
+        equivalente: '',
+        descripcion: 'FILTRO SUMERGIBLE DIESEL',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(vibroCat457_250, {
+        numero: "3087298",
+        equivalente: '',
+        descripcion: 'FILTRO SEPARADOR',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(vibroCat457_250, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 38,
+        unidad: 'lts',
+      }),
+    ]);
+
+     //500
+
+    await Promise.all([
+      upsertItem(vibroCat457_500, {
+        numero: '7W2326',
+        equivalente: '',
+        descripcion: 'FILTRO DE ACEITE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(vibroCat457_500, {
+        numero: "2229020",
+        equivalente: '',
+        descripcion: 'FILTRO PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(vibroCat457_500, {
+        numero: "2229021",
+        equivalente: '',
+        descripcion: 'FILTRO SECUNDARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(vibroCat457_500, {
+        numero: "2998229",
+        equivalente: '',
+        descripcion: 'FILTRO SUMERGIBLE DIESEL',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(vibroCat457_500, {
+        numero: "3087298",
+        equivalente: '',
+        descripcion: 'FILTRO SEPARADOR',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(vibroCat457_500, {
+        numero: "3891085",
+        equivalente: '',
+        descripcion: 'HIDRAULICO SUMERGIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(vibroCat457_500, {
+        numero: "4288648",
+        equivalente: '',
+        descripcion: 'FILTRO TRANSMICION',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(vibroCat457_500, {
+        numero: "1807487",
+        equivalente: '',
+        descripcion: 'A/C CABINA',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(vibroCat457_500, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 38,
+        unidad: 'lts',
+      }),
+    ]);
+  
+    //1000
+
+    await Promise.all([
+      upsertItem(vibroCat457_1000, {
+        numero: '7W2326',
+        equivalente: '',
+        descripcion: 'FILTRO DE ACEITE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(vibroCat457_1000, {
+        numero: "2229020",
+        equivalente: '',
+        descripcion: 'FILTRO PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(vibroCat457_1000, {
+        numero: "2229021",
+        equivalente: '',
+        descripcion: 'FILTRO SECUNDARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(vibroCat457_1000, {
+        numero: "2998229",
+        equivalente: '',
+        descripcion: 'FILTRO SUMERGIBLE DIESEL',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(vibroCat457_1000, {
+        numero: "3087298",
+        equivalente: '',
+        descripcion: 'FILTRO SEPARADOR',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(vibroCat457_1000, {
+        numero: "3891085",
+        equivalente: '',
+        descripcion: 'HIDRAULICO SUMERGIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(vibroCat457_1000, {
+        numero: "4288648",
+        equivalente: '',
+        descripcion: 'FILTRO TRANSMICION',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(vibroCat457_1000, {
+        numero: "1807487",
+        equivalente: '',
+        descripcion: 'A/C CABINA',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(vibroCat457_1000, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 38,
+        unidad: 'lts',
+      }),
+      upsertItem(vibroCat457_1000, {
+        numero: "10W",
+        equivalente: '',
+        descripcion: 'ACEITE HIDRAULICO',
+        cantidad: 80,
+        unidad: 'lts',
+      }),
+    ]);
+
+    //2000
+
+    await Promise.all([
+      upsertItem(vibroCat457_2000, {
+        numero: '7W2326',
+        equivalente: '',
+        descripcion: 'FILTRO DE ACEITE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(vibroCat457_2000, {
+        numero: "2229020",
+        equivalente: '',
+        descripcion: 'FILTRO PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(vibroCat457_2000, {
+        numero: "2229021",
+        equivalente: '',
+        descripcion: 'FILTRO SECUNDARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(vibroCat457_2000, {
+        numero: "2998229",
+        equivalente: '',
+        descripcion: 'FILTRO SUMERGIBLE DIESEL',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(vibroCat457_2000, {
+        numero: "3087298",
+        equivalente: '',
+        descripcion: 'FILTRO SEPARADOR',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(vibroCat457_2000, {
+        numero: "3891085",
+        equivalente: '',
+        descripcion: 'HIDRAULICO SUMERGIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(vibroCat457_2000, {
+        numero: "9S8002",
+        equivalente: '',
+        descripcion: 'TAPON DE FILTRO DE HIDRAULICO',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(vibroCat457_2000, {
+        numero: "4288648",
+        equivalente: '',
+        descripcion: 'FILTRO TRANSMICION',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+       upsertItem(vibroCat457_2000, {
+        numero: "1807487",
+        equivalente: '',
+        descripcion: 'A/C CABINA',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(vibroCat457_2000, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 38,
+        unidad: 'lts',
+      }),
+      upsertItem(vibroCat457_2000, {
+        numero: "SAE 30",
+        equivalente: '',
+        descripcion: 'ACEITE SAE 30 TRANSMISIÓN',
+        cantidad: 19,
+        unidad: 'lts',
+      }),
+      upsertItem(vibroCat457_2000, {
+        numero: "10W",
+        equivalente: '',
+        descripcion: 'ACEITE HIDRAULICO',
+        cantidad: 80,
+        unidad: 'lts',
+      }),
+       upsertItem(vibroCat457_2000, {
+        numero: "SAE 50",
+        equivalente: '',
+        descripcion: 'ACEITE SAE 50 PARA MANDOS',
+        cantidad: 80,
+        unidad: 'lts',
+      }),
+    ]);
+
+    //VIBRO XCMG 0298 140 
+
     const vibroXcmg = await upsertCategoria('VIBRO XCMG 0298 (140)');
+
+    const vibroXcmg_250 = await upsertRequirement(
+      vibroXcmg.id,
+      250,
+      'Mantenimiento 250 HRS'
+    );
+    const vibroXcmg_500 = await upsertRequirement(
+      vibroXcmg.id,
+      500,
+      'Mantenimiento 500 HRS'
+    );
+    const vibroXcmg_1000 = await upsertRequirement(
+      vibroXcmg.id,
+      1000,
+      'Mantenimiento 1000 HRS'
+    );
+    const vibroXcmg_2000 = await upsertRequirement(
+      vibroXcmg.id,
+      2000,
+      'Mantenimiento 2000 HRS'
+    );
+
+    //250
+
+    await Promise.all([
+      upsertItem(vibroXcmg_500, {
+        numero: 'PMLF3345',
+        equivalente: '',
+        descripcion: 'FILTRO DE ACEITE DE MOTOR',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(vibroXcmg_500, {
+        numero: "BF788",
+        equivalente: '',
+        descripcion: 'FILTRO DE COMBUSTIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(vibroXcmg_500, {
+        numero: "FS1280",
+        equivalente: '',
+        descripcion: 'FILTRO SEPARADOR',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(vibroXcmg_500, {
+        numero: "FF213",
+        equivalente: '',
+        descripcion: 'FILTRO DE COMBUSTIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(vibroXcmg_500, {
+        numero: "SF6720",
+        equivalente: '',
+        descripcion: 'FILTRO HIDRAULICO',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(vibroXcmg_500, {
+        numero: "AF26613",
+        equivalente: '',
+        descripcion: 'FILTRO AIRE',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(vibroXcmg_500, {
+        numero: "AF26614",
+        equivalente: '',
+        descripcion: 'FILTRO AIRE',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(vibroXcmg_500, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 19,
+        unidad: 'lts',
+      }),
+    ]);
+
+    //500
+
+    await Promise.all([
+      upsertItem(vibroXcmg_500, {
+        numero: 'P558615',
+        equivalente: '',
+        descripcion: 'FILTRO DE ACEITE DE MOTOR',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(vibroXcmg_500, {
+        numero: "AA90145",
+        equivalente: '',
+        descripcion: 'FILTRO DE ADMISIÓN PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(vibroXcmg_500, {
+        numero: "P550440",
+        equivalente: '',
+        descripcion: 'FILTRO DE COMBUSTIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(vibroXcmg_500, {
+        numero: "P551329",
+        equivalente: '',
+        descripcion: 'FILTRO SEPARADOR',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(vibroXcmg_500, {
+        numero: "P550388",
+        equivalente: '',
+        descripcion: 'FILTRO HIDRAULICO',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(vibroXcmg_500, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 19,
+        unidad: 'lts',
+      }),
+    ]);
+
+    //1000
+
+    await Promise.all([
+      upsertItem(vibroXcmg_500, {
+        numero: 'P558615',
+        equivalente: '',
+        descripcion: 'FILTRO DE ACEITE DE MOTOR',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(vibroXcmg_500, {
+        numero: "AA90145",
+        equivalente: '',
+        descripcion: 'FILTRO DE ADMISIÓN PRIMARIO',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+      upsertItem(vibroXcmg_500, {
+        numero: "P550440",
+        equivalente: '',
+        descripcion: 'FILTRO DE COMBUSTIBLE',
+        cantidad: 1,
+        unidad: 'pieza',
+      }),
+
+      upsertItem(vibroXcmg_500, {
+        numero: "P551329",
+        equivalente: '',
+        descripcion: 'FILTRO SEPARADOR',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(vibroXcmg_500, {
+        numero: "P550388",
+        equivalente: '',
+        descripcion: 'FILTRO HIDRAULICO',
+        cantidad: 1,
+        unidad: 'pieza',
+
+      }),
+      upsertItem(vibroXcmg_500, {
+        numero: "15W40",
+        equivalente: '',
+        descripcion: 'ACEITE PARA MOTOR',
+        cantidad: 19,
+        unidad: 'lts',
+      }),
+      upsertItem(vibroXcmg_500, {
+        numero: "SAE 30",
+        equivalente: '',
+        descripcion: 'ACEITE DE TRANSMISION',
+        cantidad: 57,
+        unidad: 'lts',
+      }),
+      upsertItem(vibroXcmg_500, {
+        numero: "10W",
+        equivalente: '',
+        descripcion: 'ACEITE HIDRAULICO',
+        cantidad: 57,
+        unidad: 'lts',
+      }),
+    ]);
+    // NO HABIA EN EL EXCEL SERVICIO DE 2000 HORAS
   }
 }
