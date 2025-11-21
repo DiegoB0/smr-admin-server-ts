@@ -449,7 +449,7 @@ export class LookupSeeder implements OnModuleInit {
         {
           numero: '1R1808',
           equivalente: '',
-          descripcion: '',
+          descripcion: ' FILTRO DE ACEITE',
           cantidad: 1,
           unidad: 'pieza',
           requirement: tractorCatD9_250,
@@ -457,7 +457,7 @@ export class LookupSeeder implements OnModuleInit {
         {
           name: "3261643",
           equivalente: '',
-          descripcion: '',
+          descripcion: 'FILTRO SEPARADOR',
           cantidad: 1,
           unidad: 'pieza',
           requirement: tractorCatD9_250,
@@ -465,7 +465,7 @@ export class LookupSeeder implements OnModuleInit {
         {
           name: "1R0749",
           equivalente: '',
-          descripcion: '',
+          descripcion: 'FILTRO COMBUSTIBLE',
           cantidad: 1,
           unidad: 'pieza',
           requirement: tractorCatD9_250,
@@ -473,7 +473,7 @@ export class LookupSeeder implements OnModuleInit {
         {
           name: "1327168",
           equivalente: '',
-          descripcion: '',
+          descripcion: 'FILTRO PRIMARIO',
           cantidad: 1,
           unidad: 'pieza',
           requirement: tractorCatD9_250,
@@ -481,92 +481,1867 @@ export class LookupSeeder implements OnModuleInit {
         {
           name: "15W40",
           equivalente: '',
-          descripcion: '',
-          cantidad: 1,
-          unidad: 'pieza',
+          descripcion: 'ACEITE 15W40',
+          cantidad: 57,
+          unidad: 'lts',
           requirement: tractorCatD9_250,
         },
 
       ]);
 
       // -> 500 HRS
+            await m.save(FiltroItem, [
+        {
+          numero: '1R1808',
+          equivalente: '',
+          descripcion: ' FILTRO DE ACEITE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_500,
+        },
+        {
+          name: "3261643",
+          equivalente: '',
+          descripcion: 'FILTRO SEPARADOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_500,
+        },
+        {
+          name: "1R0749",
+          equivalente: '',
+          descripcion: 'FILTRO COMBUSTIBLE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_500,
+        },
+        {
+          name: "1327168",
+          equivalente: '',
+          descripcion: 'FILTRO PRIMARIO de AIRE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_500,
+        },
+        {
+          name: "1063973",
+          equivalente: '',
+          descripcion: 'FILTRO SECUNDARIO de AIRE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_500,
+        },
+        {
+          name: "4656506",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_500,
+        },
+        {
+          name: "5715253",
+          equivalente: '',
+          descripcion: 'FILTRO DE TRANSMICIÓN',
+          cantidad: 2,
+          unidad: 'pieza',
+          requirement: tractorCatD9_500,
+        },
+        {
+          name: "1R0774",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO SUMERJIBLE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_500,
+        },
+        {
+          name: "3468243",
+          equivalente: '',
+          descripcion: 'FILTRO AC INTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_500,
+        },
+        {
+          name: "2310167",
+          equivalente: '',
+          descripcion: 'FILTRO AC EXTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_500,
+        },
+        {
+          name: "15W40",
+          equivalente: '',
+          descripcion: 'ACEITE 15W40',
+          cantidad: 57,
+          unidad: 'lts',
+          requirement: tractorCatD9_500,
+        },
+
+      ]);
 
       // -> 1000 HRS
-
+      await m.save(FiltroItem, [
+        {
+          numero: '1R1808',
+          equivalente: '',
+          descripcion: ' FILTRO DE ACEITE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_1000,
+        },
+        {
+          name: "3261643",
+          equivalente: '',
+          descripcion: 'FILTRO SEPARADOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_1000,
+        },
+        {
+          name: "1R0749",
+          equivalente: '',
+          descripcion: 'FILTRO COMBUSTIBLE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_1000,
+        },
+        {
+          name: "1327168",
+          equivalente: '',
+          descripcion: 'FILTRO PRIMARIO de AIRE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_1000,
+        },
+        {
+          name: "1063973",
+          equivalente: '',
+          descripcion: 'FILTRO SECUNDARIO de AIRE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_1000,
+        },
+        {
+          name: "4656506",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_1000,
+        },
+        {
+          name: "5715253",
+          equivalente: '',
+          descripcion: 'FILTRO DE TRANSMICIÓN',
+          cantidad: 2,
+          unidad: 'pieza',
+          requirement: tractorCatD9_1000,
+        },
+        {
+          name: "1R0774",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO SUMERJIBLE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_1000,
+        },
+        {
+          name: "3468243",
+          equivalente: '',
+          descripcion: 'FILTRO AC INTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_1000,
+        },
+        {
+          name: "2310167",
+          equivalente: '',
+          descripcion: 'FILTRO AC EXTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_1000,
+        },
+        {
+          name: "15W40",
+          equivalente: '',
+          descripcion: 'ACEITE 15W40',
+          cantidad: 57,
+          unidad: 'lts',
+          requirement: tractorCatD9_1000,
+        },
+        {
+          name: "SAE 30",
+          equivalente: '',
+          descripcion: 'ACEITE SAE 30',
+          cantidad: 200,
+          unidad: 'lts',
+          requirement: tractorCatD9_1000,
+        },
+      ]);
       // -> 2000 HRS
-
-
-
-      /* ================= TRACTOR CAT 366D ======================= */
-      const excavadoraCat366D = await m.save(CategoriaFiltro, {
-        nombre: 'Excavadora CAT 366D',
+      await m.save(FiltroItem, [
+        {
+          numero: '1R1808',
+          equivalente: '',
+          descripcion: ' FILTRO DE ACEITE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_2000,
+        },
+        {
+          name: "3261643",
+          equivalente: '',
+          descripcion: 'FILTRO SEPARADOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_2000,
+        },
+        {
+          name: "1R0749",
+          equivalente: '',
+          descripcion: 'FILTRO COMBUSTIBLE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_2000,
+        },
+        {
+          name: "1327168",
+          equivalente: '',
+          descripcion: 'FILTRO PRIMARIO de AIRE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_2000,
+        },
+        {
+          name: "1063973",
+          equivalente: '',
+          descripcion: 'FILTRO SECUNDARIO de AIRE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_2000,
+        },
+        {
+          name: "4656506",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_2000,
+        },
+        {
+          name: "5715253",
+          equivalente: '',
+          descripcion: 'FILTRO DE TRANSMICIÓN',
+          cantidad: 2,
+          unidad: 'pieza',
+          requirement: tractorCatD9_2000,
+        },
+        {
+          name: "1R0774",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO SUMERJIBLE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_2000,
+        },
+        {
+          name: "3468243",
+          equivalente: '',
+          descripcion: 'FILTRO AC INTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_2000,
+        },
+        {
+          name: "2310167",
+          equivalente: '',
+          descripcion: 'FILTRO AC EXTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: tractorCatD9_2000,
+        },
+        {
+          name: "15W40",
+          equivalente: '',
+          descripcion: 'ACEITE 15W40',
+          cantidad: 57,
+          unidad: 'lts',
+          requirement: tractorCatD9_2000,
+        },
+        {
+          name: "SAE 30",
+          equivalente: '',
+          descripcion: 'ACEITE SAE 30',
+          cantidad: 200,
+          unidad: 'lts',
+          requirement: tractorCatD9_2000,
+        },
+        {
+          name: "10 W",
+          equivalente: '',
+          descripcion: 'ACEITE HIDRAULICO 10W',
+          cantidad: 200,
+          unidad: 'lts',
+          requirement: tractorCatD9_2000,
+        },
+        {
+          name: "SAE 50",
+          equivalente: '',
+          descripcion: 'ACEITE SAE 50 PARA MANDOS',
+          cantidad: 50,
+          unidad: 'lts',
+          requirement: tractorCatD9_2000,
+        },
+        {
+          name: "85W140",
+          equivalente: '',
+          descripcion: 'ACEITE PARA CAÑON 85W140',
+          cantidad: 120,
+          unidad: 'lts',
+          requirement: tractorCatD9_2000,
+        },
+      ]);
+      
+      /* ================= EXCAVADORE CAT 336D ======================= */
+      const excavadoraCat336D = await m.save(CategoriaFiltro, {
+        nombre: 'Excavadora CAT 336D',
       });
 
       /* ---> REQUIREMENTS <--- */
 
+      const excavadoraCat336D_250 = await m.save(FiltroRequirement, {
+        categoriaId: excavadoraCat336D.id,
+        hrs: 250,
+        numero: 'Mantenimiento 250 HRS',
+      });
+
+      const excavadoraCat336D_500 = await m.save(FiltroRequirement, {
+        categoriaId: excavadoraCat336D.id,
+        hrs: 500,
+        numero: 'Mantenimiento 500 HRS',
+      });
+
+      const excavadoraCat336D_1000 = await m.save(FiltroRequirement, {
+        categoriaId: excavadoraCat336D.id,
+        hrs: 1000,
+        numero: 'Mantenimiento 1000 HRS',
+      });
+
+      const excavadoraCat336D_2000 = await m.save(FiltroRequirement, {
+        categoriaId: excavadoraCat336D.id,
+        hrs: 1000,
+        numero: 'Mantenimiento 1000 HRS',
+      });
+
       /* ---> FILTERS <--- */
 
       // -> 250 HRS
+      await m.save(FiltroItem, [
+        {
+          numero: '1R1808',
+          equivalente: '',
+          descripcion: ' FILTRO DE ACEITE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_250,
+        },
+        {
+          name: "3261644",
+          equivalente: '',
+          descripcion: 'FILTRO SEPARADOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_250,
+        },
+        {
+          name: "1R0762",
+          equivalente: '',
+          descripcion: 'FILTRO COMBUSTIBLE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_250,
+        },
+        {
+          name: "1421339",
+          equivalente: '',
+          descripcion: 'FILTRO PRIMARIO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_250,
+        },
+        {
+          name: "15W40",
+          equivalente: '',
+          descripcion: 'ACEITE 15W40',
+          cantidad: 57,
+          unidad: 'lts',
+          requirement: excavadoraCat336D_250,
+        },
+
+      ]);
 
       // -> 500 HRS
 
+      await m.save(FiltroItem, [
+        {
+          numero: '1R1808',
+          equivalente: '',
+          descripcion: ' FILTRO DE ACEITE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_500,
+        },
+        {
+          name: "3261644",
+          equivalente: '',
+          descripcion: 'FILTRO SEPARADOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_500,
+        },
+        {
+          name: "1R0762",
+          equivalente: '',
+          descripcion: 'FILTRO COMBUSTIBLE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_500,
+        },
+        {
+          name: "1421339",
+          equivalente: '',
+          descripcion: 'FILTRO PRIMARIO DE AIRE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_500,
+        },
+        {
+          name: "1421404",
+          equivalente: '',
+          descripcion: 'FILTRO SECUNDARIO DE AIRE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_500,
+        },
+        {
+          name: "5I8670",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_500,
+        },
+        {
+          name: "937521",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_500,
+        },
+        {
+          name: "1799806",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO SUMERJIBLE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_500,
+        },
+        {
+          name: "2931183",
+          equivalente: '',
+          descripcion: 'FILTRO AC EXTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_500,
+        },
+        {
+          name: "5460006",
+          equivalente: '',
+          descripcion: 'FILTRO AC INTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_500,
+        },
+        {
+          name: "15W40",
+          equivalente: '',
+          descripcion: 'ACEITE 15W40',
+          cantidad: 57,
+          unidad: 'lts',
+          requirement: excavadoraCat336D_500,
+        },
+
+      ]);
+
       // -> 1000 HRS
+
+        await m.save(FiltroItem, [
+        {
+          numero: '1R1808',
+          equivalente: '',
+          descripcion: ' FILTRO DE ACEITE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_1000,
+        },
+        {
+          name: "3261644",
+          equivalente: '',
+          descripcion: 'FILTRO SEPARADOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_1000,
+        },
+        {
+          name: "1R0762",
+          equivalente: '',
+          descripcion: 'FILTRO COMBUSTIBLE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_1000,
+        },
+        {
+          name: "1421339",
+          equivalente: '',
+          descripcion: 'FILTRO PRIMARIO DE AIRE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_1000,
+        },
+        {
+          name: "1421404",
+          equivalente: '',
+          descripcion: 'FILTRO SECUNDARIO DE AIRE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_1000,
+        },
+        {
+          name: "5I8670",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_1000,
+        },
+        {
+          name: "937521",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_1000,
+        },
+        {
+          name: "1799806",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO SUMERJIBLE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_1000,
+        },
+        {
+          name: "2931183",
+          equivalente: '',
+          descripcion: 'FILTRO AC EXTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_1000,
+        },
+        {
+          name: "5460006",
+          equivalente: '',
+          descripcion: 'FILTRO AC INTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_1000,
+        },
+        {
+          name: "15W40",
+          equivalente: '',
+          descripcion: 'ACEITE 15W40',
+          cantidad: 57,
+          unidad: 'lts',
+          requirement: excavadoraCat336D_1000,
+        },
+        {
+          name: "85W140",
+          equivalente: '',
+          descripcion: 'ACEITE 85W140 SWING Y MANDOS',
+          cantidad: 57,
+          unidad: 'lts',
+          requirement: excavadoraCat336D_1000,
+        },
+
+      ]);
 
       // -> 2000 HRS
 
+      await m.save(FiltroItem, [
+        {
+          numero: '1R1808',
+          equivalente: '',
+          descripcion: ' FILTRO DE ACEITE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_2000,
+        },
+        {
+          name: "3261644",
+          equivalente: '',
+          descripcion: 'FILTRO SEPARADOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_2000,
+        },
+        {
+          name: "1R0762",
+          equivalente: '',
+          descripcion: 'FILTRO COMBUSTIBLE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_2000,
+        },
+        {
+          name: "1421339",
+          equivalente: '',
+          descripcion: 'FILTRO PRIMARIO DE AIRE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_2000,
+        },
+        {
+          name: "1421404",
+          equivalente: '',
+          descripcion: 'FILTRO SECUNDARIO DE AIRE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_2000,
+        },
+        {
+          name: "5I8670",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_2000,
+        },
+        {
+          name: "937521",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_2000,
+        },
+        {
+          name: "1799806",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO SUMERJIBLE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_2000,
+        },
+        {
+          name: "2931183",
+          equivalente: '',
+          descripcion: 'FILTRO AC EXTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_2000,
+        },
+        {
+          name: "5460006",
+          equivalente: '',
+          descripcion: 'FILTRO AC INTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336D_2000,
+        },
+        {
+          name: "15W40",
+          equivalente: '',
+          descripcion: 'ACEITE 15W40',
+          cantidad: 38,
+          unidad: 'lts',
+          requirement: excavadoraCat336D_2000,
+        },
+        {
+          name: "85W140",
+          equivalente: '',
+          descripcion: 'ACEITE 85W140 SWING Y MANDOS',
+          cantidad: 38,
+          unidad: 'lts',
+          requirement: excavadoraCat336D_2000,
+        },
+         {
+          name: "10W",
+          equivalente: '',
+          descripcion: 'ACEITE HIDRAULICO 10W',
+          cantidad: 208,
+          unidad: 'lts',
+          requirement: excavadoraCat336D_2000,
+        },
 
-      /* ================= TRACTOR CAT 320D ======================= */
+      ]);
+
+
+      /* ================= EXCAVADORA CAT 320D ======================= */
       const excavadoraCat320D = await m.save(CategoriaFiltro, {
         nombre: 'Excavadora CAT 320D',
       });
 
       /* ---> REQUIREMENTS <--- */
+       const excavadoraCat320D_250 = await m.save(FiltroRequirement, {
+        categoriaId: excavadoraCat320D.id,
+        hrs: 250,
+        numero: 'Mantenimiento 250 HRS',
+      });
+
+      const excavadoraCat320D_500 = await m.save(FiltroRequirement, {
+        categoriaId: excavadoraCat320D.id,
+        hrs: 500,
+        numero: 'Mantenimiento 500 HRS',
+      });
+
+      const excavadoraCat320D_1000 = await m.save(FiltroRequirement, {
+        categoriaId: excavadoraCat320D.id,
+        hrs: 1000,
+        numero: 'Mantenimiento 1000 HRS',
+      });
+
+      const excavadoraCat320D_2000 = await m.save(FiltroRequirement, {
+        categoriaId: excavadoraCat320D.id,
+        hrs: 1000,
+        numero: 'Mantenimiento 1000 HRS',
+      });
+
+      
 
       /* ---> FILTERS <--- */
 
       // -> 250 HRS
+      await m.save(FiltroItem, [
+        {
+          numero: '1R0739',
+          equivalente: '',
+          descripcion: ' FILTRO DE ACEITE DE MOTOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_250,
+        },
+        {
+          name: "1318821",
+          equivalente: '',
+          descripcion: 'FILTRO DE ACEITE SECUNDARIO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_250,
+        },
+        {
+          name: "1R0751",
+          equivalente: '',
+          descripcion: 'FILTRO DE COMBUSTIBLE',
+          cantidad: 2,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_250,
+        },
+        {
+          name: "1318822",
+          equivalente: '',
+          descripcion: 'FILTRO PRIMARIO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_250,
+        },
+        {
+          name: "15W40",
+          equivalente: '',
+          descripcion: 'ACEITE 15W40',
+          cantidad: 38,
+          unidad: 'lts',
+          requirement: excavadoraCat320D_250,
+        },
+
+      ]);
 
       // -> 500 HRS
+      await m.save(FiltroItem, [
+        {
+          numero: '1R0739',
+          equivalente: '',
+          descripcion: ' FILTRO DE ACEITE DE MOTOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_500,
+        },
+        {
+          name: "1318821",
+          equivalente: '',
+          descripcion: 'FILTRO DE ACEITE SECUNDARIO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_500,
+        },
+        {
+          name: "3261644",
+          equivalente: '',
+          descripcion: 'FILTRO SEPARADOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_500,
+        },
+        {
+          name: "1R0751",
+          equivalente: '',
+          descripcion: 'FILTRO DE COMBUSTIBLE',
+          cantidad: 2,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_500,
+        },
+        {
+          name: "1318822",
+          equivalente: '',
+          descripcion: 'FILTRO PRIMARIO DE AIRE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_500,
+        },
+        {
+          name: "5I8670",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_500,
+        },
+        {
+          name: "1884142",
+          equivalente: '',
+          descripcion: 'FILTRO TANQUE HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_500,
+        },
+        {
+          name: "2166676",
+          equivalente: '',
+          descripcion: 'FILTRO DEL SISTEMA HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_500,
+        },
+        {
+          name: "O937521",
+          equivalente: '',
+          descripcion: 'FILTRO DE ACEITE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_500,
+        },
+        {
+          name: "2458823",
+          equivalente: '',
+          descripcion: 'FILTRO AC EXTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_500,
+        },
+        {
+          name: "2931137",
+          equivalente: '',
+          descripcion: 'FILTRO AC INTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_500,
+        },
+        {
+          name: "15W40",
+          equivalente: '',
+          descripcion: 'ACEITE 15W40',
+          cantidad: 38,
+          unidad: 'lts',
+          requirement: excavadoraCat320D_500,
+        },
+
+      ]);
 
       // -> 1000 HRS
+      await m.save(FiltroItem, [
+        {
+          numero: '1R0739',
+          equivalente: '',
+          descripcion: ' FILTRO DE ACEITE DE MOTOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_1000,
+        },
+        {
+          name: "1318821",
+          equivalente: '',
+          descripcion: 'FILTRO DE ACEITE SECUNDARIO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_1000,
+        },
+        {
+          name: "3261644",
+          equivalente: '',
+          descripcion: 'FILTRO SEPARADOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_1000,
+        },
+        {
+          name: "1R0751",
+          equivalente: '',
+          descripcion: 'FILTRO DE COMBUSTIBLE',
+          cantidad: 2,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_1000,
+        },
+        {
+          name: "1318822",
+          equivalente: '',
+          descripcion: 'FILTRO PRIMARIO DE AIRE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_1000,
+        },
+        {
+          name: "5I8670",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_1000,
+        },
+        {
+          name: "1884142",
+          equivalente: '',
+          descripcion: 'FILTRO TANQUE HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_1000,
+        },
+        {
+          name: "2166676",
+          equivalente: '',
+          descripcion: 'FILTRO DEL SISTEMA HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_1000,
+        },
+        {
+          name: "O937521",
+          equivalente: '',
+          descripcion: 'FILTRO DE ACEITE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_1000,
+        },
+        {
+          name: "2458823",
+          equivalente: '',
+          descripcion: 'FILTRO AC EXTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_1000,
+        },
+        {
+          name: "2931137",
+          equivalente: '',
+          descripcion: 'FILTRO AC INTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_1000,
+        },
+        {
+          name: "15W40",
+          equivalente: '',
+          descripcion: 'ACEITE DE MOTOR 15W40',
+          cantidad: 38,
+          unidad: 'lts',
+          requirement: excavadoraCat320D_1000,
+        },
+        {
+          name: "10W",
+          equivalente: '',
+          descripcion: 'ACEITE HIDRAULICO 10W',
+          cantidad: 208,
+          unidad: 'lts',
+          requirement: excavadoraCat320D_1000,
+        },
+        {
+          name: "85W140",
+          equivalente: '',
+          descripcion: 'ACEITE 85W140  PARA MANDOS Y SWING',
+          cantidad: 38,
+          unidad: 'lts',
+          requirement: excavadoraCat320D_1000,
+        },
+
+      ]);
 
       // -> 2000 HRS
+      await m.save(FiltroItem, [
+        {
+          numero: '1R0739',
+          equivalente: '',
+          descripcion: ' FILTRO DE ACEITE DE MOTOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_2000,
+        },
+        {
+          name: "1318821",
+          equivalente: '',
+          descripcion: 'FILTRO DE ACEITE SECUNDARIO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_2000,
+        },
+        {
+          name: "3261644",
+          equivalente: '',
+          descripcion: 'FILTRO SEPARADOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_2000,
+        },
+        {
+          name: "1884142",
+          equivalente: '',
+          descripcion: 'FILTRO TANQUE HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_2000,
+        },
+        {
+          name: "2458823",
+          equivalente: '',
+          descripcion: 'FILTRO AC EXTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_2000,
+        },
+        {
+          name: "2931137",
+          equivalente: '',
+          descripcion: 'FILTRO AC INTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_2000,
+        },
+        {
+          name: "15W40",
+          equivalente: '',
+          descripcion: 'ACEITE DE MOTOR 15W40',
+          cantidad: 38,
+          unidad: 'lts',
+          requirement: excavadoraCat320D_2000,
+        },
+        {
+          name: "10W",
+          equivalente: '',
+          descripcion: 'ACEITE HIDRAULICO 10W',
+          cantidad: 200,
+          unidad: 'lts',
+          requirement: excavadoraCat320D_2000,
+        },
+        {
+          name: "85W140",
+          equivalente: '',
+          descripcion: 'ACEITE 85W140  PARA MANDOS Y SWING',
+          cantidad: 40,
+          unidad: 'lts',
+          requirement: excavadoraCat320D_2000,
+        },
+        {
+          name: "SAE 50",
+          equivalente: '',
+          descripcion: 'ACEITE SAE 50 PARA MANDOS',
+          cantidad: 57,
+          unidad: 'lts',
+          requirement: excavadoraCat320D_2000,
+        },
+
+      ]);
 
 
-      /* ================= TRACTOR CAT 320D ======================= */
+      /* ================= EXCAVADORA CAT 336B ======================= */
       const excavadoraCat336B = await m.save(CategoriaFiltro, {
         nombre: 'Excavadora CAT 336B'
       })
 
       /* ---> REQUIREMENTS <--- */
+      const excavadoraCat336B_250 = await m.save(FiltroRequirement, {
+        categoriaId: excavadoraCat336B.id,
+        hrs: 250,
+        numero: 'Mantenimiento 250 HRS',
+      });
+
+      const excavadoraCat336B_500 = await m.save(FiltroRequirement, {
+        categoriaId: excavadoraCat336B.id,
+        hrs: 500,
+        numero: 'Mantenimiento 500 HRS',
+      });
+
+      const excavadoraCat336B_1000 = await m.save(FiltroRequirement, {
+        categoriaId: excavadoraCat336B.id,
+        hrs: 1000,
+        numero: 'Mantenimiento 1000 HRS',
+      });
+
+      const excavadoraCat336B_2000 = await m.save(FiltroRequirement, {
+        categoriaId: excavadoraCat336B.id,
+        hrs: 2000,
+        numero: 'Mantenimiento 2000 HRS',
+      });
 
       /* ---> FILTERS <--- */
 
       // -> 250 HRS
 
+       await m.save(FiltroItem, [
+        {
+          numero: '322-3155',
+          equivalente: '',
+          descripcion: ' FILTRO DE ACEITE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_250,
+        },
+        {
+          name: "523-4987",
+          equivalente: '',
+          descripcion: 'FILTRO SEPARADOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_250,
+        },
+        {
+          name: "509-5694",
+          equivalente: '',
+          descripcion: 'FILTRO DE COMBUSTIBLE',
+          cantidad: 2,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_250,
+        },
+        {
+          name: "496-9845",
+          equivalente: '',
+          descripcion: 'FILTRO PRIMARIO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_250,
+        },
+        {
+          name: "496-9846",
+          equivalente: '',
+          descripcion: 'FILTRO SECUNDARIO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_250,
+        },
+        {
+          name: "15W40",
+          equivalente: '',
+          descripcion: 'ACEITE 15W40',
+          cantidad: 57,
+          unidad: 'lts',
+          requirement: excavadoraCat336B_250,
+        },
+
+      ]);
+
       // -> 500 HRS
 
+      await m.save(FiltroItem, [
+        {
+          numero: '322-3155',
+          equivalente: '',
+          descripcion: ' FILTRO DE ACEITE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_500,
+        },
+        {
+          name: "523-4987",
+          equivalente: '',
+          descripcion: 'FILTRO SEPARADOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_500,
+        },
+        {
+          name: "523-4988",
+          equivalente: '',
+          descripcion: 'FILTRO DE COMBUSTIBLE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_500,
+        },
+        {
+          name: "509-5694",
+          equivalente: '',
+          descripcion: 'FILTRO DE COMBUSTIBLE SECUNDARIO',
+          cantidad: 2,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_500,
+        },
+        {
+          name: "496-9845",
+          equivalente: '',
+          descripcion: 'FILTRO PRIMARIO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_500,
+        },
+        {
+          name: "496-9846",
+          equivalente: '',
+          descripcion: 'FILTRO SECUNDARIO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_500,
+        },
+        {
+          name: "509-9787",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO SUMERJIBLE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_500,
+        },
+        {
+          name: "522-1451",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_500,
+        },
+        {
+          name: "289-7789",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO DE TRANSMICIÓN',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_500,
+        },
+        {
+          name: "15W40",
+          equivalente: '',
+          descripcion: 'ACEITE 15W40',
+          cantidad: 57,
+          unidad: 'lts',
+          requirement: excavadoraCat336B_500,
+        },
+
+      ]);
+
       // -> 1000 HRS
+      await m.save(FiltroItem, [
+        {
+          numero: '322-3155',
+          equivalente: '',
+          descripcion: ' FILTRO DE ACEITE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_1000,
+        },
+        {
+          name: "523-4987",
+          equivalente: '',
+          descripcion: 'FILTRO SEPARADOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_1000,
+        },
+        {
+          name: "523-4988",
+          equivalente: '',
+          descripcion: 'FILTRO DE COMBUSTIBLE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_1000,
+        },
+        {
+          name: "496-9845",
+          equivalente: '',
+          descripcion: 'FILTRO PRIMARIO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_1000,
+        },
+        {
+          name: "496-9846",
+          equivalente: '',
+          descripcion: 'FILTRO SECUNDARIO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_1000,
+        },
+        {
+          name: "509-9787",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO SUMERJIBLE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_1000,
+        },
+        {
+          name: "522-1451",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_1000,
+        },
+        {
+          name: "289-7789",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO DE TRANSMICIÓN',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_1000,
+        },
+        {
+          name: "15W40",
+          equivalente: '',
+          descripcion: 'ACEITE 15W40',
+          cantidad: 57,
+          unidad: 'lts',
+          requirement: excavadoraCat336B_1000,
+        },
+        {
+          name: "85W-140",
+          equivalente: '',
+          descripcion: 'ACEITE 85W-140 SWING Y MANDOS',
+          cantidad: 38,
+          unidad: 'lts',
+          requirement: excavadoraCat336B_1000,
+        },
+
+      ]);
+
 
       // -> 2000 HRS
+       await m.save(FiltroItem, [
+        {
+          numero: '322-3155',
+          equivalente: '',
+          descripcion: ' FILTRO DE ACEITE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_2000,
+        },
+        {
+          name: "523-4987",
+          equivalente: '',
+          descripcion: 'FILTRO SEPARADOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_2000,
+        },
+        {
+          name: "523-4988",
+          equivalente: '',
+          descripcion: 'FILTRO DE COMBUSTIBLE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_2000,
+        },
+        {
+          name: "509-5694",
+          equivalente: '',
+          descripcion: 'FILTRO DE COMBUSTIBLE SECUNDARIO',
+          cantidad: 2,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_2000,
+        },
+        {
+          name: "496-9845",
+          equivalente: '',
+          descripcion: 'FILTRO PRIMARIO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_2000,
+        },
+        {
+          name: "496-9846",
+          equivalente: '',
+          descripcion: 'FILTRO SECUNDARIO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_2000,
+        },
+        {
+          name: "509-9787",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO SUMERJIBLE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_2000,
+        },
+        {
+          name: "522-1451",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_2000,
+        },
+        {
+          name: "289-7789",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO DE TRANSMICIÓN',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_2000,
+        },
+        {
+          name: "500-0957",
+          equivalente: '',
+          descripcion: 'FILTRO AC EXTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat320D_2000,
+        },
+        {
+          name: "480-5439",
+          equivalente: '',
+          descripcion: 'FILTRO AC INTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadoraCat336B_2000,
+        },
+        {
+          name: "15W40",
+          equivalente: '',
+          descripcion: 'ACEITE 15W40',
+          cantidad: 57,
+          unidad: 'lts',
+          requirement: excavadoraCat336B_2000,
+        },
+        {
+          name: "10W",
+          equivalente: '',
+          descripcion: 'ACEITE HIDRAULICO 10W',
+          cantidad: 218,
+          unidad: 'lts',
+          requirement: excavadoraCat336B_2000,
+        },
+        {
+          name: "85W-40",
+          equivalente: '',
+          descripcion: 'ACEITE',
+          cantidad: 19,
+          unidad: 'lts',
+          requirement: excavadoraCat336B_2000,
+        },
+        {
+          name: "SAE 50",
+          equivalente: '',
+          descripcion: 'ACEITE SAE 50 PARA MANDOS',
+          cantidad: 57,
+          unidad: 'lts',
+          requirement: excavadoraCat336B_2000,
+        },
 
+      ]);
+
+      /* ================= EXCAVADORA 350G700 ======================= */
 
       const excavadora350G700 = await m.save(CategoriaFiltro, {
         nombre: 'Excavadora 350G 700'
       })
 
       /* ---> REQUIREMENTS <--- */
+       const excavadora350G700_250 = await m.save(FiltroRequirement, {
+        categoriaId: excavadora350G700.id,
+        hrs: 250,
+        numero: 'Mantenimiento 250 HRS',
+      });
+
+      const excavadora350G700_500 = await m.save(FiltroRequirement, {
+        categoriaId: excavadora350G700.id,
+        hrs: 500,
+        numero: 'Mantenimiento 500 HRS',
+      });
+
+      const excavadora350G700_1000 = await m.save(FiltroRequirement, {
+        categoriaId: excavadora350G700.id,
+        hrs: 1000,
+        numero: 'Mantenimiento 1000 HRS',
+      });
+
+      const excavadora350G700_2000 = await m.save(FiltroRequirement, {
+        categoriaId: excavadora350G700.id,
+        hrs: 2000,
+        numero: 'Mantenimiento 2000 HRS',
+      });
+
 
       /* ---> FILTERS <--- */
 
       // -> 250 HRS
+      await m.save(FiltroItem, [
+        {
+          numero: 'RE521420',
+          equivalente: '',
+          descripcion: ' FILTRO DE ACEITE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_250,
+        },
+        {
+          name: "AT365869",
+          equivalente: '5134490 CAT',
+          descripcion: 'FILTRO SEPARADOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_250,
+        },
+        {
+          name: "RE525523",
+          equivalente: '',
+          descripcion: 'FILTRO DE COMBUSTIBLE',
+          cantidad: 2,
+          unidad: 'pieza',
+          requirement: excavadora350G700_250,
+        },
+        {
+          name: "AT330978",
+          equivalente: '',
+          descripcion: 'FILTRO PRIMARIO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_250,
+        },
+        {
+          name: "AT330980",
+          equivalente: '',
+          descripcion: 'FILTRO SECUNDARIO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_250,
+        },
+        {
+          name: "15W40",
+          equivalente: '',
+          descripcion: 'ACEITE 15W40',
+          cantidad: 38,
+          unidad: 'lts',
+          requirement: excavadora350G700_250,
+        },
+
+      ]);
 
       // -> 500 HRS
 
+       await m.save(FiltroItem, [
+        {
+          numero: 'RE521420',
+          equivalente: '',
+          descripcion: ' FILTRO DE ACEITE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_500,
+        },
+        {
+          name: "AT365869",
+          equivalente: '5134490 CAT',
+          descripcion: 'FILTRO SEPARADOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_500,
+        },
+        {
+          name: "RE525523",
+          equivalente: '',
+          descripcion: 'FILTRO DE COMBUSTIBLE',
+          cantidad: 2,
+          unidad: 'pieza',
+          requirement: excavadora350G700_500,
+        },
+        {
+          name: "AT330978",
+          equivalente: '',
+          descripcion: 'FILTRO PRIMARIO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_500,
+        },
+        {
+          name: "4630525",
+          equivalente: '',
+          descripcion: 'FILTRO PILOTO HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_500,
+        },
+         {
+          name: "FYA00033065",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO SUMERJIBLE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_500,
+        },
+         {
+          name: "FYA00001490R",
+          equivalente: '',
+          descripcion: 'FILTRO AC EXTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_500,
+        },
+         {
+          name: "4S00686R",
+          equivalente: '',
+          descripcion: 'FILTRO AC INTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_500,
+        },
+         {
+          name: "FYA00016054",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_500,
+        },
+        {
+          name: "15W40",
+          equivalente: '',
+          descripcion: 'ACEITE 15W40',
+          cantidad: 38,
+          unidad: 'lts',
+          requirement: excavadora350G700_500,
+        },
+
+      ]);
+
+
       // -> 1000 HRS
 
-      // -> 2000 HRS
+      await m.save(FiltroItem, [
+        {
+          numero: 'RE521420',
+          equivalente: '',
+          descripcion: ' FILTRO DE ACEITE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_1000,
+        },
+        {
+          name: "AT365869",
+          equivalente: '5134490 CAT',
+          descripcion: 'FILTRO SEPARADOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_1000,
+        },
+        {
+          name: "RE525523",
+          equivalente: '',
+          descripcion: 'FILTRO DE COMBUSTIBLE',
+          cantidad: 2,
+          unidad: 'pieza',
+          requirement: excavadora350G700_1000,
+        },
+        {
+          name: "AT330978",
+          equivalente: '',
+          descripcion: 'FILTRO PRIMARIO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_1000,
+        },
+        {
+          name: "4630525",
+          equivalente: '',
+          descripcion: 'FILTRO PILOTO HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_1000,
+        },
+         {
+          name: "FYA00033065",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO SUMERJIBLE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_1000,
+        },
+         {
+          name: "FYA00001490R",
+          equivalente: '',
+          descripcion: 'FILTRO AC EXTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_1000,
+        },
+         {
+          name: "4S00686R",
+          equivalente: '',
+          descripcion: 'FILTRO AC INTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_1000,
+        },
+         {
+          name: "FYA00016054",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_1000,
+        },
+        {
+          name: "15W40",
+          equivalente: '',
+          descripcion: 'ACEITE 15W40',
+          cantidad: 38,
+          unidad: 'lts',
+          requirement: excavadora350G700_1000,
+        },
+        {
+          name: "10W",
+          equivalente: '',
+          descripcion: 'ACEITE 10W',
+          cantidad: 200,
+          unidad: 'lts',
+          requirement: excavadora350G700_1000,
+        },
 
+      ]);
+
+
+      // -> 2000 HRS
+       await m.save(FiltroItem, [
+        {
+          numero: 'RE521420',
+          equivalente: '',
+          descripcion: ' FILTRO DE ACEITE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_2000,
+        },
+        {
+          name: "AT365869",
+          equivalente: '5134490 CAT',
+          descripcion: 'FILTRO SEPARADOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_2000,
+        },
+        {
+          name: "RE525523",
+          equivalente: '',
+          descripcion: 'FILTRO DE COMBUSTIBLE',
+          cantidad: 2,
+          unidad: 'pieza',
+          requirement: excavadora350G700_2000,
+        },
+        {
+          name: "AT330978",
+          equivalente: '',
+          descripcion: 'FILTRO PRIMARIO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_2000,
+        },
+        {
+          name: "AT330980",
+          equivalente: '',
+          descripcion: 'FILTRO SECUNDARIO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_2000,
+        },
+        {
+          name: "4630525",
+          equivalente: '',
+          descripcion: 'FILTRO PILOTO HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_2000,
+        },
+         {
+          name: "FYA00033065",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO SUMERJIBLE',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_2000,
+        },
+         {
+          name: "FYA00001490R",
+          equivalente: '',
+          descripcion: 'FILTRO AC EXTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_2000,
+        },
+         {
+          name: "4S00686R",
+          equivalente: '',
+          descripcion: 'FILTRO AC INTERIOR',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_2000,
+        },
+         {
+          name: "FYA00016054",
+          equivalente: '',
+          descripcion: 'FILTRO HIDRAULICO',
+          cantidad: 1,
+          unidad: 'pieza',
+          requirement: excavadora350G700_2000,
+        },
+        {
+          name: "15W40",
+          equivalente: '',
+          descripcion: 'ACEITE 15W40',
+          cantidad: 38,
+          unidad: 'lts',
+          requirement: excavadora350G700_2000,
+        },
+        {
+          name: "10W",
+          equivalente: '',
+          descripcion: 'ACEITE 10W',
+          cantidad: 200,
+          unidad: 'lts',
+          requirement: excavadora350G700_2000,
+        },
+        {
+          name: "85W-140",
+          equivalente: '',
+          descripcion: 'ACEITE 85W-140',
+          cantidad: 200,
+          unidad: 'lts',
+          requirement: excavadora350G700_2000,
+        },
+         {
+          name: "SAE 50",
+          equivalente: '',
+          descripcion: 'ACEITE SAE 50 PARA MANDOS',
+          cantidad: 36,
+          unidad: 'lts',
+          requirement: excavadora350G700_2000,
+        },
+
+      ]);
+/* ================= RETRO 416 CAT 0352 ======================= */
       const retro416Cat0352 = await m.save(CategoriaFiltro, {
         nombre: 'Retro 416 CAT 0352'
       })
