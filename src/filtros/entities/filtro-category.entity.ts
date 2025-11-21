@@ -15,7 +15,10 @@ export class CategoriaFiltro {
   @Column('text')
   nombre: string;
 
-  @OneToMany(() => Equipo, (equipo) => equipo.filtro_categoria)
+  @OneToMany(() => Equipo, (equipo) => equipo.filtro_categoria, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   equipos: Equipo[];
 
   @OneToMany(() => FiltroRequirement, (req) => req.categoria)

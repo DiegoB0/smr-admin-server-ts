@@ -15,10 +15,10 @@ export class FiltroItem {
   numero: string;
 
   @Column('text', { nullable: true })
-  equivalente: string;
+  equivalente: string | null;
 
   @Column('text', { nullable: true })
-  descripcion: string;
+  descripcion: string | null;
 
   @Column()
   cantidad: number;
@@ -26,6 +26,8 @@ export class FiltroItem {
   @Column('text')
   unidad: string;
 
-  @ManyToOne(() => FiltroRequirement, (req) => req.items)
+  @ManyToOne(() => FiltroRequirement, (req) => req.items, {
+    onDelete: 'CASCADE',
+  })
   requirement: FiltroRequirement;
 }

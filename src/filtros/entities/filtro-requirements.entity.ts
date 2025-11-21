@@ -19,9 +19,14 @@ export class FiltroRequirement {
   @Column('text')
   nombre: string;
 
-  @ManyToOne(() => CategoriaFiltro, (cat) => cat.requirements)
+  @ManyToOne(() => CategoriaFiltro, (cat) => cat.requirements, {
+    onDelete: 'CASCADE',
+  })
   categoria: CategoriaFiltro;
 
-  @OneToMany(() => FiltroItem, (item) => item.requirement)
+  @OneToMany(() => FiltroItem, (item) => item.requirement, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   items: FiltroItem[];
 }
