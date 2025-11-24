@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, Index } from 'typeorm';
 import { RolPermiso } from './rol_permiso.entity';
 import { UsuarioRol } from './usuario_rol.entity';
 
@@ -10,7 +10,6 @@ export class Rol {
   @Column()
   name: string;
 
-  // Key of each role
   @Column({ unique: true })
   slug: string;
 

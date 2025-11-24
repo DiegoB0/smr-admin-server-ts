@@ -2,7 +2,7 @@ import { BadRequestException, ConflictException, Injectable, InternalServerError
 import { InjectRepository } from '@nestjs/typeorm';
 import { Requisicion } from './entities/requisicion.entity';
 import { LogsService } from 'src/logs/logs.service';
-import { Brackets, DataSource, QueryRunner, Repository } from 'typeorm';
+import { Brackets, DataSource, In, Not, QueryRunner, Repository } from 'typeorm';
 import { User } from 'src/auth/entities/usuario.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { RequisicionStatus } from './types/requisicion-status';
@@ -16,7 +16,7 @@ import { Entrada } from 'src/entradas/entities/entrada.entity';
 import { EntradaItem } from 'src/entradas/entities/entrada_item.entity';
 import { RequisicionRefaccionItem } from './entities/customRequis/requisicion_refaccion.items.entity';
 import { RequisicionFilterItem } from './entities/customRequis/requisicion_filter_items.entity';
-import { CreateFilterItemDto, CreateInsumoItemDto, CreateRefaccionItemDto, CreateRequisicionDto } from './dto/request.v2.dto';
+import { CreateFilterItemDto, CreateInsumoItemDto, CreateRefaccionItemDto, CreateRequisicionDto, UpdateItemDto, UpdateRequisicionItemsDto } from './dto/request.v2.dto';
 import { PagarRequisicionDto } from './dto/request.dto';
 import { MetodoPago } from './types/metodo-pago';
 import { GetRequisicionDto, PaginatedRequisicionDto } from './dto/response.dto';
@@ -88,6 +88,8 @@ export class RequisicionesService {
         'r.fechaSolicitud',
         'r.rcp',
         'r.titulo',
+        'r.observaciones',
+        'r.observacionesCompras',
         'r.prioridad',
         'r.hrs',
         'r.concepto',
@@ -116,6 +118,7 @@ export class RequisicionesService {
         'refacciones.unidad',
         'refacciones.precio',
         'refacciones.currency',
+        'refacciones.no_economico'
       ])
       .leftJoinAndSelect('r.insumos', 'insumos')
       .addSelect([
@@ -125,6 +128,7 @@ export class RequisicionesService {
         'insumos.unidad',
         'insumos.precio',
         'insumos.currency',
+        'insumos.is_product'
       ])
       .leftJoinAndSelect('r.filtros', 'filtros')
       .addSelect([
@@ -135,6 +139,7 @@ export class RequisicionesService {
         'filtros.unidad',
         'filtros.precio',
         'filtros.currency',
+        'filtros.no_economico'
       ])
       .orderBy('r.fechaSolicitud', order as 'ASC' | 'DESC');
 
@@ -150,8 +155,10 @@ export class RequisicionesService {
             .where('r.rcp::text ILIKE :term', { term })
             .orWhere('r.titulo ILIKE :term', { term })
             .orWhere('refacciones.customId ILIKE :term', { term })
+            .orWhere('REPLACE(refacciones.customId, \'-\', \'\') ILIKE :term', { term })
             .orWhere('refacciones.no_economico ILIKE :term', { term })
             .orWhere('filtros.customId ILIKE :term', { term })
+            .orWhere('REPLACE(REPLACE(filtros.customId, \'-\', \'\'), \' \', \'\') ILIKE :term', { term })
             .orWhere('filtros.no_economico ILIKE :term', { term })
             .orWhere('insumos.descripcion ILIKE :term', { term })
         })
@@ -170,6 +177,8 @@ export class RequisicionesService {
       fechaSolicitud: r.fechaSolicitud,
       rcp: r.rcp,
       titulo: r.titulo,
+      observaciones: r.observaciones,
+      observacionesCompras: r.observacionesCompras,
       prioridad: r.prioridad,
       hrs: r.hrs,
       concepto: r.concepto,
@@ -202,6 +211,7 @@ export class RequisicionesService {
         id: ref.id,
         customId: ref.customId,
         cantidad: ref.cantidad,
+        no_economico: ref.no_economico,
         descripcion: ref.descripcion,
         unidad: ref.unidad,
         precio: ref.precio || 0,
@@ -214,11 +224,13 @@ export class RequisicionesService {
         unidad: ins.unidad,
         precio: ins.precio || 0,
         currency: ins.currency,
+        is_product: ins.is_product,
       })),
       filtros: r.filtros.map((fil) => ({
         id: fil.id,
         customId: fil.customId,
         cantidad: fil.cantidad,
+        no_economico: fil.no_economico,
         descripcion: fil.descripcion,
         unidad: fil.unidad,
         precio: fil.precio || 0,
@@ -249,6 +261,8 @@ export class RequisicionesService {
         'r.fechaSolicitud',
         'r.rcp',
         'r.titulo',
+        'r.observaciones',
+        'r.observacionesCompras',
         'r.prioridad',
         'r.hrs',
         'r.concepto',
@@ -286,6 +300,7 @@ export class RequisicionesService {
         'insumos.unidad',
         'insumos.precio',
         'insumos.currency',
+        'insumos.is_product'
       ])
       .leftJoinAndSelect('r.filtros', 'filtros')
       .addSelect([
@@ -328,6 +343,8 @@ export class RequisicionesService {
       fechaSolicitud: r.fechaSolicitud,
       rcp: r.rcp,
       titulo: r.titulo,
+      observaciones: r.observaciones,
+      observacionesCompras: r.observacionesCompras,
       prioridad: r.prioridad,
       hrs: r.hrs,
       concepto: r.concepto,
@@ -372,6 +389,7 @@ export class RequisicionesService {
         unidad: ins.unidad,
         precio: ins.precio || 0,
         currency: ins.currency,
+        is_product: ins.is_product,
       })),
       filtros: r.filtros.map((fil) => ({
         id: fil.id,
@@ -464,7 +482,7 @@ export class RequisicionesService {
     // Mark requisicion as PAGADA
     requisicion.status = RequisicionStatus.PAGADA;
     requisicion.metodo_pago = dto.metodo_pago;
-    requisicion.observaciones = dto.observaciones;
+    requisicion.observacionesCompras = dto.observaciones;
     // Create the entrada
     const entrada = this.entradaRepo.create({
       fechaEsperada: dto.fechaEsperada,
@@ -577,6 +595,194 @@ export class RequisicionesService {
       await queryRunner.rollbackTransaction();
       throw new BadRequestException(`Failed to create requisicion: ${error.message}`);
 
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  // Get just the items of the requisicion (filtros, refacciones, consumibles)
+  // async getRequisicionDetails(requiId: number) {
+  //   // Get id and items
+  //   const query = this.requisicionRepo
+  //     .createQueryBuilder('r')
+  //     .select([
+  //       'r.id',
+  //     ])
+  //     .leftJoinAndSelect('r.refacciones', 'refacciones')
+  //     .addSelect([
+  //       'refacciones.id',
+  //       'refacciones.customId',
+  //       'refacciones.cantidad',
+  //       'refacciones.descripcion',
+  //       'refacciones.unidad',
+  //       'refacciones.precio',
+  //       'refacciones.currency',
+  //     ])
+  //     .leftJoinAndSelect('r.insumos', 'insumos')
+  //     .addSelect([
+  //       'insumos.id',
+  //       'insumos.cantidad',
+  //       'insumos.descripcion',
+  //       'insumos.unidad',
+  //       'insumos.precio',
+  //       'insumos.currency',
+  //     ])
+  //     .leftJoinAndSelect('r.filtros', 'filtros')
+  //     .addSelect([
+  //       'filtros.id',
+  //       'filtros.customId',
+  //       'filtros.cantidad',
+  //       'filtros.descripcion',
+  //       'filtros.unidad',
+  //       'filtros.precio',
+  //       'filtros.currency',
+  //     ])
+  //     .where("r.id = :id", { id: requiId })
+  //
+  //
+  //   const [requisiciones] = await query
+  //     .getManyAndCount();
+  //
+  //   const data = requisiciones.map((r) => ({
+  //     id: r.id,
+  //     refacciones: r.refacciones.map((ref) => ({
+  //       id: ref.id,
+  //       customId: ref.customId,
+  //       cantidad: ref.cantidad,
+  //       descripcion: ref.descripcion,
+  //       unidad: ref.unidad,
+  //       precio: ref.precio || 0,
+  //       currency: ref.currency,
+  //     })),
+  //     insumos: r.insumos.map((ins) => ({
+  //       id: ins.id,
+  //       cantidad: ins.cantidad,
+  //       descripcion: ins.descripcion,
+  //       unidad: ins.unidad,
+  //       precio: ins.precio || 0,
+  //       currency: ins.currency,
+  //     })),
+  //     filtros: r.filtros.map((fil) => ({
+  //       id: fil.id,
+  //       customId: fil.customId,
+  //       cantidad: fil.cantidad,
+  //       descripcion: fil.descripcion,
+  //       unidad: fil.unidad,
+  //       precio: fil.precio || 0,
+  //       currency: fil.currency,
+  //     })),
+  //
+  //   }))
+  //
+  //   return data
+  //
+  // }
+
+
+  // WARN: Provicional update just about the items of the requisicion
+  // -- I will have to update this later to handle the whole requisicion
+  async updateRequisicion(
+    requiId: number,
+    dto: UpdateRequisicionItemsDto,
+  ) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const requisicion = await queryRunner.manager.findOne(Requisicion, {
+        where: { id: requiId },
+        relations: ['refacciones', 'insumos', 'filtros'],
+      });
+
+      if (!requisicion) {
+        throw new NotFoundException('Requisicion not found');
+      }
+
+      const existingItems = dto.items.filter((item) => item.id);
+      const newItems = dto.items.filter((item) => !item.id);
+      const existingIds = existingItems.map((item) => item.id);
+
+      switch (dto.requisicionType) {
+        case RequisicionType.REFACCIONES:
+          await queryRunner.manager.delete(RequisicionRefaccionItem, {
+            requisicion: { id: requiId },
+            id: Not(In(existingIds)),
+          });
+          await this.updateRefaccionItems(existingItems, queryRunner);
+          await this.addRefaccionItems(
+            requisicion,
+            newItems.map((item) => ({
+              customId: item.customId || `ref-${Date.now()}`,
+              no_economico: item.no_economico || "",
+              cantidad: item.cantidad || 0,
+              unidad: item.unidad || "",
+              descripcion: item.descripcion || "",
+              precio: item.precio || 0,
+              currency: item.currency || "USD",
+            })) as CreateRefaccionItemDto[],
+            queryRunner,
+          );
+          break;
+
+        case RequisicionType.CONSUMIBLES:
+          await queryRunner.manager.delete(RequisicionInsumoItem, {
+            requisicion: { id: requiId },
+            id: Not(In(existingIds)),
+          });
+          await this.updateInsumoItems(existingItems, queryRunner);
+          await this.addInsumoItems(
+            requisicion,
+            newItems.map((item) => ({
+              cantidad: item.cantidad || 0,
+              unidad: item.unidad || "",
+              descripcion: item.descripcion || "",
+              precio_unitario: item.precio || 0,
+              currency: item.currency || "USD",
+              is_product: item.is_product || false,
+            })) as CreateInsumoItemDto[],
+            queryRunner,
+          );
+          break;
+
+        case RequisicionType.FILTROS:
+          await queryRunner.manager.delete(RequisicionFilterItem, {
+            requisicion: { id: requiId },
+            id: Not(In(existingIds)),
+          });
+          await this.updateFilterItems(existingItems, queryRunner);
+          await this.addFilterItems(
+            requisicion,
+            newItems.map((item) => ({
+              customId: item.customId || `fil-${Date.now()}`,
+              hrs_snapshot: item.hrs_snapshot,
+              no_economico: item.no_economico || "",
+              cantidad: item.cantidad || 0,
+              unidad: item.unidad || "",
+              descripcion: item.descripcion || "",
+              precio: item.precio || 0,
+              currency: item.currency || "USD",
+            })) as CreateFilterItemDto[],
+            queryRunner,
+          );
+          break;
+      }
+
+      await queryRunner.commitTransaction();
+
+      return await queryRunner.manager.findOne(Requisicion, {
+        where: { id: requiId },
+        relations: {
+          refacciones: true,
+          insumos: true,
+          filtros: true,
+        },
+      });
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new BadRequestException(
+        `Failed to update requisicion: ${error.message}`,
+      );
     } finally {
       await queryRunner.release();
     }
@@ -850,6 +1056,97 @@ export class RequisicionesService {
       console.log('finished trying to insert into filters items')
     }
 
+  }
+
+  // Update items of requisicion
+  private async updateRefaccionItems(
+    items: UpdateItemDto[],
+    queryRunner: QueryRunner,
+  ) {
+    for (const item of items) {
+      const updateData: any = {};
+
+      if (item.cantidad !== undefined)
+        updateData.cantidad = item.cantidad;
+      if (item.precio !== undefined)
+        updateData.precio = item.precio;
+      if (item.currency !== undefined)
+        updateData.currency = item.currency;
+      if (item.unidad !== undefined)
+        updateData.unidad = item.unidad;
+      if (item.descripcion !== undefined)
+        updateData.descripcion = item.descripcion;
+      if (item.customId !== undefined)
+        updateData.customId = item.customId;
+      if (item.no_economico !== undefined)
+        updateData.no_economico = item.no_economico;
+
+      await queryRunner.manager.update(
+        RequisicionRefaccionItem,
+        { id: item.id },
+        updateData,
+      );
+    }
+  }
+
+  private async updateInsumoItems(
+    items: UpdateItemDto[],
+    queryRunner: QueryRunner,
+  ) {
+    for (const item of items) {
+      const updateData: any = {};
+
+      if (item.cantidad !== undefined)
+        updateData.cantidad = item.cantidad;
+      if (item.precio !== undefined)
+        updateData.precio = item.precio;
+      if (item.currency !== undefined)
+        updateData.currency = item.currency;
+      if (item.unidad !== undefined)
+        updateData.unidad = item.unidad;
+      if (item.descripcion !== undefined)
+        updateData.descripcion = item.descripcion;
+      if (item.is_product !== undefined)
+        updateData.is_product = item.is_product;
+
+      await queryRunner.manager.update(
+        RequisicionInsumoItem,
+        { id: item.id },
+        updateData,
+      );
+    }
+  }
+
+  private async updateFilterItems(
+    items: UpdateItemDto[],
+    queryRunner: QueryRunner,
+  ) {
+    for (const item of items) {
+      const updateData: any = {};
+
+      if (item.cantidad !== undefined)
+        updateData.cantidad = item.cantidad;
+      if (item.precio !== undefined)
+        updateData.precio = item.precio;
+      if (item.currency !== undefined)
+        updateData.currency = item.currency;
+      if (item.unidad !== undefined)
+        updateData.unidad = item.unidad;
+      if (item.descripcion !== undefined)
+        updateData.descripcion = item.descripcion;
+      if (item.customId !== undefined)
+        updateData.customId = item.customId;
+      if (item.no_economico !== undefined)
+        updateData.no_economico = item.no_economico;
+      if (item.hrs_snapshot !== undefined)
+        updateData.hrs_snapshot = item.hrs_snapshot;
+
+      await queryRunner.manager.update(
+        RequisicionFilterItem,
+        { id: item.id },
+        updateData,
+      );
+    }
   }
 
 

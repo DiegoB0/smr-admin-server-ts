@@ -109,6 +109,9 @@ export class GetRequisicionDto {
   @ApiProperty({ example: 'Requisición de repuestos' })
   titulo: string;
 
+  @ApiProperty({ example: 'Requisición de repuestos' })
+  observaciones: string;
+
   @ApiProperty({ example: 'baja' })
   prioridad: string;
 

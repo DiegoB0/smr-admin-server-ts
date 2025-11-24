@@ -32,11 +32,14 @@ export class Requisicion {
   @Column({ nullable: true })
   observaciones: string;
 
+  @Column({ nullable: true })
+  observacionesCompras: string;
+
   @Column({ enum: PrioridadType })
   prioridad: PrioridadType;
 
   @Column({ nullable: true })
-  hrs: number; 
+  hrs: number;
 
   @Column({ enum: ConceptoType })
   concepto: ConceptoType;

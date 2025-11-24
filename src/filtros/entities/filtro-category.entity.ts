@@ -2,6 +2,7 @@ import { Equipo } from 'src/equipos/entities/equipo.entity';
 import {
   Column,
   Entity,
+  Index,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -12,6 +13,7 @@ export class CategoriaFiltro {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @Column('text')
   nombre: string;
 

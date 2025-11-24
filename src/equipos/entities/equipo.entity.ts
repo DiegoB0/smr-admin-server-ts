@@ -5,6 +5,7 @@ import { Salida } from 'src/salidas/entities/salida.entity';
 import {
   Column,
   Entity,
+  Index,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -15,9 +16,11 @@ export class Equipo {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @Column('text')
   equipo: string;
 
+  @Index()
   @Column('text')
   no_economico: string;
 

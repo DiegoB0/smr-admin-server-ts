@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { RequisicionType } from '../types/requisicion-type';
 import { PrioridadType } from '../types/prioridad-type';
 import { MetodoPago } from '../types/metodo-pago';
-import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ConceptoType } from '../types/concepto-type';
 
@@ -146,4 +146,73 @@ export class CreateFilterItemDto {
 
   @ApiProperty({ example: 1, required: false })
   equipoId?: number;
+}
+
+export class UpdateRequisicionItemsDto {
+  @ApiProperty({ example: 'consumibles' })
+  @IsEnum(RequisicionType)
+  requisicionType: RequisicionType;
+
+  @ApiProperty({
+    example: [{ id: 1, cantidad: 10, precio: 150.50 }],
+  })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => UpdateItemDto)
+  items: UpdateItemDto[];
+}
+
+export class UpdateItemDto {
+  @ApiProperty({ example: 1, required: false })
+  @IsNumber()
+  @IsOptional()
+  id?: number;
+
+  @ApiProperty({ example: 10, required: false })
+  @IsNumber()
+  @IsOptional()
+  cantidad?: number;
+
+  @ApiProperty({ example: 150.50, required: false })
+  @IsNumber()
+  @IsOptional()
+  precio?: number;
+
+  @ApiProperty({ example: 'USD', required: false })
+  @IsString()
+  @IsOptional()
+  currency?: string;
+
+  @ApiProperty({ example: 'pieza', required: false })
+  @IsString()
+  @IsOptional()
+  unidad?: string;
+
+  @ApiProperty({ example: 'Some description', required: false })
+  @IsString()
+  @IsOptional()
+  descripcion?: string;
+
+  // For refacciones and filtros only
+  @ApiProperty({ example: 'REF-001', required: false })
+  @IsString()
+  @IsOptional()
+  customId?: string;
+
+  @ApiProperty({ example: 'Bomba hidráulica', required: false })
+  @IsString()
+  @IsOptional()
+  no_economico?: string;
+
+  // For filtros only
+  @ApiProperty({ example: 1000, required: false })
+  @IsNumber()
+  @IsOptional()
+  hrs_snapshot?: number;
+
+  // For consumibles only
+  @ApiProperty({ example: false, required: false })
+  @IsBoolean()
+  @IsOptional()
+  is_product?: boolean;
 }

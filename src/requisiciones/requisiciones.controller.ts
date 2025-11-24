@@ -10,7 +10,7 @@ import { CurrentPermissions } from 'src/auth/types/current-permissions';
 import { RequirePermissions } from 'src/auth/decorators/permiso.decorator';
 import { PagarRequisicionDto } from './dto/request.dto';
 import { RequisicionType } from './types/requisicion-type';
-import { CreateRequisicionDto } from './dto/request.v2.dto';
+import { CreateRequisicionDto, UpdateRequisicionItemsDto } from './dto/request.v2.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { RequisicionStatus } from './types/requisicion-status';
 
@@ -134,6 +134,17 @@ export class RequisicionesController {
     return this.requisicionesService.getRequisicionesAprobadas(dto);
   }
 
+
+  // @Get('requisicionItems/:requiId')
+  // @SwaggerAuthHeaders()
+  // @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  // @RequirePermissions(CurrentPermissions.ListRequisicion)
+  // getRequisicionItems(
+  //   @Param('requiId', ParseIntPipe) requiId: number,
+  // ) {
+  //   return this.requisicionesService.getRequisicionDetails(requiId);
+  // }
+
   @Post()
   @SwaggerAuthHeaders()
   @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
@@ -184,5 +195,13 @@ export class RequisicionesController {
     @Body() dto: PagarRequisicionDto,
     @GetUser() user: User) {
     return this.requisicionesService.markAsPagada(id, user, dto);
+  }
+
+ @Patch(':id/items')
+ async updateRequisicionItems(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateRequisicionItemsDto,
+  ) {
+    return this.requisicionesService.updateRequisicion(id, dto);
   }
 }

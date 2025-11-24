@@ -5,6 +5,7 @@ import {
   OneToMany,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { ApiKey } from './api_key.entity';
 import { Log } from 'src/logs/entities/log.entity';

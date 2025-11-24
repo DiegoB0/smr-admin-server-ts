@@ -1,6 +1,7 @@
 import {
   Column,
   Entity,
+  Index,
   ManyToOne,
   OneToMany,
   PrimaryColumn,
@@ -13,6 +14,7 @@ export class FiltroRequirement {
   @PrimaryColumn()
   categoriaId: number;
 
+  @Index()
   @PrimaryColumn()
   hrs: number;
 

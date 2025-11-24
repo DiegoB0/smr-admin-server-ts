@@ -4,6 +4,7 @@ import { Requisicion } from 'src/requisiciones/entities/requisicion.entity';
 import {
   Column,
   Entity,
+  Index,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
