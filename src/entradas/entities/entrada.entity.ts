@@ -23,6 +23,12 @@ export class Entrada {
   @CreateDateColumn()
   fechaCreacion: Date;
 
+  @Column({ nullable: true })
+  observacionesAlmacen: string;
+
+  @Column({ nullable: true })
+  observacionesCompras: string;
+
   @Column({ type: 'date', nullable: true })
   fechaEsperada: string;
 

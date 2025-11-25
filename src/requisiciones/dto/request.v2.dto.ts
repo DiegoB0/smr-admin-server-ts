@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { RequisicionType } from '../types/requisicion-type';
 import { PrioridadType } from '../types/prioridad-type';
 import { MetodoPago } from '../types/metodo-pago';
-import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsArray, IsBoolean, IsDateString, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ConceptoType } from '../types/concepto-type';
 
@@ -110,7 +110,7 @@ export class CreateInsumoItemDto {
   descripcion: string;
 
   @ApiProperty({ example: 25.75 })
-  precio_unitario: number;
+  precio: number;
 
   @ApiProperty({ example: 'USD' })
   currency: string;
@@ -215,4 +215,46 @@ export class UpdateItemDto {
   @IsBoolean()
   @IsOptional()
   is_product?: boolean;
+}
+
+export class PaidItemDto {
+  @ApiProperty({ example: 1 })
+  @IsNumber()
+  id: number;
+
+  @ApiProperty({ example: 10 })
+  @IsNumber()
+  cantidadPagada: number;
+}
+
+export class MarkItemsAsPaidDto {
+  @ApiProperty({ example: 'consumibles' })
+  @IsEnum(RequisicionType)
+  requisicionType: RequisicionType;
+
+  @ApiProperty({
+    example: [
+      { id: 1, cantidadPagada: 10 },
+      { id: 2, cantidadPagada: 5 }
+    ],
+    description: 'Array of items with quantities paid',
+  })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PaidItemDto)
+  items: PaidItemDto[];
+
+  @ApiProperty({ example: 'pago' })
+  @IsEnum(MetodoPago)
+  metodo_pago: MetodoPago;
+
+  @ApiProperty({ example: 'Se completó la compra' })
+  @IsString()
+  @IsOptional()
+  observaciones?: string;
+
+  @ApiProperty({ example: '2025-12-25' })
+  @IsDateString()
+  @IsOptional()
+  fecha_esperada?: string;
 }

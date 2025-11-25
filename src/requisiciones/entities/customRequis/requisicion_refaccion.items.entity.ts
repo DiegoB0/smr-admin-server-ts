@@ -33,6 +33,9 @@ export class RequisicionRefaccionItem {
   @Column({ nullable: true, default: false })
   paid: boolean;
 
+  @Column({ nullable: true})
+  cantidadPagada: number;
+
   @Column({ nullable: true })
   currency: string;
 

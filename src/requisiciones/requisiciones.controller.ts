@@ -10,7 +10,7 @@ import { CurrentPermissions } from 'src/auth/types/current-permissions';
 import { RequirePermissions } from 'src/auth/decorators/permiso.decorator';
 import { PagarRequisicionDto } from './dto/request.dto';
 import { RequisicionType } from './types/requisicion-type';
-import { CreateRequisicionDto, UpdateRequisicionItemsDto } from './dto/request.v2.dto';
+import { CreateRequisicionDto, MarkItemsAsPaidDto, UpdateRequisicionItemsDto } from './dto/request.v2.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { RequisicionStatus } from './types/requisicion-status';
 
@@ -130,8 +130,9 @@ export class RequisicionesController {
   @RequirePermissions(CurrentPermissions.ListRequisicion)
   getAprovedRequisiciones(
     @Query() dto: PaginationDto,
+    @Query('status') status?: RequisicionStatus
   ) {
-    return this.requisicionesService.getRequisicionesAprobadas(dto);
+    return this.requisicionesService.getRequisicionesAprobadas(dto, status);
   }
 
 
@@ -156,18 +157,6 @@ export class RequisicionesController {
     return this.requisicionesService.createRequisicion(dto, user);
   }
 
-  @Patch(':id/items/:itemId/paid')
-  markItemAsPaid(
-    @Param('id', ParseIntPipe) requisicionId: number,
-    @Param('itemId') itemId: number,
-    @Body() body: { itemType: RequisicionType },
-  ) {
-    return this.requisicionesService.markItemAsPaid(
-      requisicionId,
-      itemId,
-      body.itemType,
-    );
-  }
 
   @Patch(':id/approve')
   @SwaggerAuthHeaders()
@@ -185,20 +174,16 @@ export class RequisicionesController {
     return this.requisicionesService.rejectRequisicion(id, user);
   }
 
-
-  @Patch(':id/pagar')
-  @SwaggerAuthHeaders()
-  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  @RequirePermissions(CurrentPermissions.AcceptRequisicion)
-  pagarRequisicion(
-    @Param('id') id: number,
-    @Body() dto: PagarRequisicionDto,
-    @GetUser() user: User) {
-    return this.requisicionesService.markAsPagada(id, user, dto);
+  @Patch(':id/items/paid')
+  markItemsAsPaid(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: MarkItemsAsPaidDto,
+  ) {
+    return this.requisicionesService.markItemsAsPaid(id, dto);
   }
 
- @Patch(':id/items')
- async updateRequisicionItems(
+  @Patch(':id/items')
+  async updateRequisicionItems(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateRequisicionItemsDto,
   ) {
