@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Requisicion } from './entities/requisicion.entity';
 import { LogsService } from 'src/logs/logs.service';
@@ -36,17 +36,17 @@ export class RequisicionesService {
     @InjectRepository(RequisicionFilterItem)
     private filterItemRepo: Repository<RequisicionFilterItem>,
 
-    @InjectRepository(User)
-    private userRepo: Repository<User>,
+    // @InjectRepository(User)
+    // private userRepo: Repository<User>,
 
-    @InjectRepository(Almacen)
-    private almacenRepo: Repository<Almacen>,
-
-    @InjectRepository(Equipo)
-    private equipoRepo: Repository<Equipo>,
-
-    @InjectRepository(Proveedor)
-    private proveedorRepo: Repository<Proveedor>,
+    // @InjectRepository(Almacen)
+    // private almacenRepo: Repository<Almacen>,
+    //
+    // @InjectRepository(Equipo)
+    // private equipoRepo: Repository<Equipo>,
+    //
+    // @InjectRepository(Proveedor)
+    // private proveedorRepo: Repository<Proveedor>,
 
     @InjectRepository(Entrada)
     private entradaRepo: Repository<Entrada>,
@@ -526,7 +526,7 @@ export class RequisicionesService {
       fechaEsperada: dto.fechaEsperada,
       status: EntradaStatus.PENDIENTE,
       almacenDestino: requisicion.almacenDestino,
-      creadoPor: user,
+      recibidoPor: user,
       requisicion: requisicion,
     });
     await this.requisicionRepo.save(requisicion);
@@ -835,6 +835,7 @@ export class RequisicionesService {
   async markItemsAsPaid(
     requisicionId: number,
     dto: MarkItemsAsPaidDto,
+    user: User
   ) {
     if (!dto.items || dto.items.length === 0) {
       throw new BadRequestException('No items selected to mark as paid');
@@ -937,6 +938,7 @@ export class RequisicionesService {
 
       const entrada = this.entradaRepo.create({
         fechaEsperada: dto.fecha_esperada,
+        recibidoPor: user,
         status: EntradaStatus.PENDIENTE,
         almacenDestino: requisicion.almacenDestino,
         observacionesAlmacen: requisicion.observaciones,

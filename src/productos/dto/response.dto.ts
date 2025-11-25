@@ -7,6 +7,8 @@ export class GetProductDto {
   name: string;
 
   description: string;
+  
+  customId: string;
 
   unidad: string;
 

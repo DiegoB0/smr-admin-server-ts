@@ -91,63 +91,67 @@ export class AlmacenesController {
   }
 
 
-  // TODO: Add permissions and other guards
-  // @Post('products/add_stock')
-  // @SwaggerAuthHeaders()
-  // @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  // @RequirePermissions(CurrentPermissions.AddStock)
-  // async addStock(
-  //   @Body() dto: AddStockDto
-  // ): Promise<Inventario> {
-  //   const { almacenId, productId, cantidad } = dto;
-  //   return this.almacenesService.addStock(almacenId, productId, cantidad)
-  //
-  // }
-  //
-  // @Post('products/add_multiple_stock')
-  // @SwaggerAuthHeaders()
-  // @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  // @RequirePermissions(CurrentPermissions.AddStock)
-  // async addMultipleStock(
-  //   @Body() dto: AddMultipleStockDto
-  // ): Promise<Inventario[]> {
-  //   return this.almacenesService.addMultipleStock(dto.stockData)
-  // }
-  //
-  //
-  // @Get('products/get_products')
-  // @SwaggerAuthHeaders()
-  // @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  // @RequirePermissions(CurrentPermissions.ListStock)
-  // async getProducts(
-  //   @Query() dto: InventoryQueryDto,
-  // ) {
-  //   const { almacenId, ...pagination } = dto;
-  //   return await this.almacenesService.getProducts(almacenId, pagination)
-  // }
-  //
-  // @Get('products/find_product')
-  // @SwaggerAuthHeaders()
-  // @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  // @RequirePermissions(CurrentPermissions.ListStock)
-  // async getProduct(
-  //   @Query('almacenId') almacenId: number,
-  //   @Query('productId') productId: string,
-  // ) {
-  //   return await this.almacenesService.getProduct(almacenId, productId)
-  // }
-  //
-  // @Delete('products/remove_stock')
-  // @SwaggerAuthHeaders()
-  // @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  // @RequirePermissions(CurrentPermissions.RemoveStock)
-  // async removeStock(
-  //   @Query('almacenId', ParseIntPipe) almacenId: number,
-  //   @Query('productId') productId: string,
-  //   @Query('cantidad', ParseIntPipe) cantidad: number
-  // ) {
-  //   return this.almacenesService.removeStock(almacenId, productId, cantidad)
-  // }
+  @Post('products/add_stock')
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.AddStock)
+  async addStock(
+    @Body() dto: AddStockDto,
+    @GetUser() user: User
+  ): Promise<Inventario> {
+    return this.almacenesService.addStockWithEntrada(dto.almacenId, dto, user)
+
+  }
+
+  @Post('products/add_multiple_stock')
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.AddStock)
+  async addMultipleStock(
+    @Body() dto: AddMultipleStockDto,
+    @GetUser() user: User
+  ): Promise<Inventario[]> {
+    return this.almacenesService.addMultipleStock(
+      dto.almacenId,
+      dto.stockData,
+      user
+    );
+  }
+
+  @Get('products/get_products')
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.ListStock)
+  async getProducts(
+    @Query() dto: InventoryQueryDto,
+  ) {
+    const { almacenId, ...pagination } = dto;
+    return await this.almacenesService.getProducts(almacenId, pagination)
+  }
+
+  @Get('products/find_product')
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.ListStock)
+  async getProduct(
+    @Query('almacenId') almacenId: number,
+    @Query('productId') productId: number,
+  ) {
+    return await this.almacenesService.getProduct(almacenId, productId)
+  }
+
+
+  @Delete('products/remove_stock')
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.RemoveStock)
+  async removeStock(
+    @Query('almacenId', ParseIntPipe) almacenId: number,
+    @Query('productId') productId: number,
+    @Query('cantidad', ParseIntPipe) cantidad: number
+  ) {
+    return this.almacenesService.removeStock(almacenId, productId, cantidad)
+  }
 
   // GET ALL THE ADMIN USERS
   @Get('encargados/all_encargados')

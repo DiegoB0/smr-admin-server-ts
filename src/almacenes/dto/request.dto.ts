@@ -70,8 +70,9 @@ export class AddStockDto {
     example: 'prod-001',
     description: 'ID del producto al que se le va a agregar stock',
   })
-  @IsString()
-  productId: string;
+  @IsInt()
+  @IsOptional()
+  productId?: number;
 
   @ApiProperty({
     example: 10,
@@ -80,9 +81,48 @@ export class AddStockDto {
   @IsInt()
   @IsPositive()
   cantidad: number;
+
+  @ApiProperty({
+    example: true,
+    required: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  createEntrada?: boolean;
+
+  @ApiProperty({
+    example: 'Nuevo Producto',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  productName?: string;
+
+  @ApiProperty({
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  productDescription?: string;
+
+  @ApiProperty({
+    example: 'unidad',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  unidad?: string;
 }
 
 export class AddMultipleStockDto {
+  @ApiProperty({
+    example: 1,
+    description: 'ID del almacén donde se va a agregar stock',
+  })
+  @IsInt()
+  almacenId: number;
+
+
   @ApiProperty({
     type: [AddStockDto],
     description: 'Arreglo de objetos para agregar stock a múltiples productos',

@@ -51,11 +51,8 @@ export class User {
   @OneToMany(() => Requisicion, (requisicion) => requisicion.revisadoPor)
   requisicionesAprovadas: Requisicion[];
 
-  @OneToMany(() => Entrada, (entrada) => entrada.creadoPor)
+  @OneToMany(() => Entrada, (entrada) => entrada.recibidoPor)
   entradas: Entrada[];
-
-  @OneToMany(() => Salida, (salida) => salida.recibidaPor)
-  salidas: Salida[];
 
   @ManyToOne(() => Obra, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'obra_id' })

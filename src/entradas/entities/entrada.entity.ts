@@ -11,9 +11,6 @@ import { Almacen } from 'src/almacenes/entities/almacen.entity';
 import { User } from 'src/auth/entities/usuario.entity';
 import { EntradaItem } from './entrada_item.entity';
 import { Requisicion } from 'src/requisiciones/entities/requisicion.entity';
-import { RequisicionRefaccionItem } from 'src/requisiciones/entities/customRequis/requisicion_refaccion.items.entity';
-import { RequisicionFilterItem } from 'src/requisiciones/entities/customRequis/requisicion_filter_items.entity';
-import { RequisicionInsumoItem } from 'src/requisiciones/entities/customRequis/requisicion_insumo_items.entity';
 
 @Entity('entradas')
 export class Entrada {
@@ -44,8 +41,8 @@ export class Entrada {
   @ManyToOne(() => Almacen, a => a.entradas)
   almacenDestino: Almacen;
 
-  @ManyToOne(() => User, u => u.entradas)
-  creadoPor: User;
+  @ManyToOne(() => User, u => u.entradas, {nullable: true})
+  recibidoPor: User;
 
   @ManyToOne(() => Requisicion, { nullable: true })
   requisicion: Requisicion;

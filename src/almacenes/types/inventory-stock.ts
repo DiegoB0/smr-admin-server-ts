@@ -1,5 +1,5 @@
 export type StockInput = {
   almacenId: number,
-  productId: string,
+  productId: number,
   cantidad: number
 }

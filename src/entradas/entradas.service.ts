@@ -123,8 +123,8 @@ export class EntradasService {
       ])
       .leftJoin('entrada.almacenDestino', 'almacen')
       .addSelect(['almacen.id', 'almacen.name'])
-      .leftJoin('entrada.creadoPor', 'creadoPor')
-      .addSelect(['creadoPor.id', 'creadoPor.name'])
+      .leftJoin('entrada.recibidoPor', 'recibidoPor')
+      .addSelect(['recibidoPor.id', 'recibidoPor.name'])
       .leftJoin('entrada.requisicion', 'requisicion')
       .addSelect(['requisicion.id', 'requisicion.rcp', 'requisicion.metodo_pago'])
       .where('entrada.id IN (:...ids)', { ids })
@@ -165,7 +165,7 @@ export class EntradasService {
       fechaEsperada: e.fechaEsperada,
       status: e.status,
       almacenDestino: { id: e.almacenDestino?.id, name: e.almacenDestino?.name },
-      creadoPor: { id: e.creadoPor?.id, name: e.creadoPor?.name },
+      recibidoPor: { id: e.recibidoPor?.id, name: e.recibidoPor?.name },
       requisicion: e.requisicion
         ? { id: e.requisicion.id, rcp: e.requisicion.rcp, metodo_pago: e.requisicion.metodo_pago }
         : null,

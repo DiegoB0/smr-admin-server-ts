@@ -7,12 +7,13 @@ export class ParamProductoID {
   })
   @IsString()
   @IsNotEmpty()
-  id: string
+  id: number
 }
 
 export class CreateProductoDto {
   @ApiProperty({ example: 'PR-234' })
   @IsString()
+  @IsOptional()
   customId: string;
 
   @ApiProperty({ example: 'Pieza Random' })
@@ -27,11 +28,8 @@ export class CreateProductoDto {
   @IsString()
   unidad: string;
 
-  @ApiProperty({ example: 10.00 })
-  @IsNumber()
-  precio: number;
-
   @ApiProperty({ example: 'URL de la foto de la pieza' })
+  @IsOptional()
   @IsString()
   imageUrl: string;
 }
@@ -46,6 +44,11 @@ export class UpdateProductoDto {
   @IsOptional()
   @IsString()
   description: string;
+
+  @ApiProperty({ example: 'REF-100' })
+  @IsOptional()
+  @IsString()
+  customId: string;
 
   @ApiProperty({ example: 'Pieza' })
   @IsOptional()

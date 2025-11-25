@@ -63,7 +63,7 @@ export class GetEntradaDto {
   almacenDestino: AlmacenMinimalDto;
 
   @ApiProperty({ type: () => UserMinimalDto })
-  creadoPor: UserMinimalDto;
+  recibidoPor: UserMinimalDto;
 
   @ApiProperty({ type: () => RequisicionMinimalDto })
   requisicion: RequisicionMinimalDto | null;

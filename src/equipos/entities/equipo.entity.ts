@@ -36,9 +36,6 @@ export class Equipo {
   @Column('bool', { default: true })
   isActive: boolean;
 
-  @OneToMany(() => Salida, (salida) => salida.equipo)
-  salidas: Salida[];
-
   @ManyToOne(() => CategoriaFiltro, (cat) => cat.equipos)
   filtro_categoria: CategoriaFiltro;
 }

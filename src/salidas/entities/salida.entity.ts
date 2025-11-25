@@ -10,7 +10,6 @@ import {
 import { Almacen } from 'src/almacenes/entities/almacen.entity';
 import { User } from 'src/auth/entities/usuario.entity';
 import { SalidaItem } from './salida_item.entity';
-import { Equipo } from 'src/equipos/entities/equipo.entity';
 
 @Entity('salidas')
 export class Salida {
@@ -18,7 +17,7 @@ export class Salida {
   id: number;
 
   @Column({nullable: true})
-  recibidaPor: string;
+  prestadaPara: string;
 
   @ManyToOne(() => User, { nullable: true })
   authoriza?: User;
@@ -35,7 +34,4 @@ export class Salida {
 
   @Column({ name: 'almacen_origen_id' })
   almacenOrigenId: number;
-
-  @ManyToOne(() => Equipo, (equipo) => equipo.salidas)
-  equipo?: Equipo;
 }

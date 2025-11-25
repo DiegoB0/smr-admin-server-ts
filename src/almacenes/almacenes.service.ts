@@ -4,12 +4,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository } from 'typeorm';
 import { LogsService } from 'src/logs/logs.service';
 import { User } from 'src/auth/entities/usuario.entity';
-import { CreateAlmacenDto, ParamAlmacenID, UpdateAlmacenDto } from './dto/request.dto';
+import { AddStockDto, CreateAlmacenDto, ParamAlmacenID, UpdateAlmacenDto } from './dto/request.dto';
 import { GetAlmacenDto, GetInventarioDto, PaginatedAlmacenDto, PaginatedInventarioDto } from './dto/response.dto';
 import { PaginationDto, PaginationMetaData } from 'src/common/dto/pagination.dto';
 import { Inventario } from './entities/inventario.entity';
 import { StockInput } from './types/inventory-stock';
 import { Obra } from 'src/obras/entities/obra.entity';
+import { Producto } from 'src/productos/entities/producto.entity';
+import { Entrada } from 'src/entradas/entities/entrada.entity';
+import { EntradaItem } from 'src/entradas/entities/entrada_item.entity';
+import { EntradaStatus } from 'src/entradas/types/entradas-status';
 
 @Injectable()
 export class AlmacenesService {
@@ -17,13 +21,20 @@ export class AlmacenesService {
     @InjectRepository(Almacen)
     private almacenRepo: Repository<Almacen>,
 
-
     @InjectRepository(User)
     private userRepo: Repository<User>,
 
     @InjectRepository(Inventario)
     private inventarioRepo: Repository<Inventario>,
 
+    @InjectRepository(Producto)
+    private productoRepo: Repository<Producto>,
+
+    @InjectRepository(Entrada)
+    private entradaRepo: Repository<Entrada>,
+
+    @InjectRepository(EntradaItem)
+    private entradaItemRepo: Repository<EntradaItem>,
 
     @InjectRepository(Obra)
     private obraRepo: Repository<Obra>,
@@ -353,118 +364,230 @@ export class AlmacenesService {
   /* PRODUCTOS POR ALMACEN */
 
   // Add one to stock
-  // async addStock(almacenId: number, productId: string, cantidad: number = 1) {
-  //   let inventario = await this.inventarioRepo.findOne({
-  //     where: {
-  //       almacen: { id: almacenId },
-  //       producto: { id: productId }
-  //     },
-  //     relations: ['almacen', 'producto']
-  //   })
-  //
-  //   if (!inventario) {
-  //     inventario = this.inventarioRepo.create({
-  //       almacen: { id: almacenId },
-  //       producto: { id: productId },
-  //       stock: cantidad
-  //     })
-  //   } else {
-  //     inventario.stock += cantidad;
-  //   }
-  //
-  //   return this.inventarioRepo.save(inventario);
-  //
-  // }
-  //
-  // async addMultipleStock(stockData: StockInput[]) {
-  //   const updatedInventory: Inventario[] = [];
-  //
-  //   for (const { almacenId, productId, cantidad } of stockData) {
-  //     const inventario = await this.addStock(almacenId, productId, cantidad);
-  //     updatedInventory.push(inventario);
-  //   }
-  //
-  //   return updatedInventory;
-  //
-  // }
-  //
-  // async removeStock(almacenId: number, productId: string, cantidad: number) {
-  //   let inventario = await this.inventarioRepo.findOne({
-  //     where: {
-  //       almacen: { id: almacenId },
-  //       producto: { id: productId }
-  //     },
-  //     relations: ['almacen', 'producto']
-  //   })
-  //
-  //   if (!inventario) throw new NotFoundException('No inventory found');
-  //
-  //   if (inventario.stock < cantidad) throw new BadRequestException('No hay suficiente stock disponible')
-  //
-  //   inventario.stock -= cantidad;
-  //
-  //   return this.inventarioRepo.save(inventario);
-  // }
-  //
-  // async getProducts(almacenId: number, pagination: PaginationDto): Promise<PaginatedInventarioDto> {
-  //   const { page = 1, limit = 10, search, order = 'ASC' } = pagination;
-  //   const skip = (page - 1) * limit;
-  //
-  //   const queryBuilder = this.inventarioRepo.createQueryBuilder('inventario')
-  //     .leftJoinAndSelect('inventario.producto', 'producto')
-  //     .where('inventario.almacenId = :almacenId', { almacenId })
-  //     .andWhere('inventario.stock > 0');
-  //
-  //
-  //   if (search) {
-  //     const term = `%${search}%`;
-  //     queryBuilder.andWhere(
-  //       new Brackets(qb => {
-  //         qb.where('producto.name ILIKE :term', { term })
-  //           .orWhere('producto.id ILIKE :term', { term });
-  //       }),
-  //     );
-  //   }
-  //
-  //   queryBuilder.orderBy('producto.name', order);
-  //
-  //   const [inventarios, totalItems] = await queryBuilder
-  //     .skip(skip)
-  //     .take(limit)
-  //     .getManyAndCount();
-  //
-  //   const totalPages = Math.ceil(totalItems / limit);
-  //   const hasNextPage = page < totalPages;
-  //   const hasPreviousPage = page > 1;
-  //
-  //   const mappedInventario: GetInventarioDto[] = inventarios.map((inv) => ({
-  //     id: inv.id,
-  //     producto: inv.producto,
-  //     stock: inv.stock,
-  //   }));
-  //
-  //   const meta: PaginationMetaData = {
-  //     currentPage: page,
-  //     totalPages,
-  //     totalItems,
-  //     itemsPerPage: limit,
-  //     hasNextPage,
-  //     hasPreviousPage,
-  //   };
-  //
-  //   return new PaginatedInventarioDto(mappedInventario, meta);
-  // }
-  //
-  // async getProduct(almacenId: number, productId: string) {
-  //   const inventario = await this.inventarioRepo.findOne({
-  //     where: {
-  //       almacen: { id: almacenId },
-  //       producto: { id: productId }
-  //     },
-  //     relations: ['producto']
-  //   })
-  //
-  //   return inventario;
-  // }
-  //
+  async addStockWithEntrada(
+    almacenId: number,
+    dto: AddStockDto,
+    user: User
+  ): Promise<Inventario> {
+    let productId = dto.productId;
+
+    // Create product if needed
+    if (!productId && dto.productName) {
+      const producto = this.productoRepo.create({
+        name: dto.productName,
+        description: dto.productDescription || dto.productName,
+        unidad: dto.unidad || 'unidad',
+        isActive: true,
+      });
+      const savedProducto = await this.productoRepo.save(producto);
+      productId = savedProducto.id;
+    }
+
+    if (!productId) {
+      throw new BadRequestException(
+        'Product ID or product name required',
+      );
+    }
+
+    const inventario = await this.addStock(
+      almacenId,
+      productId,
+      dto.cantidad,
+    );
+
+    // Create entrada if requested
+    if (dto.createEntrada) {
+      const almacen = await this.almacenRepo.findOne({
+        where: { id: almacenId },
+      });
+
+      if (!almacen) {
+        throw new NotFoundException('Almacen not found');
+      }
+
+      const entradaItem = this.entradaItemRepo.create({
+        cantidadEsperada: dto.cantidad,
+        cantidadRecibida: dto.cantidad,
+        descripcion: inventario.producto.name,
+        unidad: inventario.producto.unidad,
+      });
+
+      const savedItem = await this.entradaItemRepo.save(entradaItem);
+
+      const today = new Date().toISOString().split('T')[0];
+      const entrada = this.entradaRepo.create({
+        fechaRecibida: today,
+        recibidoPor: user,
+        status: EntradaStatus.RECIBIDA,
+        almacenDestino: almacen,
+        items: [savedItem],
+      });
+
+      await this.entradaRepo.save(entrada);
+    }
+
+    return inventario;
+  }
+
+  async addMultipleStock(
+    almacenId: number,
+    stockData: AddStockDto[],
+    user: User
+  ): Promise<Inventario[]> {
+    const updatedInventory: Inventario[] = [];
+
+    for (const data of stockData) {
+      const inventario = await this.addStockWithEntrada(
+        almacenId,
+        data,
+        user,
+      );
+      updatedInventory.push(inventario);
+    }
+
+    return updatedInventory;
+  }
+
+
+  async removeStock(almacenId: number, productId: number, cantidad: number) {
+    let inventario = await this.inventarioRepo.findOne({
+      where: {
+        almacen: { id: almacenId },
+        producto: { id: productId }
+      },
+      relations: ['almacen', 'producto']
+    })
+
+    if (!inventario) throw new NotFoundException('No inventory found');
+
+    if (inventario.stock < cantidad) throw new BadRequestException('No hay suficiente stock disponible')
+
+    inventario.stock -= cantidad;
+
+    return this.inventarioRepo.save(inventario);
+  }
+
+
+  async getProducts(almacenId: number, pagination: PaginationDto): Promise<PaginatedInventarioDto> {
+    const { page = 1, limit = 10, search, order = 'ASC' } = pagination;
+    const skip = (page - 1) * limit;
+
+    const queryBuilder = this.inventarioRepo.createQueryBuilder('inventario')
+      .leftJoinAndSelect('inventario.producto', 'producto')
+      .where('inventario.almacenId = :almacenId', { almacenId })
+      .andWhere('inventario.stock > 0');
+
+
+    if (search) {
+      const term = `%${search}%`;
+      queryBuilder.andWhere(
+        new Brackets(qb => {
+          qb.where('producto.name ILIKE :term', { term })
+            .orWhere('producto.id ILIKE :term', { term });
+        }),
+      );
+    }
+
+    queryBuilder.orderBy('producto.name', order);
+
+    const [inventarios, totalItems] = await queryBuilder
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+
+    const totalPages = Math.ceil(totalItems / limit);
+    const hasNextPage = page < totalPages;
+    const hasPreviousPage = page > 1;
+
+    const mappedInventario: GetInventarioDto[] = inventarios.map((inv) => ({
+      id: inv.id,
+      producto: inv.producto,
+      stock: inv.stock,
+    }));
+
+    const meta: PaginationMetaData = {
+      currentPage: page,
+      totalPages,
+      totalItems,
+      itemsPerPage: limit,
+      hasNextPage,
+      hasPreviousPage,
+    };
+
+    return new PaginatedInventarioDto(mappedInventario, meta);
+  }
+
+  async getProduct(almacenId: number, productId: number) {
+    const inventario = await this.inventarioRepo.findOne({
+      where: {
+        almacen: { id: almacenId },
+        producto: { id: productId }
+      },
+      relations: ['producto']
+    })
+
+    return inventario;
+  }
+
+
+  private async addStock(
+    almacenId: number,
+    productId: number,
+    cantidad: number = 1,
+  ): Promise<Inventario> {
+    let inventario = await this.inventarioRepo.findOne({
+      where: {
+        almacen: { id: almacenId },
+        producto: { id: productId },
+      },
+      relations: ['almacen', 'producto'],
+    });
+
+    if (!inventario) {
+      // Fetch the producto to ensure we have all its data
+      const producto = await this.productoRepo.findOne({
+        where: { id: productId },
+      });
+
+      if (!producto) {
+        throw new NotFoundException(`Producto with ID ${productId} not found`);
+      }
+
+      inventario = this.inventarioRepo.create({
+        almacen: { id: almacenId },
+        producto,
+        stock: cantidad,
+      });
+
+      const savedInventario = await this.inventarioRepo.save(inventario);
+
+      // Reload to get full relations
+      const reloadedInventario = await this.inventarioRepo.findOne({
+        where: { id: savedInventario.id },
+        relations: ['almacen', 'producto'],
+      });
+
+      if (!reloadedInventario) {
+        throw new NotFoundException('Failed to reload inventario');
+      }
+
+      return reloadedInventario;
+    }
+
+    inventario.stock += cantidad;
+    const updatedInventario = await this.inventarioRepo.save(inventario);
+
+    // Reload to ensure relations are populated
+    const reloadedInventario = await this.inventarioRepo.findOne({
+      where: { id: updatedInventario.id },
+      relations: ['almacen', 'producto'],
+    });
+
+    if (!reloadedInventario) {
+      throw new NotFoundException('Failed to reload inventario');
+    }
+
+    return reloadedInventario;
+  }
+
 }

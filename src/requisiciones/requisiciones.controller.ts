@@ -175,11 +175,14 @@ export class RequisicionesController {
   }
 
   @Patch(':id/items/paid')
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
   markItemsAsPaid(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: MarkItemsAsPaidDto,
+    @GetUser() user: User
   ) {
-    return this.requisicionesService.markItemsAsPaid(id, dto);
+    return this.requisicionesService.markItemsAsPaid(id, dto, user);
   }
 
   @Patch(':id/items')
