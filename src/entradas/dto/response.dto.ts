@@ -59,9 +59,6 @@ export class GetEntradaDto {
   @ApiProperty({ example: '2025-08-08T05:42:51.930Z' })
   fechaCreacion: Date;
 
-  @ApiProperty({ type: () => [EntradaItemMinimalDto] })
-  items: EntradaItemMinimalDto[];
-
   @ApiProperty({ type: () => AlmacenMinimalDto })
   almacenDestino: AlmacenMinimalDto;
 
@@ -70,6 +67,35 @@ export class GetEntradaDto {
 
   @ApiProperty({ type: () => RequisicionMinimalDto })
   requisicion: RequisicionMinimalDto | null;
+
+  @ApiProperty({ type: () => [EntradaItemDto] })
+  items: EntradaItemDto[];
+}
+
+export class EntradaItemDto {
+  @ApiProperty()
+  id: number;
+
+  @ApiProperty()
+  cantidadEsperada: number;
+
+  @ApiProperty({ nullable: true })
+  cantidadRecibida: number | null;
+
+  @ApiProperty({ nullable: true })
+  descripcion: string;
+
+  @ApiProperty({ nullable: true })
+  unidad: string;
+
+  @ApiProperty({ nullable: true })
+  refaccionItem: any;
+
+  @ApiProperty({ nullable: true })
+  insumoItem: any;
+
+  @ApiProperty({ nullable: true })
+  filtroItem: any;
 }
 
 /* ======= Paginated DTO ======= */

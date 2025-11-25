@@ -626,6 +626,9 @@ export class RequisicionesService {
           filtros: true,
         },
       });
+      if (!finalResult) throw new NotFoundException('Error creando la requi')
+
+      this.recalculateRequisicionAmounts(finalResult.id);
 
       return finalResult;
 
@@ -858,20 +861,18 @@ export class RequisicionesService {
           if (!refaccionItem) continue;
 
           await this.refaccionItemRepo.update(
-            { id: item.id, requisicion: { id: requisicionId } },
+            { id: item.id },
             { paid: true, cantidadPagada: item.cantidadPagada },
           );
 
           entradaItems.push(
             this.entradaItemRepo.create({
-              cantidadEsperada: Number(refaccionItem.cantidadPagada),
-              cantidadRecibida: null,
+              cantidadEsperada: item.cantidadPagada, // Remove Number() wrapper
               descripcion: refaccionItem.descripcion,
               unidad: refaccionItem.unidad,
               refaccionItem,
             }),
           );
-
         }
         break;
 
@@ -881,23 +882,24 @@ export class RequisicionesService {
             where: { id: item.id },
           });
 
-
           if (!insumoItem) continue;
 
           await this.insumoItemRepo.update(
-            { id: item.id, requisicion: { id: requisicionId } },
+            { id: item.id },
             { paid: true, cantidadPagada: item.cantidadPagada },
           );
 
-          entradaItems.push(
-            this.entradaItemRepo.create({
-              cantidadEsperada: Number(insumoItem.cantidadPagada),
-              cantidadRecibida: null,
-              descripcion: insumoItem.descripcion,
-              unidad: insumoItem.unidad,
-              insumoItem,
-            }),
-          );
+          if (insumoItem.is_product === true) {
+            entradaItems.push(
+              this.entradaItemRepo.create({
+                cantidadEsperada: item.cantidadPagada,
+                descripcion: insumoItem.descripcion,
+                unidad: insumoItem.unidad,
+                insumoItem,
+              }),
+            );
+
+          }
 
         }
         break;
@@ -911,20 +913,18 @@ export class RequisicionesService {
           if (!filtroItem) continue;
 
           await this.filterItemRepo.update(
-            { id: item.id, requisicion: { id: requisicionId } },
+            { id: item.id },
             { paid: true, cantidadPagada: item.cantidadPagada },
           );
 
           entradaItems.push(
             this.entradaItemRepo.create({
-              cantidadEsperada: Number(filtroItem.cantidadPagada),
-              cantidadRecibida: null,
+              cantidadEsperada: item.cantidadPagada,
               descripcion: filtroItem.descripcion,
               unidad: filtroItem.unidad,
               filtroItem,
             }),
           );
-
         }
         break;
 
@@ -932,17 +932,22 @@ export class RequisicionesService {
         throw new BadRequestException('Invalid requisicion type');
     }
 
-    const entrada = this.entradaRepo.create({
-      fechaEsperada: dto.fecha_esperada,
-      status: EntradaStatus.PENDIENTE,
-      almacenDestino: requisicion.almacenDestino,
-      observacionesAlmacen: requisicion.observaciones,
-      observacionesCompras: dto.observaciones,
-      requisicion,
-      items: entradaItems,
-    });
+    if (entradaItems.length > 0) {
+      const savedItems = await this.entradaItemRepo.save(entradaItems);
 
-    await this.entradaRepo.save(entrada);
+      const entrada = this.entradaRepo.create({
+        fechaEsperada: dto.fecha_esperada,
+        status: EntradaStatus.PENDIENTE,
+        almacenDestino: requisicion.almacenDestino,
+        observacionesAlmacen: requisicion.observaciones,
+        observacionesCompras: dto.observaciones,
+        requisicion,
+        items: savedItems,
+      });
+
+      await this.entradaRepo.save(entrada);
+
+    }
 
     const updateData: any = {
       metodo_pago: dto.metodo_pago,
@@ -974,7 +979,6 @@ export class RequisicionesService {
 
     if (!requisicion) throw new NotFoundException('Requisicion not found');
 
-    // Calculate estimated (all items)
     const items = [
       ...requisicion.refacciones,
       ...requisicion.insumos,
@@ -982,16 +986,15 @@ export class RequisicionesService {
     ];
 
     const cantidadEstimada = items.reduce((sum, item) => {
-      const precio = item.precio || 0; // Default to 0 if null/undefined
+      const precio = item.precio || 0;
       return sum + (item.cantidad || 0) * precio;
     }, 0);
 
-    // Calculate actual (only paid items)
     const cantidadActual = items
       .filter((item) => item.paid === true)
       .reduce((sum, item) => {
         const precio = item.precio || 0;
-        return sum + (item.cantidad || 0) * precio;
+        return sum + (item.cantidadPagada || 0) * precio;
       }, 0);
 
     requisicion.cantidadEstimada = cantidadEstimada;

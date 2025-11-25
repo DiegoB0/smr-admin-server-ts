@@ -1,12 +1,13 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Entrada } from './entities/entrada.entity';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { EntradaItem } from './entities/entrada_item.entity';
 import { EntradaStatus } from './types/entradas-status';
 import { Inventario } from 'src/almacenes/entities/inventario.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { GetEntradaDto, PaginatedEntradaDto } from './dto/response.dto';
+import { Producto } from 'src/productos/entities/producto.entity';
 
 @Injectable()
 export class EntradasService {
@@ -17,178 +18,306 @@ export class EntradasService {
     @InjectRepository(Inventario)
     private inventarioRepo: Repository<Inventario>,
 
+
+    @InjectRepository(Producto)
+    private productoRepo: Repository<Producto>,
+
     @InjectRepository(EntradaItem)
     private readonly itemRepo: Repository<EntradaItem>,
   ) { }
 
-  // async findAll(
-  //   almacenId: number,
-  //   pagination: PaginationDto
-  // ): Promise<PaginatedEntradaDto> {
-  //   const { page = 1, limit = 10, order = 'DESC' } = pagination;
-  //   const skip = (page - 1) * limit;
-  //
-  //   // 1) Base QB filtered by almacén (required now)
-  //   const baseQB = this.entradaRepo
-  //     .createQueryBuilder('entrada')
-  //     .leftJoin('entrada.almacenDestino', 'almacen')
-  //     .where('almacen.id = :almacenId', { almacenId });
-  //
-  //   const totalItems = await baseQB.getCount();
-  //   const totalPages = Math.ceil(totalItems / limit);
-  //
-  //   if (totalItems === 0) {
-  //     return new PaginatedEntradaDto([], {
-  //       currentPage: page,
-  //       totalPages,
-  //       totalItems,
-  //       itemsPerPage: limit,
-  //       hasNextPage: page < totalPages,
-  //       hasPreviousPage: page > 1,
-  //     });
-  //   }
-  //
-  //   // 2) Page of IDs only
-  //   const ids = (
-  //     await baseQB
-  //       .clone()
-  //       .select('entrada.id', 'id')
-  //       .orderBy('entrada.fechaCreacion', order)
-  //       .skip(skip)
-  //       .take(limit)
-  //       .getRawMany<{ id: number }>()
-  //   ).map((r) => r.id);
-  //
-  //   if (ids.length === 0) {
-  //     return new PaginatedEntradaDto([], {
-  //       currentPage: page,
-  //       totalPages,
-  //       totalItems,
-  //       itemsPerPage: limit,
-  //       hasNextPage: page < totalPages,
-  //       hasPreviousPage: page > 1,
-  //     });
-  //   }
-  //
-  //   // 3) Load full rows for those IDs
-  //   const entradas = await this.entradaRepo
-  //     .createQueryBuilder('entrada')
-  //     .select(['entrada.id', 'entrada.fechaCreacion', 'entrada.fechaEsperada', 'entrada.status'])
-  //     .leftJoin('entrada.items', 'items')
-  //     .addSelect(['items.id', 'items.cantidadRecibida', 'items.cantidadEsperada'])
-  //     .leftJoin('items.producto', 'producto')
-  //     .addSelect(['producto.id', 'producto.name'])
-  //     .leftJoin('entrada.almacenDestino', 'almacen')
-  //     .addSelect(['almacen.id', 'almacen.name'])
-  //     .leftJoin('entrada.creadoPor', 'creadoPor')
-  //     .addSelect(['creadoPor.id', 'creadoPor.name'])
-  //     .leftJoin('entrada.requisicion', 'requisicion')
-  //     .addSelect(['requisicion.id', 'requisicion.rcp'])
-  //     .where('entrada.id IN (:...ids)', { ids })
-  //     .orderBy('entrada.fechaCreacion', order)
-  //     .getMany();
-  //
-  //   // 4) Map to DTO
-  //   const mapped: GetEntradaDto[] = entradas.map((e) => ({
-  //     id: e.id,
-  //     fechaCreacion: e.fechaCreacion,
-  //     fechaEsperada: e.fechaEsperada,
-  //     status: e.status,
-  //     items: (e.items ?? []).map((i) => ({
-  //       id: i.id,
-  //       cantidadRecibida: i.cantidadRecibida,
-  //       cantidadEsperada: i.cantidadEsperada,
-  //       producto: { id: i.producto.id, name: i.producto.name },
-  //     })),
-  //     almacenDestino: { id: e.almacenDestino?.id, name: e.almacenDestino?.name },
-  //     creadoPor: { id: e.creadoPor?.id, name: e.creadoPor?.name },
-  //     requisicion: e.requisicion
-  //       ? { id: e.requisicion.id, rcp: e.requisicion.rcp }
-  //       : null,
-  //   }));
-  //
-  //   return new PaginatedEntradaDto(mapped, {
-  //     currentPage: page,
-  //     totalPages,
-  //     totalItems,
-  //     itemsPerPage: limit,
-  //     hasNextPage: page < totalPages,
-  //     hasPreviousPage: page > 1,
-  //   });
-  // }
-  //
-  // async updateCantidadRecibida(
-  //   entradaId: number,
-  //   updates: { itemId: number; cantidadRecibida: number }[],
-  // ) {
-  //   const entrada = await this.entradaRepo.findOne({
-  //     where: { id: entradaId },
-  //     relations: ['items', 'almacenDestino', 'items.producto'],
-  //   });
-  //
-  //   if (!entrada) throw new NotFoundException('Entrada not found');
-  //
-  //   for (const { itemId, cantidadRecibida } of updates) {
-  //     const item = entrada.items.find(i => i.id === itemId);
-  //     if (!item) throw new NotFoundException(`Item ${itemId} not found in this entrada`);
-  //
-  //     const nuevaCantidad = item.cantidadRecibida + cantidadRecibida;
-  //
-  //     if (nuevaCantidad > item.cantidadEsperada) {
-  //       throw new BadRequestException(
-  //         `Cannot add ${cantidadRecibida}. Total received (${nuevaCantidad}) exceeds expected (${item.cantidadEsperada})`,
-  //       );
-  //     }
-  //
-  //     // Increment cantidadRecibida
-  //     item.cantidadRecibida = nuevaCantidad;
-  //     await this.itemRepo.save(item);
-  //
-  //     // Add stock to the almacen
-  //     await this.addStock(
-  //       entrada.almacenDestino.id,
-  //       item.producto.id,
-  //       cantidadRecibida, // only the newly received quantity
-  //     );
-  //   }
-  //
-  //   // Re-check entrada status
-  //   const total = entrada.items.length;
-  //   const fullyReceived = entrada.items.filter(i => i.cantidadRecibida === i.cantidadEsperada).length;
-  //   const partiallyReceived = entrada.items.filter(i => i.cantidadRecibida > 0).length;
-  //
-  //   if (fullyReceived === total) {
-  //     entrada.status = EntradaStatus.RECIBIDA;
-  //   } else if (partiallyReceived > 0) {
-  //     entrada.status = EntradaStatus.PARCIAL;
-  //   } else {
-  //     entrada.status = EntradaStatus.PENDIENTE;
-  //   }
-  //
-  //   await this.entradaRepo.save(entrada);
-  //
-  //   return entrada;
-  // }
-  //
-  // async addStock(almacenId: number, productId: string, cantidad: number = 1) {
-  //   let inventario = await this.inventarioRepo.findOne({
-  //     where: {
-  //       almacen: { id: almacenId },
-  //       producto: { id: productId },
-  //     },
-  //     relations: ['almacen', 'producto'],
-  //   });
-  //
-  //   if (!inventario) {
-  //     inventario = this.inventarioRepo.create({
-  //       almacen: { id: almacenId },
-  //       producto: { id: productId },
-  //       stock: cantidad,
-  //     });
-  //   } else {
-  //     inventario.stock += cantidad;
-  //   }
-  //
-  //   return this.inventarioRepo.save(inventario);
-  // }
+  async findAll(
+    almacenId: number,
+    pagination: PaginationDto,
+    status?: EntradaStatus
+  ): Promise<PaginatedEntradaDto> {
+    const { page = 1, limit = 10, order = 'DESC', search } = pagination;
+    const skip = (page - 1) * limit;
+
+    const baseQB = this.entradaRepo
+      .createQueryBuilder('entrada')
+      .leftJoin('entrada.almacenDestino', 'almacen')
+      .where('almacen.id = :almacenId', { almacenId });
+
+    const totalItems = await baseQB.getCount();
+    const totalPages = Math.ceil(totalItems / limit);
+
+    if (totalItems === 0) {
+      return new PaginatedEntradaDto([], {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      });
+    }
+
+    const ids = (
+      await baseQB
+        .clone()
+        .select('entrada.id', 'id')
+        .orderBy('entrada.fechaCreacion', order)
+        .skip(skip)
+        .take(limit)
+        .getRawMany<{ id: number }>()
+    ).map((r) => r.id);
+
+    if (ids.length === 0) {
+      return new PaginatedEntradaDto([], {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      });
+    }
+
+    const query = this.entradaRepo
+      .createQueryBuilder('entrada')
+      .select([
+        'entrada.id',
+        'entrada.fechaCreacion',
+        'entrada.fechaEsperada',
+        'entrada.status',
+      ])
+      .leftJoin('entrada.items', 'items')
+      .addSelect([
+        'items.id',
+        'items.cantidadRecibida',
+        'items.cantidadEsperada',
+        'items.descripcion',
+        'items.unidad',
+      ])
+      // Load refaccion items
+      .leftJoin('items.refaccionItem', 'refaccionItem')
+      .addSelect([
+        'refaccionItem.id',
+        'refaccionItem.customId',
+        'refaccionItem.no_economico',
+        'refaccionItem.cantidad',
+        'refaccionItem.descripcion',
+        'refaccionItem.precio',
+        'refaccionItem.currency',
+      ])
+      // Load insumo items
+      .leftJoin('items.insumoItem', 'insumoItem')
+      .addSelect([
+        'insumoItem.id',
+        'insumoItem.cantidad',
+        'insumoItem.descripcion',
+        'insumoItem.precio',
+        'insumoItem.currency',
+      ])
+      // Load filter items
+      .leftJoin('items.filtroItem', 'filtroItem')
+      .addSelect([
+        'filtroItem.id',
+        'filtroItem.customId',
+        'filtroItem.no_economico',
+        'filtroItem.cantidad',
+        'filtroItem.descripcion',
+        'filtroItem.precio',
+        'filtroItem.currency',
+      ])
+      .leftJoin('entrada.almacenDestino', 'almacen')
+      .addSelect(['almacen.id', 'almacen.name'])
+      .leftJoin('entrada.creadoPor', 'creadoPor')
+      .addSelect(['creadoPor.id', 'creadoPor.name'])
+      .leftJoin('entrada.requisicion', 'requisicion')
+      .addSelect(['requisicion.id', 'requisicion.rcp', 'requisicion.metodo_pago'])
+      .where('entrada.id IN (:...ids)', { ids })
+      .orderBy('entrada.fechaCreacion', order)
+
+
+    if (status) {
+      query.where('entrada.status = :status', { status });
+    }
+
+    if (search) {
+      const term = `%${search}%`;
+      query.andWhere(
+        new Brackets((qb2) => {
+          qb2
+            .where('requisicion.rcp::text ILIKE :term', { term })
+            .orWhere('requisicion.titulo ILIKE :term', { term })
+            .orWhere('refaccionItem.customId ILIKE :term', { term })
+            .orWhere('REPLACE(refaccionItem.customId, \'-\', \'\') ILIKE :term', { term })
+            .orWhere('refaccionItem.no_economico ILIKE :term', { term })
+            .orWhere('filtroItem.customId ILIKE :term', { term })
+            .orWhere('REPLACE(REPLACE(filtroItem.customId, \'-\', \'\'), \' \', \'\') ILIKE :term', { term })
+            .orWhere('filtroItem.no_economico ILIKE :term', { term })
+            .orWhere('insumoItem.descripcion ILIKE :term', { term })
+        })
+      );
+    }
+
+
+    const [entradas] = await query
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+
+    const mapped: GetEntradaDto[] = entradas.map((e) => ({
+      id: e.id,
+      fechaCreacion: e.fechaCreacion,
+      fechaEsperada: e.fechaEsperada,
+      status: e.status,
+      almacenDestino: { id: e.almacenDestino?.id, name: e.almacenDestino?.name },
+      creadoPor: { id: e.creadoPor?.id, name: e.creadoPor?.name },
+      requisicion: e.requisicion
+        ? { id: e.requisicion.id, rcp: e.requisicion.rcp, metodo_pago: e.requisicion.metodo_pago }
+        : null,
+      items: e.items.map((item) => ({
+        id: item.id,
+        cantidadEsperada: item.cantidadEsperada,
+        cantidadRecibida: item.cantidadRecibida,
+        descripcion: item.descripcion,
+        unidad: item.unidad,
+        refaccionItem: item.refaccionItem,
+        insumoItem: item.insumoItem,
+        filtroItem: item.filtroItem,
+      })),
+    }));
+
+    return new PaginatedEntradaDto(mapped, {
+      currentPage: page,
+      totalPages,
+      totalItems,
+      itemsPerPage: limit,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
+    });
+  }
+
+
+  async updateCantidadRecibida(
+    entradaId: number,
+    updates: { itemId: number; cantidadRecibida: number }[],
+  ) {
+    const entrada = await this.entradaRepo.findOne({
+      where: { id: entradaId },
+      relations: [
+        'items',
+        'almacenDestino',
+        'items.refaccionItem',
+        'items.insumoItem',
+        'items.filtroItem',
+      ],
+    });
+
+    if (!entrada) throw new NotFoundException('Entrada not found');
+
+    for (const { itemId, cantidadRecibida } of updates) {
+      const item = entrada.items.find(i => i.id === itemId);
+      if (!item)
+        throw new NotFoundException(
+          `Item ${itemId} not found in this entrada`,
+        );
+
+      const currentCantidad = item.cantidadRecibida ?? 0;
+      const nuevaCantidad = currentCantidad + cantidadRecibida;
+
+      if (nuevaCantidad > item.cantidadEsperada) {
+        throw new BadRequestException(
+          `Cannot add ${cantidadRecibida}. Total received (${nuevaCantidad}) exceeds expected (${item.cantidadEsperada})`,
+        );
+      }
+
+      item.cantidadRecibida = nuevaCantidad;
+      await this.itemRepo.save(item);
+
+      await this.addStock(
+        entrada.almacenDestino.id,
+        item,
+        cantidadRecibida,
+      );
+    }
+
+    const total = entrada.items.length;
+    const fullyReceived = entrada.items.filter(
+      i => (i.cantidadRecibida ?? 0) === i.cantidadEsperada,
+    ).length;
+    const partiallyReceived = entrada.items.filter(
+      i => (i.cantidadRecibida ?? 0) > 0,
+    ).length;
+
+    if (fullyReceived === total) {
+      entrada.status = EntradaStatus.RECIBIDA;
+    } else if (partiallyReceived > 0) {
+      entrada.status = EntradaStatus.PARCIAL;
+    } else {
+      entrada.status = EntradaStatus.PENDIENTE;
+    }
+
+    await this.entradaRepo.save(entrada);
+
+    return entrada;
+  }
+
+  private async addStock(
+    almacenId: number,
+    item: EntradaItem,
+    cantidad: number = 1,
+  ) {
+    let productId: string;
+    let productName: string;
+    let unidad: string;
+
+    if (item.refaccionItem) {
+      productId = String(item.refaccionItem.customId);
+      productName = item.refaccionItem.descripcion;
+      unidad = item.unidad || 'unidad';
+    } else if (item.filtroItem) {
+      productId = String(item.filtroItem.customId);
+      productName = item.filtroItem.descripcion;
+      unidad = item.unidad || 'unidad';
+    } else if (
+      item.insumoItem &&
+      item.insumoItem.is_product
+    ) {
+      productId = "";
+      productName = item.insumoItem.descripcion;
+      unidad = item.insumoItem.unidad;
+    } else {
+      return;
+    }
+
+    let producto = await this.productoRepo.findOne({
+      where: { customId: productId },
+    });
+
+    if (!producto) {
+      producto = this.productoRepo.create({
+        customId: productId,
+        name: productName,
+        description: productName,
+        unidad: unidad,
+        isActive: true,
+      });
+      await this.productoRepo.save(producto);
+    }
+
+    // Create or update inventario
+    let inventario = await this.inventarioRepo.findOne({
+      where: {
+        almacen: { id: almacenId },
+        producto: { id: producto.id },
+      },
+      relations: ['almacen', 'producto'],
+    });
+
+    if (!inventario) {
+      inventario = this.inventarioRepo.create({
+        almacen: { id: almacenId } as any,
+        producto,
+        stock: cantidad,
+      });
+    } else {
+      inventario.stock += cantidad;
+    }
+
+    return this.inventarioRepo.save(inventario);
+  }
 }

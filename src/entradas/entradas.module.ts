@@ -5,10 +5,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Entrada } from './entities/entrada.entity';
 import { EntradaItem } from './entities/entrada_item.entity';
 import { AlmacenesModule } from 'src/almacenes/almacenes.module';
+import { Producto } from 'src/productos/entities/producto.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Entrada, EntradaItem]),
+    TypeOrmModule.forFeature([Entrada, EntradaItem, Producto]),
     AlmacenesModule,
   ],
   controllers: [EntradasController],
