@@ -19,6 +19,7 @@ services:
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./seed:/seed:ro  # ADD THIS
     security_opt:
       - no-new-privileges:true
     read_only: false
@@ -70,7 +71,6 @@ services:
       - -lc
       - |
         set -e
-        # Wait until TypeORM created the 'permisos' table
         until psql -h postgres -U ${DB_USERNAME} -d ${DB_NAME} -tAc "select 1 from information_schema.tables where table_name='permisos' limit 1" | grep -q 1; do
           echo "waiting for schema (permisos)..."; sleep 2;
         done
