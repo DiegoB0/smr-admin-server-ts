@@ -25,10 +25,14 @@ export class CreateAlmacenDto {
   @IsNumber()
   obraId?: number;
 
-  @ApiPropertyOptional({ example: 'b3f8c2a4-5d6e-4f3a-9a2b-1c2d3e4f5a6b', description: 'UUID del usuario encargado' })
+  @ApiPropertyOptional({
+    example: ['890bc38a-a7db-4e68-a276-c12cf019bde4'],
+    description: 'UUIDs de los usuarios encargados',
+  })
   @IsOptional()
-  @IsUUID()
-  encargadoId?: string;
+  @IsArray()
+  @IsUUID('4', { each: true })
+  encargadoIds?: string[];
 }
 
 export class UpdateAlmacenDto {
@@ -52,10 +56,9 @@ export class UpdateAlmacenDto {
   @IsNumber()
   obraId?: number;
 
-  @ApiPropertyOptional({ example: '890bc38a-a7db-4e68-a276-c12cf019bde4', description: 'UUID del usuario encargado' })
+  @IsArray()
   @IsOptional()
-  @IsUUID()
-  encargadoId?: string;
+  encargadoIds?: string[];
 }
 
 export class AddStockDto {

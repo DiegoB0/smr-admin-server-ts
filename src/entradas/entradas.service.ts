@@ -8,6 +8,7 @@ import { Inventario } from 'src/almacenes/entities/inventario.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { GetEntradaDto, PaginatedEntradaDto } from './dto/response.dto';
 import { Producto } from 'src/productos/entities/producto.entity';
+import { Almacen } from 'src/almacenes/entities/almacen.entity';
 
 @Injectable()
 export class EntradasService {
@@ -18,6 +19,8 @@ export class EntradasService {
     @InjectRepository(Inventario)
     private inventarioRepo: Repository<Inventario>,
 
+    @InjectRepository(Almacen)
+    private almacenRepo: Repository<Almacen>,
 
     @InjectRepository(Producto)
     private productoRepo: Repository<Producto>,
@@ -261,57 +264,62 @@ export class EntradasService {
     item: EntradaItem,
     cantidad: number = 1,
   ) {
-    let productId: string;
+    let customId: string;
     let productName: string;
     let unidad: string;
 
     if (item.refaccionItem) {
-      productId = String(item.refaccionItem.customId);
+      customId = item.refaccionItem.customId;
       productName = item.refaccionItem.descripcion;
-      unidad = item.unidad || 'unidad';
+      unidad = item.refaccionItem.unidad || 'unidad';
     } else if (item.filtroItem) {
-      productId = String(item.filtroItem.customId);
+      customId = item.filtroItem.customId;
       productName = item.filtroItem.descripcion;
-      unidad = item.unidad || 'unidad';
-    } else if (
-      item.insumoItem &&
-      item.insumoItem.is_product
-    ) {
-      productId = "";
+      unidad = item.filtroItem.unidad || 'unidad';
+    } else if (item.insumoItem && item.insumoItem.is_product) {
+      customId = `INSUMO_${item.insumoItem.id}`;
       productName = item.insumoItem.descripcion;
       unidad = item.insumoItem.unidad;
     } else {
       return;
     }
 
-    let producto = await this.productoRepo.findOne({
-      where: { customId: productId },
+    // Always search by customId, never by the requisicion item ID
+    let productoEntity = await this.productoRepo.findOne({
+      where: { customId },
     });
 
-    if (!producto) {
-      producto = this.productoRepo.create({
-        customId: productId,
+    if (!productoEntity) {
+      productoEntity = this.productoRepo.create({
+        customId,
         name: productName,
         description: productName,
-        unidad: unidad,
+        unidad,
         isActive: true,
       });
-      await this.productoRepo.save(producto);
+      productoEntity = await this.productoRepo.save(productoEntity);
     }
 
-    // Create or update inventario
+    const almacen = await this.almacenRepo.findOne({
+      where: { id: almacenId },
+    });
+
+    if (!almacen) {
+      throw new NotFoundException(`Almacen ${almacenId} not found`);
+    }
+
     let inventario = await this.inventarioRepo.findOne({
       where: {
         almacen: { id: almacenId },
-        producto: { id: producto.id },
+        producto: { id: productoEntity.id },
       },
       relations: ['almacen', 'producto'],
     });
 
     if (!inventario) {
       inventario = this.inventarioRepo.create({
-        almacen: { id: almacenId } as any,
-        producto,
+        almacen,
+        producto: productoEntity,
         stock: cantidad,
       });
     } else {

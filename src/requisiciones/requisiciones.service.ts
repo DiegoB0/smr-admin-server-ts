@@ -36,18 +36,6 @@ export class RequisicionesService {
     @InjectRepository(RequisicionFilterItem)
     private filterItemRepo: Repository<RequisicionFilterItem>,
 
-    // @InjectRepository(User)
-    // private userRepo: Repository<User>,
-
-    // @InjectRepository(Almacen)
-    // private almacenRepo: Repository<Almacen>,
-    //
-    // @InjectRepository(Equipo)
-    // private equipoRepo: Repository<Equipo>,
-    //
-    // @InjectRepository(Proveedor)
-    // private proveedorRepo: Repository<Proveedor>,
-
     @InjectRepository(Entrada)
     private entradaRepo: Repository<Entrada>,
 
@@ -552,14 +540,16 @@ export class RequisicionesService {
 
       const userWithAlmacen = await queryRunner.manager.findOne(User, {
         where: { id: user.id },
-        relations: ['almacenesEncargados'],
+        relations: ['almacenEncargados', 'almacenEncargados.almacen'],
       });
 
-      if (!userWithAlmacen?.almacenesEncargados?.length) {
-        throw new BadRequestException('User is not assigned to any almacen');
+      if (!userWithAlmacen?.almacenEncargados?.length) {
+        throw new BadRequestException(
+          'User is not assigned to any almacen',
+        );
       }
 
-      const almacenDestino = userWithAlmacen.almacenesEncargados[0];
+      const almacenDestino = userWithAlmacen.almacenEncargados[0].almacen;
 
       let proveedor: Proveedor | null = null;
       if (dto.proveedorId) {
@@ -640,85 +630,6 @@ export class RequisicionesService {
       await queryRunner.release();
     }
   }
-
-  // Get just the items of the requisicion (filtros, refacciones, consumibles)
-  // async getRequisicionDetails(requiId: number) {
-  //   // Get id and items
-  //   const query = this.requisicionRepo
-  //     .createQueryBuilder('r')
-  //     .select([
-  //       'r.id',
-  //     ])
-  //     .leftJoinAndSelect('r.refacciones', 'refacciones')
-  //     .addSelect([
-  //       'refacciones.id',
-  //       'refacciones.customId',
-  //       'refacciones.cantidad',
-  //       'refacciones.descripcion',
-  //       'refacciones.unidad',
-  //       'refacciones.precio',
-  //       'refacciones.currency',
-  //     ])
-  //     .leftJoinAndSelect('r.insumos', 'insumos')
-  //     .addSelect([
-  //       'insumos.id',
-  //       'insumos.cantidad',
-  //       'insumos.descripcion',
-  //       'insumos.unidad',
-  //       'insumos.precio',
-  //       'insumos.currency',
-  //     ])
-  //     .leftJoinAndSelect('r.filtros', 'filtros')
-  //     .addSelect([
-  //       'filtros.id',
-  //       'filtros.customId',
-  //       'filtros.cantidad',
-  //       'filtros.descripcion',
-  //       'filtros.unidad',
-  //       'filtros.precio',
-  //       'filtros.currency',
-  //     ])
-  //     .where("r.id = :id", { id: requiId })
-  //
-  //
-  //   const [requisiciones] = await query
-  //     .getManyAndCount();
-  //
-  //   const data = requisiciones.map((r) => ({
-  //     id: r.id,
-  //     refacciones: r.refacciones.map((ref) => ({
-  //       id: ref.id,
-  //       customId: ref.customId,
-  //       cantidad: ref.cantidad,
-  //       descripcion: ref.descripcion,
-  //       unidad: ref.unidad,
-  //       precio: ref.precio || 0,
-  //       currency: ref.currency,
-  //     })),
-  //     insumos: r.insumos.map((ins) => ({
-  //       id: ins.id,
-  //       cantidad: ins.cantidad,
-  //       descripcion: ins.descripcion,
-  //       unidad: ins.unidad,
-  //       precio: ins.precio || 0,
-  //       currency: ins.currency,
-  //     })),
-  //     filtros: r.filtros.map((fil) => ({
-  //       id: fil.id,
-  //       customId: fil.customId,
-  //       cantidad: fil.cantidad,
-  //       descripcion: fil.descripcion,
-  //       unidad: fil.unidad,
-  //       precio: fil.precio || 0,
-  //       currency: fil.currency,
-  //     })),
-  //
-  //   }))
-  //
-  //   return data
-  //
-  // }
-
 
   // WARN: Provicional update just about the items of the requisicion
   // -- I will have to update this later to handle the whole requisicion

@@ -15,6 +15,7 @@ import { Entrada } from 'src/entradas/entities/entrada.entity';
 import { Salida } from 'src/salidas/entities/salida.entity';
 import { Almacen } from 'src/almacenes/entities/almacen.entity';
 import { Obra } from 'src/obras/entities/obra.entity';
+import { AlmacenEncargado } from 'src/almacenes/entities/almacenEncargados.entity';
 
 @Entity('usuarios')
 export class User {
@@ -58,7 +59,10 @@ export class User {
   @JoinColumn({ name: 'obra_id' })
   obra?: Obra;
 
-  @OneToMany(() => Almacen, almacen => almacen.encargado)
-  almacenesEncargados?: Almacen[];
+  // @OneToMany(() => Almacen, almacen => almacen.encargado)
+  // almacenesEncargados?: Almacen[];
+
+  @OneToMany(() => AlmacenEncargado, (ae) => ae.user)
+  almacenEncargados: AlmacenEncargado[];
 
 }

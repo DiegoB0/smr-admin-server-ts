@@ -12,10 +12,11 @@ import { Producto } from 'src/productos/entities/producto.entity';
 import { Entrada } from 'src/entradas/entities/entrada.entity';
 import { Salida } from 'src/salidas/entities/salida.entity';
 import { SalidaItem } from 'src/salidas/entities/salida_item.entity';
+import { AlmacenEncargado } from './entities/almacenEncargados.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Almacen, Inventario, Obra, Entrada, EntradaItem, Producto, Salida, SalidaItem]),
+    TypeOrmModule.forFeature([Almacen, Inventario, Obra, Entrada, EntradaItem, Producto, Salida, SalidaItem, AlmacenEncargado]),
     AuthModule,
     LogsModule
   ],

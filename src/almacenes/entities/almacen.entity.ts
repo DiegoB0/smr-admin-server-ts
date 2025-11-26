@@ -12,6 +12,7 @@ import {
 import { Inventario } from './inventario.entity';
 import { Obra } from 'src/obras/entities/obra.entity';
 import { User } from 'src/auth/entities/usuario.entity';
+import { AlmacenEncargado } from './almacenEncargados.entity';
 
 @Entity('almacenes')
 export class Almacen {
@@ -43,7 +44,10 @@ export class Almacen {
   @ManyToOne(() => Obra, obra => obra.almacenes, { onDelete: 'SET NULL' })
   obra: Obra
 
-  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
-  encargado?: User;
+  // @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  // encargado?: User;
+
+  @OneToMany(() => AlmacenEncargado, (ae) => ae.almacen)
+  encargados: AlmacenEncargado[];
 
 }

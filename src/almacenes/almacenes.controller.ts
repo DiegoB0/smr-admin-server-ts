@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { User } from 'src/auth/entities/usuario.entity';
 import { AlmacenesService } from './almacenes.service';
 import { GetUser } from 'src/auth/decorators/user.decorator';
@@ -160,11 +160,8 @@ export class AlmacenesController {
   @SwaggerAuthHeaders()
   @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
   @RequirePermissions(CurrentPermissions.ListUser)
-  async getEncargados(
-    @Query('almacenId') almacenId?: string
-  ) {
-    const id = almacenId ? Number(almacenId) : undefined;
-    return this.almacenesService.findAlmacenAdmins(id)
+  async getEncargados() {
+    return this.almacenesService.findAllAdminAlmacenUsers();
   }
 
 }

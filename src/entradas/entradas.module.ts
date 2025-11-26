@@ -6,10 +6,11 @@ import { Entrada } from './entities/entrada.entity';
 import { EntradaItem } from './entities/entrada_item.entity';
 import { AlmacenesModule } from 'src/almacenes/almacenes.module';
 import { Producto } from 'src/productos/entities/producto.entity';
+import { Almacen } from 'src/almacenes/entities/almacen.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Entrada, EntradaItem, Producto]),
+    TypeOrmModule.forFeature([Entrada, EntradaItem, Producto, Almacen]),
     AlmacenesModule,
   ],
   controllers: [EntradasController],

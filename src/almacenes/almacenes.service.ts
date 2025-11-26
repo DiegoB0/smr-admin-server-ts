@@ -1,7 +1,7 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Almacen } from './entities/almacen.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, DeepPartial, Repository } from 'typeorm';
+import { Brackets, DeepPartial, In, Repository } from 'typeorm';
 import { LogsService } from 'src/logs/logs.service';
 import { User } from 'src/auth/entities/usuario.entity';
 import { AddStockDto, CreateAlmacenDto, ParamAlmacenID, UpdateAlmacenDto } from './dto/request.dto';
@@ -16,12 +16,17 @@ import { EntradaItem } from 'src/entradas/entities/entrada_item.entity';
 import { EntradaStatus } from 'src/entradas/types/entradas-status';
 import { SalidaItem } from 'src/salidas/entities/salida_item.entity';
 import { Salida } from 'src/salidas/entities/salida.entity';
+import { AlmacenEncargado } from './entities/almacenEncargados.entity';
 
 @Injectable()
 export class AlmacenesService {
   constructor(
     @InjectRepository(Almacen)
     private almacenRepo: Repository<Almacen>,
+
+
+    @InjectRepository(AlmacenEncargado)
+    private almacenEncargadoRepo: Repository<AlmacenEncargado>,
 
     @InjectRepository(User)
     private userRepo: Repository<User>,
@@ -51,76 +56,108 @@ export class AlmacenesService {
 
   ) { }
 
-  async createAlmacen(dto: CreateAlmacenDto, user: User): Promise<Almacen> {
-    const { name, location, obraId, encargadoId } = dto
+  async createAlmacen(
+    dto: CreateAlmacenDto,
+    user: User,
+  ): Promise<Almacen> {
+    const { name, location, obraId, encargadoIds } = dto;
 
-    const almacen = await this.almacenRepo.findOne({ where: { name } })
+    const almacen = await this.almacenRepo.findOne({ where: { name } });
 
-    if (almacen) throw new ConflictException('An almacen with that name already exists')
+    if (almacen)
+      throw new ConflictException(
+        'An almacen with that name already exists',
+      );
 
-    const obra = await this.obraRepo.findOne({ where: { id: obraId } })
+    const obra = await this.obraRepo.findOne({ where: { id: obraId } });
 
-    if (!obra) throw new NotFoundException('No se encontro la obra')
-
-
-    const usuario = await this.userRepo.findOne({ where: { id: encargadoId } })
-
-    if (!usuario) throw new NotFoundException('No se encontro la obra')
+    if (!obra) throw new NotFoundException('No se encontro la obra');
 
     const newAlmacen = this.almacenRepo.create({
-      location: location,
-      name: name,
+      location,
+      name,
       isActive: true,
-      encargado: usuario,
-      obra: obra
-    })
+      obra,
+    });
 
-    const savedAlmacen = this.almacenRepo.save(newAlmacen)
+    const savedAlmacen = await this.almacenRepo.save(newAlmacen);
+
+    if (encargadoIds && encargadoIds.length > 0) {
+      const usuarios = await this.userRepo.find({
+        where: { id: In(encargadoIds) },
+      });
+
+      if (usuarios.length !== encargadoIds.length) {
+        throw new NotFoundException('Uno o más usuarios no encontrados');
+      }
+
+      const encargadoRelations = usuarios.map((u) => ({
+        almacen: savedAlmacen,
+        user: u,
+      }));
+
+      await this.almacenEncargadoRepo.save(encargadoRelations);
+    }
+
+    // Reload with relations
+    const result = await this.almacenRepo.findOne({
+      where: { id: savedAlmacen.id },
+      relations: ['encargados', 'encargados.user'],
+    });
+
+    if (!result) throw new NotFoundException('Error loading almacen');
+
+    const logData = {
+      id: result.id,
+      name: result.name,
+      location: result.location,
+      isActive: result.isActive,
+      encargadosCount: result.encargados?.length || 0,
+    };
 
     await this.logService.createLog(
       user,
-      `El usuario ${user.name} creo el almacen ${newAlmacen.name}`,
+      `El usuario ${user.name} creo el almacen ${result.name}`,
       'CREATE_ALMACEN',
-      JSON.stringify(savedAlmacen),
-    )
+      JSON.stringify(logData),
+    );
 
-    return savedAlmacen;
+    return {
+      ...result,
+      encargados: result.encargados?.map((ae) => ({
+        id: ae.id,
+        user: {
+          id: ae.user.id,
+          name: ae.user.name,
+        },
+      })) || [],
+    } as Almacen;
   }
 
 
-  async findAlmacenAdmins(currentAlmacenId?: number): Promise<User[]> {
-    const query = this.userRepo
+  async findAllAdminAlmacenUsers() {
+    return await this.userRepo
       .createQueryBuilder('user')
-      .leftJoin('user.usuarioRoles', 'usuarioRoles')
-      .leftJoin('usuarioRoles.rol', 'rol')
-      .leftJoin('user.almacenesEncargados', 'almacen')
-      .where('rol.slug = :slug', { slug: 'admin-almacen' });
-
-    if (currentAlmacenId) {
-      query.andWhere('(almacen.id IS NULL OR almacen.id = :currentAlmacenId)', {
-        currentAlmacenId,
-      });
-    } else {
-      query.andWhere('almacen.id IS NULL');
-    }
-
-    return query.getMany();
+      .leftJoinAndSelect('user.usuarioRoles', 'usuarioRol')
+      .leftJoinAndSelect('usuarioRol.rol', 'rol')
+      .where('rol.slug = :slug', { slug: 'admin-almacen' })
+      .andWhere('user.isActive = :isActive', { isActive: true })
+      .select(['user.id', 'user.name', 'user.email'])
+      .getMany();
   }
 
 
   async findAlmacenes(
     pagination: PaginationDto,
-    user: User
+    user: User,
   ): Promise<PaginatedAlmacenDto> {
     const { page = 1, limit = 10 } = pagination;
 
-
     const almacenesEncargado = await this.almacenRepo
       .createQueryBuilder('almacen')
-      .leftJoin('almacen.encargado', 'encargado')
-      .addSelect(['encargado.name', 'encargado.id'])
-      .leftJoin('almacen.obra', 'obra')
-      .addSelect(['obra.name', 'obra.id'])
+      .leftJoinAndSelect('almacen.encargados', 'encargado')
+      .leftJoinAndSelect('encargado.user', 'user')
+      .leftJoinAndSelect('almacen.obra', 'obra')
       .where('almacen.isActive = :isActive', { isActive: true })
       .getMany();
 
@@ -141,11 +178,13 @@ export class AlmacenesService {
         location: almacen.location,
         isActive: almacen.isActive,
         name: almacen.name,
-        encargadoName: almacen.encargado?.name || null,
-        encargadoId: almacen.encargado?.id || null,
+        encargados: almacen.encargados?.map((ae) => ({
+          id: ae.user.id,
+          name: ae.user.name,
+        })) || [],
         obraName: almacen.obra?.name || null,
         obraId: almacen.obra?.id || null,
-      })
+      }),
     );
 
     return new PaginatedAlmacenDto(mappedAlmacenes, {
@@ -160,7 +199,7 @@ export class AlmacenesService {
 
   async findAll(
     pagination: PaginationDto,
-    user: User
+    user: User,
   ): Promise<PaginatedAlmacenDto> {
     const { page = 1, limit = 10, search, order = 'ASC' } = pagination;
     const skip = (page - 1) * limit;
@@ -170,28 +209,40 @@ export class AlmacenesService {
       relations: ['usuarioRoles', 'usuarioRoles.rol'],
     });
 
-
     if (!userWithRoles) {
       throw new NotFoundException(`User with ID ${user.id} not found`);
     }
 
     const isAdminAlmacen = userWithRoles.usuarioRoles.some(
-      ur =>
+      (ur) =>
         ur.rol?.name
           ?.toLowerCase()
           .replace(/\s+/g, '-')
-          .trim() === 'admin-almacen'
+          .trim() === 'admin-almacen',
     );
+
+    const mapAlmacenes = (almacenes: Almacen[]): GetAlmacenDto[] =>
+      almacenes.map((almacen) => ({
+        id: almacen.id,
+        location: almacen.location,
+        isActive: almacen.isActive,
+        name: almacen.name,
+        encargados: almacen.encargados?.map((ae) => ({
+          id: ae.user.id,
+          name: ae.user.name,
+        })) || [],
+        obraName: almacen.obra?.name || null,
+        obraId: almacen.obra?.id || null,
+      }));
 
     if (isAdminAlmacen) {
       const almacenesEncargado = await this.almacenRepo
         .createQueryBuilder('almacen')
-        .leftJoin('almacen.encargado', 'encargado')
-        .addSelect(['encargado.name', 'encargado.id'])
-        .leftJoin('almacen.obra', 'obra')
-        .addSelect(['obra.name', 'obra.id'])
+        .leftJoinAndSelect('almacen.encargados', 'encargado')
+        .leftJoinAndSelect('encargado.user', 'user')
+        .leftJoinAndSelect('almacen.obra', 'obra')
         .where('almacen.isActive = :isActive', { isActive: true })
-        .andWhere('encargado.id = :userId', { userId: user.id })
+        .andWhere('user.id = :userId', { userId: user.id })
         .getMany();
 
       if (almacenesEncargado.length === 0) {
@@ -205,18 +256,7 @@ export class AlmacenesService {
         });
       }
 
-      const mappedAlmacenes: GetAlmacenDto[] = almacenesEncargado.map(
-        (almacen) => ({
-          id: almacen.id,
-          location: almacen.location,
-          isActive: almacen.isActive,
-          name: almacen.name,
-          encargadoName: almacen.encargado?.name || null,
-          encargadoId: almacen.encargado?.id || null,
-          obraName: almacen.obra?.name || null,
-          obraId: almacen.obra?.id || null,
-        })
-      );
+      const mappedAlmacenes = mapAlmacenes(almacenesEncargado);
 
       return new PaginatedAlmacenDto(mappedAlmacenes, {
         currentPage: 1,
@@ -230,10 +270,9 @@ export class AlmacenesService {
 
     const queryBuilder = this.almacenRepo
       .createQueryBuilder('almacen')
-      .leftJoin('almacen.encargado', 'encargado')
-      .addSelect(['encargado.name', 'encargado.id'])
-      .leftJoin('almacen.obra', 'obra')
-      .addSelect(['obra.name', 'obra.id'])
+      .leftJoinAndSelect('almacen.encargados', 'encargado')
+      .leftJoinAndSelect('encargado.user', 'user')
+      .leftJoinAndSelect('almacen.obra', 'obra')
       .where('almacen.isActive = :isActive', { isActive: true });
 
     if (search) {
@@ -243,8 +282,8 @@ export class AlmacenesService {
           qb2
             .where('almacen.name ILIKE :term', { term })
             .orWhere('almacen.location ILIKE :term', { term })
-            .orWhere('encargado.name ILIKE :term', { term });
-        })
+            .orWhere('user.name ILIKE :term', { term });
+        }),
       );
     }
 
@@ -256,17 +295,7 @@ export class AlmacenesService {
       .getManyAndCount();
 
     const totalPages = Math.ceil(totalItems / limit);
-
-    const mappedAlmacenes: GetAlmacenDto[] = almacenes.map((almacen) => ({
-      id: almacen.id,
-      location: almacen.location,
-      isActive: almacen.isActive,
-      name: almacen.name,
-      encargadoName: almacen.encargado?.name || null,
-      encargadoId: almacen.encargado?.id || null,
-      obraName: almacen.obra?.name || null,
-      obraId: almacen.obra?.id || null,
-    }));
+    const mappedAlmacenes = mapAlmacenes(almacenes);
 
     return new PaginatedAlmacenDto(mappedAlmacenes, {
       currentPage: page,
@@ -318,55 +347,87 @@ export class AlmacenesService {
 
   }
 
-  async updateAlmacen(almacenId: ParamAlmacenID, dto: UpdateAlmacenDto, user: User): Promise<Almacen> {
+  async updateAlmacen(
+    almacenId: ParamAlmacenID,
+    dto: UpdateAlmacenDto,
+    user: User,
+  ): Promise<Almacen> {
+    const { id } = almacenId;
+    const { location, isActive, name, encargadoIds, obraId } = dto;
 
-    const { id } = almacenId
+    const almacen = await this.almacenRepo.findOne({
+      where: { id, isActive: true },
+    });
 
-    const { location, isActive, name, encargadoId, obraId } = dto
-
-    const almacen = await this.almacenRepo.findOne({ where: { id, isActive: true } })
-
-    if (!almacen) throw new NotFoundException('Almacen not found')
-
-    const obra = await this.obraRepo.findOne({ where: { id: obraId } })
-
-    if (!obra) throw new NotFoundException('No se encontro la obra')
+    if (!almacen) throw new NotFoundException('Almacen not found');
 
     if (obraId) {
-      almacen.obra = obra
+      const obra = await this.obraRepo.findOne({ where: { id: obraId } });
+      if (!obra) throw new NotFoundException('Obra no encontrada');
+      almacen.obra = obra;
     }
 
-    const usuario = await this.userRepo.findOne({ where: { id: encargadoId } })
+    if (location !== undefined) almacen.location = location;
+    if (isActive !== undefined) almacen.isActive = isActive;
+    if (name !== undefined) almacen.name = name;
 
-    if (!usuario) throw new NotFoundException('No se encontro la obra')
+    // SAVE ALMACEN FIRST
+    const savedAlmacen = await this.almacenRepo.save(almacen);
 
-    if (encargadoId) {
-      almacen.encargado = usuario
+    // THEN handle encargados
+    if (encargadoIds && encargadoIds.length > 0) {
+      const usuarios = await this.userRepo.find({
+        where: { id: In(encargadoIds) },
+      });
+      if (usuarios.length !== encargadoIds.length) {
+        throw new NotFoundException('Uno o más usuarios no encontrados');
+      }
+
+      // Delete old relationships
+      await this.almacenEncargadoRepo.delete({ almacen: { id: savedAlmacen.id } });
+
+      // Create new relationships
+      const encargadoRelations = usuarios.map((u) => ({
+        almacen: savedAlmacen,
+        user: u,
+      }));
+
+      await this.almacenEncargadoRepo.save(encargadoRelations);
     }
 
+    // Reload with relations
+    const result = await this.almacenRepo.findOne({
+      where: { id: savedAlmacen.id },
+      relations: ['encargados', 'encargados.user'],
+    });
 
-    if (location !== undefined) {
-      almacen.location = location
-    }
+    if (!result) throw new NotFoundException('Error reloading almacen');
 
-    if (isActive !== undefined) {
-      almacen.isActive = isActive
-    }
-
-    if (name !== undefined) {
-      almacen.name = name
-    }
-
-    this.almacenRepo.save(almacen)
+    const logData = {
+      id: result.id,
+      name: result.name,
+      location: result.location,
+      isActive: result.isActive,
+      encargadosCount: result.encargados?.length || 0,
+    };
 
     await this.logService.createLog(
       user,
-      `El usuario ${user.name} actualizo el almacen ${almacen.name}`,
+      `El usuario ${user.name} actualizo el almacen ${result.name}`,
       'UPDATE_ALMACEN',
-      JSON.stringify(almacen),
-    )
+      JSON.stringify(logData),
+    );
 
-    return almacen
+    return {
+      ...result,
+      encargados: result.encargados?.map((ae) => ({
+        id: ae.id,
+        user: {
+          id: ae.user.id,
+          name: ae.user.name,
+        },
+      })) || [],
+    } as Almacen;
   }
 
   /* PRODUCTOS POR ALMACEN */
