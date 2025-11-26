@@ -148,9 +148,11 @@ export class AlmacenesController {
   async removeStock(
     @Query('almacenId', ParseIntPipe) almacenId: number,
     @Query('productId') productId: number,
-    @Query('cantidad', ParseIntPipe) cantidad: number
+    @Query('cantidad', ParseIntPipe) cantidad: number,
+    @Query('prestadaPara') prestadaPara: string,
+    @GetUser() user: User
   ) {
-    return this.almacenesService.removeStock(almacenId, productId, cantidad)
+    return this.almacenesService.removeStock(almacenId, productId, cantidad, prestadaPara, user)
   }
 
   // GET ALL THE ADMIN USERS

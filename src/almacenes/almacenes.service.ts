@@ -1,7 +1,7 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Almacen } from './entities/almacen.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, Repository } from 'typeorm';
+import { Brackets, DeepPartial, Repository } from 'typeorm';
 import { LogsService } from 'src/logs/logs.service';
 import { User } from 'src/auth/entities/usuario.entity';
 import { AddStockDto, CreateAlmacenDto, ParamAlmacenID, UpdateAlmacenDto } from './dto/request.dto';
@@ -14,6 +14,8 @@ import { Producto } from 'src/productos/entities/producto.entity';
 import { Entrada } from 'src/entradas/entities/entrada.entity';
 import { EntradaItem } from 'src/entradas/entities/entrada_item.entity';
 import { EntradaStatus } from 'src/entradas/types/entradas-status';
+import { SalidaItem } from 'src/salidas/entities/salida_item.entity';
+import { Salida } from 'src/salidas/entities/salida.entity';
 
 @Injectable()
 export class AlmacenesService {
@@ -35,6 +37,12 @@ export class AlmacenesService {
 
     @InjectRepository(EntradaItem)
     private entradaItemRepo: Repository<EntradaItem>,
+
+    @InjectRepository(Salida)
+    private salidaRepo: Repository<Salida>,
+
+    @InjectRepository(SalidaItem)
+    private salidaItemRepo: Repository<SalidaItem>,
 
     @InjectRepository(Obra)
     private obraRepo: Repository<Obra>,
@@ -449,7 +457,13 @@ export class AlmacenesService {
   }
 
 
-  async removeStock(almacenId: number, productId: number, cantidad: number) {
+  async removeStock(
+    almacenId: number,
+    productId: number,
+    cantidad: number,
+    prestadaPara?: string,
+    user?: User
+  ) {
     let inventario = await this.inventarioRepo.findOne({
       where: {
         almacen: { id: almacenId },
@@ -460,11 +474,35 @@ export class AlmacenesService {
 
     if (!inventario) throw new NotFoundException('No inventory found');
 
-    if (inventario.stock < cantidad) throw new BadRequestException('No hay suficiente stock disponible')
+    if (inventario.stock < cantidad)
+      throw new BadRequestException('No hay suficiente stock disponible')
 
     inventario.stock -= cantidad;
+    await this.inventarioRepo.save(inventario);
 
-    return this.inventarioRepo.save(inventario);
+    if (prestadaPara) {
+      const almacen = await this.almacenRepo.findOne({
+        where: { id: almacenId }
+      });
+
+      if (!almacen) throw new NotFoundException('Almacen not found');
+
+      const salidaItem = this.salidaItemRepo.create({
+        cantidadRetirada: cantidad,
+        producto: inventario.producto,
+      });
+
+      const salida = this.salidaRepo.create({
+        almacenOrigenId: almacenId,
+        prestadaPara,
+        authoriza: user ? ({ id: user.id } as DeepPartial<User>) : undefined,
+        items: [salidaItem],
+      });
+
+      await this.salidaRepo.save(salida);
+    }
+
+    return inventario;
   }
 
 
@@ -483,7 +521,8 @@ export class AlmacenesService {
       queryBuilder.andWhere(
         new Brackets(qb => {
           qb.where('producto.name ILIKE :term', { term })
-            .orWhere('producto.id ILIKE :term', { term });
+            .orWhere('producto.id::text ILIKE :term', { term })
+            .orWhere('producto.customId ILIKE :term', { term });
         }),
       );
     }

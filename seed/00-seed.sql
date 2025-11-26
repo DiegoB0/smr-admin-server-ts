@@ -73,6 +73,7 @@ INSERT INTO rol_permiso (id, rol_id, permiso_id)
 SELECT gen_random_uuid(), r.id, p.id
 FROM roles r
 JOIN permisos p ON p.slug IN (
+  'list-almacen',
   'list-requisicion',
   'accept-requisicion'
 )

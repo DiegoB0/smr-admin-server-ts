@@ -5,7 +5,7 @@ export class GetSalidaItemDto {
   @ApiProperty() id: number;
   @ApiProperty() cantidadRetirada: number;
   @ApiProperty({ type: () => Object })
-  producto: { id: string; name: string };
+  producto: { id: number; name: string };
 }
 
 export class GetSalidaDto {
@@ -15,7 +15,7 @@ export class GetSalidaDto {
   almacenOrigen: { id: number; name: string };
 
   @ApiProperty()
-  recibidaPor?: string
+  prestadaPara?: string
 
   @ApiProperty({ type: () => Object, nullable: true })
   authoriza?: { id: string; name: string } | null;

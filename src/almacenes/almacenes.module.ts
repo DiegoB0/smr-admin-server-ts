@@ -10,10 +10,12 @@ import { Obra } from 'src/obras/entities/obra.entity';
 import { EntradaItem } from 'src/entradas/entities/entrada_item.entity';
 import { Producto } from 'src/productos/entities/producto.entity';
 import { Entrada } from 'src/entradas/entities/entrada.entity';
+import { Salida } from 'src/salidas/entities/salida.entity';
+import { SalidaItem } from 'src/salidas/entities/salida_item.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Almacen, Inventario, Obra, Entrada, EntradaItem, Producto]),
+    TypeOrmModule.forFeature([Almacen, Inventario, Obra, Entrada, EntradaItem, Producto, Salida, SalidaItem]),
     AuthModule,
     LogsModule
   ],

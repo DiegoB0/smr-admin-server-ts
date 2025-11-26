@@ -7,7 +7,6 @@ import {
   IsOptional,
   IsPositive,
   IsString,
-  Length,
   ValidateNested,
 } from 'class-validator';
 
@@ -16,9 +15,8 @@ export class CreateSalidaItemDto {
     description: 'ID del producto (string, no UUID)',
     example: 'PROD-00123',
   })
-  @IsString()
-  @Length(1, 128) 
-  productoId: string;
+  @IsInt()
+  productoId: number;
 
   @ApiProperty({
     description: 'Cantidad a retirar',
@@ -44,7 +42,7 @@ export class CreateSalidaDto {
     example: 'Diego B',
   })
   @IsString()
-  recibidaPor: string;
+  prestadaPara: string;
 
   @ApiPropertyOptional({
     description: 'Equipo asociado (numérico)',
@@ -58,10 +56,6 @@ export class CreateSalidaDto {
   @ApiProperty({
     description: 'Líneas de salida',
     type: [CreateSalidaItemDto],
-    example: [
-      { productoId: 'PROD-00123', cantidad: 2 },
-      { productoId: 'ABC-XYZ-99', cantidad: 1 },
-    ],
   })
   @IsArray()
   @ArrayMinSize(1)
