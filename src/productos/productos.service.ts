@@ -79,7 +79,8 @@ export class ProductosService {
       queryBuilder.andWhere(new Brackets(qb2 => {
         qb2
           .where('producto.name ILIKE :term', { term })
-          .orWhere('producto.id ILIKE :term', { term });
+          .where('producto.customId ILIKE :term', { term })
+          .orWhere('producto.id::text ILIKE :term', { term });
       }));
     }
 

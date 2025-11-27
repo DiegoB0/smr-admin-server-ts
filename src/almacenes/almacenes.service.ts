@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, UploadedFile } from '@nestjs/common';
 import { Almacen } from './entities/almacen.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, DeepPartial, In, Repository } from 'typeorm';
@@ -17,6 +17,8 @@ import { EntradaStatus } from 'src/entradas/types/entradas-status';
 import { SalidaItem } from 'src/salidas/entities/salida_item.entity';
 import { Salida } from 'src/salidas/entities/salida.entity';
 import { AlmacenEncargado } from './entities/almacenEncargados.entity';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 
 @Injectable()
 export class AlmacenesService {
@@ -51,6 +53,8 @@ export class AlmacenesService {
 
     @InjectRepository(Obra)
     private obraRepo: Repository<Obra>,
+
+    @InjectQueue('excel-queue') private excelQueue: Queue,
 
     private readonly logService: LogsService
 
@@ -443,6 +447,7 @@ export class AlmacenesService {
     // Create product if needed
     if (!productId && dto.productName) {
       const producto = this.productoRepo.create({
+        customId: dto.customId,
         name: dto.productName,
         description: dto.productDescription || dto.productName,
         unidad: dto.unidad || 'unidad',
@@ -478,6 +483,7 @@ export class AlmacenesService {
         cantidadEsperada: dto.cantidad,
         cantidadRecibida: dto.cantidad,
         descripcion: inventario.producto.name,
+        customId: inventario.producto.customId,
         unidad: inventario.producto.unidad,
       });
 
@@ -569,7 +575,10 @@ export class AlmacenesService {
 
   async getProducts(almacenId: number, pagination: PaginationDto): Promise<PaginatedInventarioDto> {
     const { page = 1, limit = 10, search, order = 'ASC' } = pagination;
-    const skip = (page - 1) * limit;
+
+    const isUnlimited = limit === -1;
+    const skip = isUnlimited ? 0 : (page - 1) * limit;
+    const takeLimit = isUnlimited ? undefined : limit;
 
     const queryBuilder = this.inventarioRepo.createQueryBuilder('inventario')
       .leftJoinAndSelect('inventario.producto', 'producto')
@@ -592,7 +601,7 @@ export class AlmacenesService {
 
     const [inventarios, totalItems] = await queryBuilder
       .skip(skip)
-      .take(limit)
+      .take(takeLimit)
       .getManyAndCount();
 
     const totalPages = Math.ceil(totalItems / limit);
@@ -627,6 +636,53 @@ export class AlmacenesService {
     })
 
     return inventario;
+  }
+
+  async queueExcelUpload(almacenId: number, user: User, items: any[]) {
+    const job = await this.excelQueue.add(
+      'process-excel',
+      {
+        items,
+        almacenId,
+        userId: user.id,
+      },
+      {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 2000,
+        },
+      }
+    );
+
+    return {
+      message: 'Excel import queued for processing',
+      status: 'processing',
+      jobId: job.id,
+      totalItems: items.length,
+    };
+  }
+
+  async getJobStatus(jobId: string) {
+    try {
+      const job = await this.excelQueue.getJob(jobId);
+
+      if (!job) {
+        throw new NotFoundException('Job not found');
+      }
+
+      const state = await job.getState();
+      const progress = job.progress();
+
+      return {
+        jobId,
+        state,
+        progress,
+        result: job.returnvalue,
+      };
+    } catch (error) {
+      throw new NotFoundException('Job not found or error retrieving status');
+    }
   }
 
 

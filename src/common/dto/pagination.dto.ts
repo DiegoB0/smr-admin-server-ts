@@ -7,6 +7,7 @@ import {
   IsIn,
   IsBoolean,
   IsArray,
+  ValidateIf,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
@@ -38,6 +39,7 @@ export class PaginationDto {
   @Min(1)
   @Max(100)
   @Type(() => Number)
+  @ValidateIf((o) => o.limit !== -1)
   limit?: number = 10;
 
   @ApiProperty({

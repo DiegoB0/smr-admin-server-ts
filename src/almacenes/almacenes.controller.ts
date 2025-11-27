@@ -1,4 +1,5 @@
-import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, UploadedFile, UseGuards, UseInterceptors, Request, NotFoundException } from '@nestjs/common';
+import * as ExcelJS from 'exceljs';
 import { User } from 'src/auth/entities/usuario.entity';
 import { AlmacenesService } from './almacenes.service';
 import { GetUser } from 'src/auth/decorators/user.decorator';
@@ -11,8 +12,10 @@ import { SwaggerAuthHeaders } from 'src/auth/decorators/auth.decorator';
 import { AddMultipleStockDto, AddStockDto, CreateAlmacenDto, ParamAlmacenID, UpdateAlmacenDto } from './dto/request.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Inventario } from './entities/inventario.entity';
-import { ParamProductoID } from 'src/productos/dto/request.dto';
 import { InventoryQueryDto } from './dto/response.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 
 @Controller('almacenes')
 export class AlmacenesController {
@@ -164,4 +167,98 @@ export class AlmacenesController {
     return this.almacenesService.findAllAdminAlmacenUsers();
   }
 
+  @Post('products/upload-excel')
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.AddStock)
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadExcel(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: { almacenId: number },
+    @GetUser() user: User,
+  ) {
+    const getCellValue = (cell: any) => {
+      if (cell.formula) {
+        return cell.result;
+      }
+      return cell.value;
+    };
+
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(file.buffer);
+    const worksheet = workbook.worksheets[0];
+
+    let headerRow: number | null = null;
+    let codigoCol: number | null = null;
+    let articuloCol: number | null = null;
+    let unidadCol: number | null = null;
+    let stockCol: number | null = null;
+
+    for (let i = 1; i <= Math.min(20, worksheet.rowCount); i++) {
+      const row = worksheet.getRow(i);
+      codigoCol = null;
+      articuloCol = null;
+      unidadCol = null;
+      stockCol = null;
+
+      row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+        const header = String(cell.value || '').trim().toUpperCase();
+
+        if (header.includes('CÓDIGO') || header.includes('CODIGO')) {
+          codigoCol = colNumber;
+        } else if (header.includes('ARTICULO') || header.includes('ÁRTICULO')) {
+          articuloCol = colNumber;
+        } else if (header.includes('UNIDAD')) {
+          unidadCol = colNumber;
+        } else if (header.includes('STOCK')) {
+          stockCol = colNumber;
+        }
+      });
+
+      if (codigoCol && articuloCol && stockCol) {
+        headerRow = i;
+        break;
+      }
+    }
+
+    if (!headerRow || !codigoCol || !articuloCol || !stockCol) {
+      throw new BadRequestException(
+        `Excel validation failed. Found - Codigo: ${codigoCol}, Articulo: ${articuloCol}, Unidad: ${unidadCol}, Stock: ${stockCol}`
+      );
+    }
+
+    // Extract all data
+    const items: any[] = [];
+    for (let i = headerRow + 1; i <= worksheet.rowCount; i++) {
+      const row = worksheet.getRow(i);
+
+      const codigo = String(getCellValue(row.getCell(codigoCol)) || '').trim();
+      const articulo = String(getCellValue(row.getCell(articuloCol)) || '').trim();
+      const unidad = unidadCol
+        ? String(getCellValue(row.getCell(unidadCol)) || 'unidad').trim()
+        : 'unidad';
+      const cantidad = Number(getCellValue(row.getCell(stockCol)));
+
+      if (!articulo || isNaN(cantidad) || cantidad <= 0) {
+        continue;
+      }
+
+      items.push({
+        codigo,
+        articulo,
+        unidad,
+        cantidad,
+        rowIndex: i,
+      });
+    }
+
+    return this.almacenesService.queueExcelUpload(body.almacenId, user, items);
+  }
+
+  @Get('jobs/:jobId')
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  async getJobStatus(@Param('jobId') jobId: string) {
+    return this.almacenesService.getJobStatus(jobId);
+  }
 }

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { AlmacenesService } from './almacenes.service';
 import { AlmacenesController } from './almacenes.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -13,15 +13,17 @@ import { Entrada } from 'src/entradas/entities/entrada.entity';
 import { Salida } from 'src/salidas/entities/salida.entity';
 import { SalidaItem } from 'src/salidas/entities/salida_item.entity';
 import { AlmacenEncargado } from './entities/almacenEncargados.entity';
+import { JobsModule } from 'src/jobs/jobs.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Almacen, Inventario, Obra, Entrada, EntradaItem, Producto, Salida, SalidaItem, AlmacenEncargado]),
     AuthModule,
-    LogsModule
+    LogsModule,
+    forwardRef(() => JobsModule)
   ],
   controllers: [AlmacenesController],
   providers: [AlmacenesService],
-  exports: [TypeOrmModule]
+  exports: [TypeOrmModule, AlmacenesService]
 })
-export class AlmacenesModule {}
+export class AlmacenesModule { }

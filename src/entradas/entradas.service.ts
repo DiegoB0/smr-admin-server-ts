@@ -83,6 +83,8 @@ export class EntradasService {
         'entrada.id',
         'entrada.fechaCreacion',
         'entrada.fechaEsperada',
+        'entrada.observacionesCompras',
+        'entrada.observacionesAlmacen',
         'entrada.status',
       ])
       .leftJoin('entrada.items', 'items')
@@ -91,6 +93,7 @@ export class EntradasService {
         'items.cantidadRecibida',
         'items.cantidadEsperada',
         'items.descripcion',
+        'items.customId',
         'items.unidad',
       ])
       // Load refaccion items
@@ -167,6 +170,8 @@ export class EntradasService {
       fechaCreacion: e.fechaCreacion,
       fechaEsperada: e.fechaEsperada,
       status: e.status,
+      observacionesCompras: e.observacionesCompras,
+      observacionesAlmacen: e.observacionesAlmacen,
       almacenDestino: { id: e.almacenDestino?.id, name: e.almacenDestino?.name },
       recibidoPor: { id: e.recibidoPor?.id, name: e.recibidoPor?.name },
       requisicion: e.requisicion
@@ -178,6 +183,7 @@ export class EntradasService {
         cantidadRecibida: item.cantidadRecibida,
         descripcion: item.descripcion,
         unidad: item.unidad,
+        customId: item.customId,
         refaccionItem: item.refaccionItem,
         insumoItem: item.insumoItem,
         filtroItem: item.filtroItem,

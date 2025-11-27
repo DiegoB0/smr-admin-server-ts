@@ -15,7 +15,7 @@ export class Producto {
   @Column({ nullable: true, unique: true })
   customId: string;
 
-  @Column('text', { unique: true })
+  @Column('text')
   name: string;
 
   @Column('text')
