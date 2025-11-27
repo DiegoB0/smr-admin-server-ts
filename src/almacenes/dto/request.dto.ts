@@ -102,6 +102,14 @@ export class AddStockDto {
   productName?: string;
 
   @ApiProperty({
+    example: 'Nuevo Producto',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  customId?: string;
+
+  @ApiProperty({
     required: false,
   })
   @IsString()

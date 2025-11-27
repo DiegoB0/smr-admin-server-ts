@@ -4,8 +4,28 @@ networks:
 
 volumes:
   postgres_data:
+  redis_data:
 
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    networks: [internal]
+    ports:
+      - "127.0.0.1:6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
   postgres:
     image: postgres:16-alpine
     container_name: postgres
@@ -19,7 +39,7 @@ services:
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./seed:/seed:ro  # ADD THIS
+      - ./seed:/seed:ro
     security_opt:
       - no-new-privileges:true
     read_only: false
@@ -39,6 +59,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     networks: [internal]
     ports:
       - "0.0.0.0:5000:5000"
@@ -46,6 +68,9 @@ services:
       - .env
     environment:
       DATABASE_URL: postgres://${DB_USERNAME}:${DB_PASSWORD}@postgres:5432/${DB_NAME}?sslmode=disable
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -60,7 +85,7 @@ services:
       postgres:
         condition: service_healthy
       smr_v2:
-        condition: service_started  
+        condition: service_started
     networks: [internal]
     environment:
       PGPASSWORD: ${DB_PASSWORD}

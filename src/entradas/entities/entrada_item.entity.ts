@@ -27,6 +27,10 @@ export class EntradaItem {
   @Column({ nullable: true })
   unidad: string;
 
+  // In case they insert a product from inventory
+  @Column({ nullable: true })
+  customId: string;
+
   // Link to one of the requisicion item types
   @ManyToOne(() => RequisicionRefaccionItem, { nullable: true })
   refaccionItem?: RequisicionRefaccionItem;
