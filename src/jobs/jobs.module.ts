@@ -11,6 +11,10 @@ import { AlmacenesModule } from 'src/almacenes/almacenes.module';
         host: process.env.REDIS_HOST || 'localhost',
         port: Number(process.env.REDIS_PORT || 6379),
         password: process.env.REDIS_PASSWORD,
+        maxRetriesPerRequest: null,
+        enableReadyCheck: false,
+        enableOfflineQueue: true,
+        retryStrategy: (times) => Math.min(times * 50, 2000),
       }
     }),
     BullModule.registerQueue({
