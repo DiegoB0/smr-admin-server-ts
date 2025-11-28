@@ -572,6 +572,24 @@ export class AlmacenesService {
     return inventario;
   }
 
+  async getProductosNotInAlmacen(almacenId: number): Promise<Producto[]> {
+    const result = await this.productoRepo.createQueryBuilder('producto')
+      .where('producto.isActive = true')  
+      .andWhere(
+        `producto.id NOT IN (
+        SELECT DISTINCT inventarios."productoId"
+        FROM inventarios
+        WHERE inventarios."almacenId" = :almacenId
+        AND inventarios.stock > 0
+      )`,
+        { almacenId },
+      )
+      .orderBy('producto.name', 'ASC')
+      .getMany();
+
+    return result;
+  }
+
 
   async getProducts(almacenId: number, pagination: PaginationDto): Promise<PaginatedInventarioDto> {
     const { page = 1, limit = 10, search, order = 'ASC' } = pagination;

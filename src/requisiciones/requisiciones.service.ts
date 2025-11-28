@@ -30,6 +30,9 @@ export class RequisicionesService {
     @InjectRepository(RequisicionInsumoItem)
     private insumoItemRepo: Repository<RequisicionInsumoItem>,
 
+    @InjectRepository(User)
+    private userRepo: Repository<User>,
+
     @InjectRepository(RequisicionRefaccionItem)
     private refaccionItemRepo: Repository<RequisicionRefaccionItem>,
 
@@ -67,10 +70,33 @@ export class RequisicionesService {
 
   async getAllRequisiciones(
     pagination: PaginationDto,
-    status?: RequisicionStatus
+    status?: RequisicionStatus,
+    user?: User
   ): Promise<PaginatedRequisicionDto> {
     const { search, page = 1, limit = 10, order = 'DESC' } = pagination;
     const skip = (page - 1) * limit;
+
+    let almacenId: number | null = null;
+    const userAny = user as any;
+
+    if (userAny && userAny.roles && userAny.roles.length > 0) {
+      const isAdminAlmacen = userAny.roles.some(
+        (role: any) => role.name === 'Admin almacen'
+      );
+
+      if (isAdminAlmacen && user) {
+        const fullUser = await this.userRepo.findOne({
+          where: { id: user.id },
+          relations: ['almacenEncargados', 'almacenEncargados.almacen'],
+        });
+
+
+        if (fullUser && fullUser.almacenEncargados && fullUser.almacenEncargados.length > 0) {
+          almacenId = fullUser.almacenEncargados[0].almacen.id;
+        }
+      }
+    }
+
 
     const query = this.requisicionRepo
       .createQueryBuilder('r')
@@ -139,6 +165,10 @@ export class RequisicionesService {
         'filtros.cantidadPagada',
       ])
       .orderBy('r.fechaSolicitud', order as 'ASC' | 'DESC');
+
+    if (almacenId) {
+      query.where('r.almacenDestino.id = :almacenId', { almacenId });
+    }
 
     if (status) {
       query.where('r.status = :status', { status });
