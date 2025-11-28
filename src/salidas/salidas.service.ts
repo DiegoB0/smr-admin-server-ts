@@ -170,7 +170,7 @@ export class SalidasService {
       .leftJoin('s.items', 'item')
       .addSelect(['item.id', 'item.cantidadRetirada'])
       .leftJoin('item.producto', 'producto')
-      .addSelect(['producto.id', 'producto.name'])
+      .addSelect(['producto.id', 'producto.name', 'producto.customId'])
       .where('s.id IN (:...ids)', { ids })
       .orderBy('s.fecha', order)
       .addOrderBy('s.id', order)
@@ -194,6 +194,7 @@ export class SalidasService {
         producto: {
           id: it.producto.id,
           name: it.producto.name,
+          customId: it.producto.customId
         },
       })),
     }));
