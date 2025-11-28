@@ -5,7 +5,7 @@ export class ParamProductoID {
   @ApiProperty({
     description: 'ID del producto'
   })
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
   id: number
 }

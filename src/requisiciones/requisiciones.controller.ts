@@ -118,9 +118,10 @@ export class RequisicionesController {
   @RequirePermissions(CurrentPermissions.ListRequisicion)
   getAllRequisiciones(
     @Query() dto: PaginationDto,
-    @Query('status') status?: RequisicionStatus
+    @Query('status') status?: RequisicionStatus,
+    @GetUser() user?: User,
   ) {
-    return this.requisicionesService.getAllRequisiciones(dto, status);
+    return this.requisicionesService.getAllRequisiciones(dto, status, user);
   }
 
 

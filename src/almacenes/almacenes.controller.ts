@@ -121,6 +121,16 @@ export class AlmacenesController {
     );
   }
 
+  @Get('products/get_products_not_in_almacen')
+  @SwaggerAuthHeaders()
+  @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(CurrentPermissions.ListStock)
+  async getProductsNotInAlmacen(
+    @Query('almacenId') almacenId: number,
+  ) {
+    return await this.almacenesService.getProductosNotInAlmacen(almacenId);
+  }
+
   @Get('products/get_products')
   @SwaggerAuthHeaders()
   @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)

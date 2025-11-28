@@ -79,8 +79,8 @@ export class ProductosService {
       queryBuilder.andWhere(new Brackets(qb2 => {
         qb2
           .where('producto.name ILIKE :term', { term })
-          .where('producto.customId ILIKE :term', { term })
-          .orWhere('producto.id::text ILIKE :term', { term });
+          .orWhere('producto.customId ILIKE :term', { term })
+          .orWhere('producto.id::text ILIKE :term', { term })
       }));
     }
 
@@ -142,6 +142,8 @@ export class ProductosService {
   async deleteProducto(dto: ParamProductoID, user: User) {
     const { id } = dto
 
+    console.log(`This is the productId to delete ${id}`)
+
     const producto = await this.productRepo.findOne({ where: { id, isActive: true } })
 
     if (!producto) throw new NotFoundException('Producto not found')
@@ -161,9 +163,10 @@ export class ProductosService {
 
   }
 
-  async updateProducto(almacenId: ParamProductoID, dto: UpdateProductoDto, user: User): Promise<Producto> {
+  async updateProducto(productoId: ParamProductoID, dto: UpdateProductoDto, user: User): Promise<Producto> {
 
-    const { id } = almacenId
+    const { id } = productoId
+    console.log(`This is the productId ${id}`)
 
     const { isActive, name, description, unidad, customId } = dto
 
