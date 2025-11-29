@@ -556,6 +556,8 @@ export class RequisicionesService {
   }
 
   async createRequisicion(dto: CreateRequisicionDto, user: User) {
+
+    console.log(dto)
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -563,7 +565,11 @@ export class RequisicionesService {
     try {
       let rcp: number;
       try {
-        rcp = await this.getNextRcp();
+        if (dto.rcp) {
+          rcp = dto.rcp;
+        } else {
+          rcp = await this.getNextRcp();
+        }
       } catch (error) {
         throw new BadRequestException('Failed to generate RCP number');
       }
