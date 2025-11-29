@@ -12,5 +12,6 @@ export enum ConceptoType {
   MATERIAL = "material",
   HERRAMIENTAS = "herramientas",
   EPP = "EPP",
-  HIGIENE = "higiene"
+  HIGIENE = "higiene",
+  SERVICIO_PREVENTIVO = "servicio preventivo"
 }
