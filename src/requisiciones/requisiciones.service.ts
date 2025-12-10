@@ -121,7 +121,7 @@ export class RequisicionesService {
       .leftJoinAndSelect('r.almacenCargo', 'almacenCargo')
       .addSelect(['almacenCargo.id', 'almacenCargo.name'])
       .leftJoinAndSelect('r.almacenDestino', 'almacenDestino')
-      .addSelect(['almacenDestino.id', 'almacenDestino.name'])
+      .addSelect(['almacenDestino.id', 'almacenDestino.name', 'almacenDestino.requisicionPrefix'])
       .leftJoinAndSelect('r.pedidoPor', 'pedidoPor')
       .addSelect(['pedidoPor.email', 'pedidoPor.name'])
       .leftJoinAndSelect('r.revisadoPor', 'revisadoPor')
@@ -203,6 +203,7 @@ export class RequisicionesService {
       id: r.id,
       fechaSolicitud: r.fechaSolicitud,
       rcp: r.rcp,
+      formattedRcp: `${r.almacenDestino.requisicionPrefix}-${r.rcp}`,
       titulo: r.titulo,
       observaciones: r.observaciones,
       observacionesCompras: r.observacionesCompras,
@@ -311,7 +312,7 @@ export class RequisicionesService {
       .leftJoinAndSelect('r.almacenCargo', 'almacenCargo')
       .addSelect(['almacenCargo.id', 'almacenCargo.name'])
       .leftJoinAndSelect('r.almacenDestino', 'almacenDestino')
-      .addSelect(['almacenDestino.id', 'almacenDestino.name'])
+      .addSelect(['almacenDestino.id', 'almacenDestino.name', 'almacenDestino.requisicionPrefix'])
       .leftJoinAndSelect('r.pedidoPor', 'pedidoPor')
       .addSelect(['pedidoPor.email', 'pedidoPor.name'])
       .leftJoinAndSelect('r.revisadoPor', 'revisadoPor')
@@ -391,6 +392,7 @@ export class RequisicionesService {
       id: r.id,
       fechaSolicitud: r.fechaSolicitud,
       rcp: r.rcp,
+      formattedRcp: `${r.almacenDestino.requisicionPrefix}-${r.rcp}`,
       titulo: r.titulo,
       observaciones: r.observaciones,
       observacionesCompras: r.observacionesCompras,
@@ -576,16 +578,37 @@ export class RequisicionesService {
 
       const userWithAlmacen = await queryRunner.manager.findOne(User, {
         where: { id: user.id },
-        relations: ['almacenEncargados', 'almacenEncargados.almacen'],
+        relations: [
+          'almacenEncargados',
+          'almacenEncargados.almacen',
+          'adminContaAlmacen',
+          'adminContaAlmacen.almacen',
+        ],
       });
 
       if (!userWithAlmacen?.almacenEncargados?.length) {
-        throw new BadRequestException(
-          'User is not assigned to any almacen',
-        );
+        throw new BadRequestException('User is not assigned to any almacen');
       }
 
-      const almacenDestino = userWithAlmacen.almacenEncargados[0].almacen;
+      if (!userWithAlmacen?.almacenAdminConta?.length) {
+        throw new BadRequestException('User is not assigned to any almacen');
+      }
+
+      let almacenDestino: Almacen | { id: number }
+
+      if (userWithAlmacen.almacenEncargados[0].almacen !== undefined) {
+        almacenDestino = userWithAlmacen.almacenEncargados[0].almacen;
+
+      } else if (userWithAlmacen.almacenAdminConta[0].almacen !== undefined) {
+        almacenDestino = userWithAlmacen.almacenAdminConta[0].almacen
+
+      } else if (dto.almacenDestinoId) {
+        almacenDestino = { id: dto.almacenDestinoId }
+
+      } else {
+
+        throw new BadRequestException('almacenDestino is required')
+      }
 
       let proveedor: Proveedor | null = null;
       if (dto.proveedorId) {

@@ -12,6 +12,8 @@ export class GetAlmacenDto {
 
   name: string;
 
+  requisicionPrefix: string;
+
   isActive: boolean;
 
   encargadoName?: string | null;

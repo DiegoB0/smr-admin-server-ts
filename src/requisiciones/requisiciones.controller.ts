@@ -17,93 +17,8 @@ import { RequisicionStatus } from './types/requisicion-status';
 @Controller('requisiciones')
 export class RequisicionesController {
   constructor(private readonly requisicionesService: RequisicionesService) { }
-  /* REPORTES */
-  // @Post('reportes/add')
-  // @HttpCode(HttpStatus.OK)
-  // @SwaggerAuthHeaders()
-  // @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  // @RequirePermissions(CurrentPermissions.CreateReport)
-  // createReport(
-  //   @Body() dto: CreatePeticionProductoDto,
-  //   @GetUser() user: User
-  // ) {
-  //   return this.requisicionesService.createPeticionProducto(dto, user)
-  //
-  // }
-  //
-  // @Get('reportes/all_reports')
-  // @SwaggerAuthHeaders()
-  // @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  // @RequirePermissions(CurrentPermissions.ListReport)
-  // findAll(
-  //   @Query() dto: PaginationDto,
-  //   @GetUser() user: User
-  // ) {
-  //   return this.requisicionesService.getAllPeticiones(dto, user)
-  //
-  // }
-  //
-  //
-  // @Get('reportes/aproved_reports')
-  // @SwaggerAuthHeaders()
-  // @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  // @RequirePermissions(CurrentPermissions.ListReport)
-  // findApprovedReports(
-  //   @Query() dto: PaginationDto,
-  // ) {
-  //   return this.requisicionesService.getAllPeticionesAprobadas(dto)
-  //
-  // }
-  //
-  //
-  // @Get('reportes/reports_by_user')
-  // @SwaggerAuthHeaders()
-  // @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  // @RequirePermissions(CurrentPermissions.ListReport)
-  // findOne(
-  //   @Query() dto: ReporteQueryDto,
-  // ) {
-  //   return this.requisicionesService.getPeticionesByUser(dto)
-  // }
-  //
-  // @Patch('reportes/update_report/:id')
-  // @SwaggerAuthHeaders()
-  // @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  // @RequirePermissions(CurrentPermissions.EditReport)
-  // updateReport(
-  //   @Param('id') id: number,
-  //   @Body() dto: UpdatePeticionProductoDto,
-  //   @GetUser() user: User
-  // ) {
-  //   return this.requisicionesService.updatePeticionProducto(id, dto, user)
-  // }
-  //
-  // @Patch('reportes/:id/approve')
-  // @SwaggerAuthHeaders()
-  // @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  // @RequirePermissions(CurrentPermissions.AcceptReport)
-  // approvePeticion(
-  //   @Param('id') id: number,
-  //   @GetUser() user: User
-  // ) {
-  //   return this.requisicionesService.approvePeticionProducto(id, user);
-  // }
-  //
-  // @Patch('reportes/:id/reject')
-  // @SwaggerAuthHeaders()
-  // @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  // @RequirePermissions(CurrentPermissions.AcceptReport)
-  // rejectPeticion(
-  //   @Param('id') id: number,
-  //   @GetUser() user: User
-  // ) {
-  //   return this.requisicionesService.rejectPeticionProducto(id, user);
-  // }
 
   /* REQUISICIONES */
-
-  // Requisiciones de productos (relacionadas con reportes)
-
   @Get('stats')
   @SwaggerAuthHeaders()
   @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
@@ -135,17 +50,6 @@ export class RequisicionesController {
   ) {
     return this.requisicionesService.getRequisicionesAprobadas(dto, status);
   }
-
-
-  // @Get('requisicionItems/:requiId')
-  // @SwaggerAuthHeaders()
-  // @UseGuards(ApiKeyGuard, JwtAuthGuard, PermissionsGuard)
-  // @RequirePermissions(CurrentPermissions.ListRequisicion)
-  // getRequisicionItems(
-  //   @Param('requiId', ParseIntPipe) requiId: number,
-  // ) {
-  //   return this.requisicionesService.getRequisicionDetails(requiId);
-  // }
 
   @Post()
   @SwaggerAuthHeaders()

@@ -43,6 +43,14 @@ export class CreateUserDto {
   @IsNumber()
   obraId?: number;
 
+  @ApiPropertyOptional({
+    example: 2,
+    description: 'ID of the almacen this user belongs to (optional)',
+  })
+  @IsOptional()
+  @IsNumber()
+  almacenId?: number;
+
 }
 
 export class UpdateUserDto {

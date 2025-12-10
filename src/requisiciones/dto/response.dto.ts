@@ -106,6 +106,9 @@ export class GetRequisicionDto {
   @ApiProperty({ example: 123 })
   rcp: number;
 
+  @ApiProperty({ example: "RCP-100" })
+  formattedRcp: string;
+
   @ApiProperty({ example: 'Requisición de repuestos' })
   titulo: string;
 

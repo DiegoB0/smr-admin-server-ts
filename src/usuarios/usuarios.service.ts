@@ -11,6 +11,9 @@ import { PaginationDto, PaginationMetaData } from 'src/common/dto/pagination.dto
 import { GetUserDto, PaginatedUserDto, RoleDto } from './dto/response.dto';
 import { ChangeRolesDto, CreateUserDto, ParamUserID, UpdateUserDto } from './dto/request.dto';
 import { Obra } from 'src/obras/entities/obra.entity';
+import { UserRoles } from './types/role-types';
+import { Almacen } from 'src/almacenes/entities/almacen.entity';
+import { AlmacenAdminConta } from 'src/almacenes/entities/almacenAdminConta.entity';
 
 @Injectable()
 export class UsuariosService {
@@ -27,6 +30,12 @@ export class UsuariosService {
     @InjectRepository(Obra)
     private obraRepo: Repository<Obra>,
 
+    @InjectRepository(Almacen)
+    private almacenRepo: Repository<Almacen>,
+
+    @InjectRepository(AlmacenAdminConta)
+    private almacenAdminConta: Repository<AlmacenAdminConta>,
+
     private readonly logService: LogsService
 
   ) { }
@@ -36,7 +45,7 @@ export class UsuariosService {
     dto: CreateUserDto,
     user: User
   ): Promise<User> {
-    const { email, name, password, roles, obraId } = dto;
+    const { email, name, password, roles, obraId, almacenId } = dto;
 
     const existingUser = await this.userRepo.findOne({ where: { email } });
     if (existingUser) {
@@ -61,10 +70,32 @@ export class UsuariosService {
       usuario.obra = obra;
     }
 
-    await this.userRepo.save(usuario);
+
+    const almacen = await this.almacenRepo.findOne({
+      where: { id: almacenId, isActive: true },
+    });
+
+    if (!almacen) {
+      throw new NotFoundException('No se encontro el almacen')
+    }
+
+    const savedUsuario = await this.userRepo.save(usuario);
 
     if (roles && roles.length > 0) {
       const foundRoles = await this.rolRepo.findBy({ id: In(roles) });
+
+      // TODO: Change this later in case a sinlge user can have more than one rol
+      if (foundRoles[0].slug === UserRoles.ADMIN_CONTA) {
+
+        // Map new relationshipts
+        const encargadoRelations: Omit<AlmacenAdminConta, "id"> =  {
+          almacen: almacen,
+          user: savedUsuario
+        }
+    
+        await this.almacenAdminConta.save(encargadoRelations);
+
+      }
 
       if (foundRoles.length !== roles.length) {
         const foundRoleIds = new Set(foundRoles.map(r => r.id));
