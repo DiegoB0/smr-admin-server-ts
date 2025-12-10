@@ -44,7 +44,8 @@ VALUES
   (gen_random_uuid(),'Admin almacen', 'admin-almacen'),
   (gen_random_uuid(),'Operador', 'operador'),
   (gen_random_uuid(),'Admin Web', 'admin-web'),
-  (gen_random_uuid(),'Admin Compras', 'admin-compras')
+  (gen_random_uuid(),'Admin Compras', 'admin-compras'),
+  (gen_random_uuid(), 'Admin Conta', 'admin-conta')
 ON CONFLICT (slug) DO NOTHING;
 
 /* ADMIN - All permissions */
@@ -78,6 +79,18 @@ JOIN permisos p ON p.slug IN (
   'accept-requisicion'
 )
 WHERE r.slug = 'admin-compras'
+ON CONFLICT DO NOTHING;
+
+/* ADMIN CONTA - create requisiciones only */
+INSERT INTO rol_permiso (id, rol_id, permiso_id)
+SELECT gen_random_uuid(), r.id, p.id
+FROM roles r
+JOIN permisos p ON p.slug IN (
+  'create-requisicion',
+  'list-requisicion',
+  'list-almacen'
+)
+WHERE r.slug = 'admin-conta'
 ON CONFLICT DO NOTHING;
 
 /* ADMIN ALMACEN - all products, all stock, all requisiciones except accept, all reports */
