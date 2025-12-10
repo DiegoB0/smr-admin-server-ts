@@ -581,8 +581,8 @@ export class RequisicionesService {
         relations: [
           'almacenEncargados',
           'almacenEncargados.almacen',
-          'adminContaAlmacen',
-          'adminContaAlmacen.almacen',
+          'almacenAdminConta',
+          'almacenAdminConta.almacen',
         ],
       });
 
