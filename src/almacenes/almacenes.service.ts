@@ -64,7 +64,7 @@ export class AlmacenesService {
     dto: CreateAlmacenDto,
     user: User,
   ): Promise<Almacen> {
-    const { name, location, obraId, encargadoIds } = dto;
+    const { name, location, obraId, encargadoIds, requisicionPrefix } = dto;
 
     const almacen = await this.almacenRepo.findOne({ where: { name } });
 
@@ -82,6 +82,7 @@ export class AlmacenesService {
       name,
       isActive: true,
       obra,
+      requisicionPrefix
     });
 
     const savedAlmacen = await this.almacenRepo.save(newAlmacen);
@@ -181,6 +182,7 @@ export class AlmacenesService {
         id: almacen.id,
         location: almacen.location,
         isActive: almacen.isActive,
+        requisicionPrefix: almacen.requisicionPrefix,
         name: almacen.name,
         encargados: almacen.encargados?.map((ae) => ({
           id: ae.user.id,
@@ -231,6 +233,7 @@ export class AlmacenesService {
         location: almacen.location,
         isActive: almacen.isActive,
         name: almacen.name,
+        requisicionPrefix: almacen.requisicionPrefix,
         encargados: almacen.encargados?.map((ae) => ({
           id: ae.user.id,
           name: ae.user.name,
@@ -321,6 +324,7 @@ export class AlmacenesService {
     const mappedAlmacen: GetAlmacenDto = {
       id: almacen.id,
       location: almacen.location,
+      requisicionPrefix: almacen.requisicionPrefix,
       isActive: almacen.isActive,
       name: almacen.name,
     };
@@ -357,7 +361,7 @@ export class AlmacenesService {
     user: User,
   ): Promise<Almacen> {
     const { id } = almacenId;
-    const { location, isActive, name, encargadoIds, obraId } = dto;
+    const { location, isActive, name, encargadoIds, obraId, requisicionPrefix } = dto;
 
     const almacen = await this.almacenRepo.findOne({
       where: { id, isActive: true },
@@ -371,6 +375,7 @@ export class AlmacenesService {
       almacen.obra = obra;
     }
 
+    if (requisicionPrefix !== undefined) almacen.requisicionPrefix = requisicionPrefix
     if (location !== undefined) almacen.location = location;
     if (isActive !== undefined) almacen.isActive = isActive;
     if (name !== undefined) almacen.name = name;
@@ -574,7 +579,7 @@ export class AlmacenesService {
 
   async getProductosNotInAlmacen(almacenId: number): Promise<Producto[]> {
     const result = await this.productoRepo.createQueryBuilder('producto')
-      .where('producto.isActive = true')  
+      .where('producto.isActive = true')
       .andWhere(
         `producto.id NOT IN (
         SELECT DISTINCT inventarios."productoId"

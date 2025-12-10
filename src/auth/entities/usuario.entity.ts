@@ -16,6 +16,7 @@ import { Salida } from 'src/salidas/entities/salida.entity';
 import { Almacen } from 'src/almacenes/entities/almacen.entity';
 import { Obra } from 'src/obras/entities/obra.entity';
 import { AlmacenEncargado } from 'src/almacenes/entities/almacenEncargados.entity';
+import { AlmacenAdminConta } from 'src/almacenes/entities/almacenAdminConta.entity';
 
 @Entity('usuarios')
 export class User {
@@ -61,6 +62,9 @@ export class User {
 
   // @OneToMany(() => Almacen, almacen => almacen.encargado)
   // almacenesEncargados?: Almacen[];
+
+  @OneToMany(() => AlmacenAdminConta, (ae) => ae.user)
+  almacenAdminConta: AlmacenAdminConta[];
 
   @OneToMany(() => AlmacenEncargado, (ae) => ae.user)
   almacenEncargados: AlmacenEncargado[];

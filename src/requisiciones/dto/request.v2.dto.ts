@@ -49,6 +49,12 @@ export class CreateRequisicionDto {
   @IsNumber()
   almacenCargoId: number;
 
+  @ApiProperty({ example: 1 })
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  almacenDestinoId?: number;
+
   @ApiProperty({ example: 1, required: false })
   @Type(() => Number)
   @IsNumber()

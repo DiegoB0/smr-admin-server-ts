@@ -13,6 +13,7 @@ import { Inventario } from './inventario.entity';
 import { Obra } from 'src/obras/entities/obra.entity';
 import { User } from 'src/auth/entities/usuario.entity';
 import { AlmacenEncargado } from './almacenEncargados.entity';
+import { AlmacenAdminConta } from './almacenAdminConta.entity';
 
 @Entity('almacenes')
 export class Almacen {
@@ -21,6 +22,9 @@ export class Almacen {
 
   @Column('text', { unique: true })
   name: string;
+
+  @Column('text', { nullable: true })
+  requisicionPrefix: string;
 
   @Column('text')
   location: string;
@@ -46,6 +50,9 @@ export class Almacen {
 
   // @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   // encargado?: User;
+  //
+  @OneToMany(() => AlmacenAdminConta, (ae) => ae.almacen)
+  adminConta: AlmacenAdminConta[];
 
   @OneToMany(() => AlmacenEncargado, (ae) => ae.almacen)
   encargados: AlmacenEncargado[];

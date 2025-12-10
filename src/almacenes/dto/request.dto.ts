@@ -16,6 +16,11 @@ export class CreateAlmacenDto {
   @IsString()
   name: string;
 
+  @ApiProperty({ example: 'Almacen penasquito' })
+  @IsString()
+  @IsOptional()
+  requisicionPrefix: string;
+
   @ApiProperty({ example: 'Justo sierra #107, col. J. Guadalupe Rodriguez' })
   @IsString()
   location: string;
@@ -40,6 +45,11 @@ export class UpdateAlmacenDto {
   @IsOptional()
   @IsString()
   name?: string;
+
+  @ApiProperty({ example: 'Almacen penasquito' })
+  @IsOptional()
+  @IsString()
+  requisicionPrefix?: string;
 
   @ApiProperty({ example: 'Justo sierra #107, col. J. Guadalupe Rodriguez' })
   @IsOptional()
