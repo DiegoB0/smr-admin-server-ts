@@ -77,26 +77,31 @@ export class RequisicionesService {
     const skip = (page - 1) * limit;
 
     let almacenId: number | null = null;
-    const userAny = user as any;
 
-    if (userAny && userAny.roles && userAny.roles.length > 0) {
-      const isAdminAlmacen = userAny.roles.some(
-        (role: any) => role.name === 'Admin almacen'
-      );
+    if (user) {
+      const fullUser = await this.userRepo.findOne({
+        where: { id: user.id },
+        relations: [
+          'almacenEncargados',
+          'almacenEncargados.almacen',
+          'almacenAdminConta',
+          'almacenAdminConta.almacen',
+        ],
+      });
 
-      if (isAdminAlmacen && user) {
-        const fullUser = await this.userRepo.findOne({
-          where: { id: user.id },
-          relations: ['almacenEncargados', 'almacenEncargados.almacen'],
-        });
-
-
-        if (fullUser && fullUser.almacenEncargados && fullUser.almacenEncargados.length > 0) {
-          almacenId = fullUser.almacenEncargados[0]?.almacen?.id;
-        }
+      if (
+        fullUser?.almacenEncargados &&
+        fullUser.almacenEncargados.length > 0
+      ) {
+        almacenId = fullUser.almacenEncargados[0].almacen?.id || null;
+      }
+      else if (
+        fullUser?.almacenAdminConta &&
+        fullUser.almacenAdminConta.length > 0
+      ) {
+        almacenId = fullUser.almacenAdminConta[0].almacen?.id || null;
       }
     }
-
 
     const query = this.requisicionRepo
       .createQueryBuilder('r')
