@@ -68,10 +68,10 @@ export class Requisicion {
   @Column({ type: 'enum', enum: RequisicionType, default: RequisicionType.REFACCIONES })
   requisicionType: RequisicionType;
 
-  @Column('int', { nullable: true })
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   cantidadEstimada: number;
 
-  @Column('int', { nullable: true })
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   cantidadActual: number;
 
   @Column({ type: 'enum', enum: MetodoPago, default: MetodoPago.SIN_PAGAR })
