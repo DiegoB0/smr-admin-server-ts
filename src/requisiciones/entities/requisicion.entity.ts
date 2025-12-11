@@ -23,7 +23,7 @@ export class Requisicion {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ nullable: true, unique: true })
+  @Column({ nullable: true })  
   rcp: number;
 
   @Column({ nullable: true })
