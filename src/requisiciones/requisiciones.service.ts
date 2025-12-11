@@ -92,7 +92,7 @@ export class RequisicionesService {
 
 
         if (fullUser && fullUser.almacenEncargados && fullUser.almacenEncargados.length > 0) {
-          almacenId = fullUser.almacenEncargados[0].almacen.id;
+          almacenId = fullUser.almacenEncargados[0]?.almacen?.id;
         }
       }
     }
