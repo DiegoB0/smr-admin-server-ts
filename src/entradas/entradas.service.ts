@@ -128,7 +128,7 @@ export class EntradasService {
         'filtroItem.currency',
       ])
       .leftJoin('entrada.almacenDestino', 'almacen')
-      .addSelect(['almacen.id', 'almacen.name'])
+      .addSelect(['almacenDestino.id', 'almacenDestino.name', 'almacenDestino.requisicionPrefix'])
       .leftJoin('entrada.recibidoPor', 'recibidoPor')
       .addSelect(['recibidoPor.id', 'recibidoPor.name'])
       .leftJoin('entrada.requisicion', 'requisicion')
@@ -175,7 +175,12 @@ export class EntradasService {
       almacenDestino: { id: e.almacenDestino?.id, name: e.almacenDestino?.name },
       recibidoPor: { id: e.recibidoPor?.id, name: e.recibidoPor?.name },
       requisicion: e.requisicion
-        ? { id: e.requisicion.id, rcp: e.requisicion.rcp, metodo_pago: e.requisicion.metodo_pago }
+        ? {
+          id: e.requisicion.id,
+          rcp: e.requisicion.rcp,
+          formattedRcp: `${e.requisicion.almacenDestino.requisicionPrefix}-${e.requisicion.rcp}`,
+          metodo_pago: e.requisicion.metodo_pago,
+        }
         : null,
       items: e.items.map((item) => ({
         id: item.id,
