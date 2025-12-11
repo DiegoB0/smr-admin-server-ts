@@ -178,7 +178,7 @@ export class EntradasService {
         ? {
           id: e.requisicion.id,
           rcp: e.requisicion.rcp,
-          formattedRcp: `${e.requisicion.almacenDestino.requisicionPrefix}-${e.requisicion.rcp}`,
+          formattedRcp: `${e.almacenDestino.requisicionPrefix}-${e.requisicion.rcp}`,
           metodo_pago: e.requisicion.metodo_pago,
         }
         : null,
