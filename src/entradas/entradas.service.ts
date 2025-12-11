@@ -128,7 +128,7 @@ export class EntradasService {
         'filtroItem.currency',
       ])
       .leftJoin('entrada.almacenDestino', 'almacen')
-      .addSelect(['almacenDestino.id', 'almacenDestino.name', 'almacenDestino.requisicionPrefix'])
+      .addSelect(['almacen.id', 'almacen.name', 'almacen.requisicionPrefix'])
       .leftJoin('entrada.recibidoPor', 'recibidoPor')
       .addSelect(['recibidoPor.id', 'recibidoPor.name'])
       .leftJoin('entrada.requisicion', 'requisicion')
