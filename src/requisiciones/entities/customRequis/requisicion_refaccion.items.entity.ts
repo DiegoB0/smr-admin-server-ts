@@ -27,7 +27,7 @@ export class RequisicionRefaccionItem {
   @Column()
   cantidad: number;
 
-  @Column({ nullable: true })
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   precio: number;
 
   @Column({ nullable: true, default: false })

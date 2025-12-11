@@ -585,6 +585,7 @@ export class RequisicionesService {
         ],
       });
 
+
       if (!userWithAlmacen) {
         throw new BadRequestException('User not found');
       }

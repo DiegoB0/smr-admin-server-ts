@@ -28,7 +28,7 @@ export class RequisicionFilterItem {
   @Column({ nullable: true })
   descripcion: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   precio: number;
 
   @Column({ nullable: true, default: false })
