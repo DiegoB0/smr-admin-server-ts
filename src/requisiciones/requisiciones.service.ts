@@ -589,7 +589,7 @@ export class RequisicionesService {
         throw new BadRequestException('User not found');
       }
 
-      if (!userWithAlmacen?.almacenEncargados?.length && !userWithAlmacen?.almacenAdminConta?.length && dto.almacenDestinoId !== undefined) {
+      if (!userWithAlmacen?.almacenEncargados?.length && !userWithAlmacen?.almacenAdminConta?.length && dto.almacenDestinoId === undefined) {
         throw new BadRequestException('User is not an Encargado nor Admin conta and no almacenDestinoId was not provided');
       }
 
