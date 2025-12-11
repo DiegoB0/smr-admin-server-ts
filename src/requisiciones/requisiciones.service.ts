@@ -559,7 +559,6 @@ export class RequisicionesService {
 
   async createRequisicion(dto: CreateRequisicionDto, user: User) {
 
-    console.log(dto)
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -586,12 +585,12 @@ export class RequisicionesService {
         ],
       });
 
-      if (!userWithAlmacen?.almacenEncargados?.length) {
-        throw new BadRequestException('User is not assigned to any almacen');
+      if (!userWithAlmacen) {
+        throw new BadRequestException('User not found');
       }
 
-      if (!userWithAlmacen?.almacenAdminConta?.length) {
-        throw new BadRequestException('User is not assigned to any almacen');
+      if (!userWithAlmacen?.almacenEncargados?.length && !userWithAlmacen?.almacenAdminConta?.length && dto.almacenDestinoId !== undefined) {
+        throw new BadRequestException('User is not an Encargado nor Admin conta and no almacenDestinoId was not provided');
       }
 
       let almacenDestino: Almacen | { id: number }
