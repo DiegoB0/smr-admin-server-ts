@@ -176,7 +176,7 @@ export class RequisicionesService {
     }
 
     if (status) {
-      query.where('r.status = :status', { status });
+      query.andWhere('r.status = :status', { status });
     }
 
     if (search) {
