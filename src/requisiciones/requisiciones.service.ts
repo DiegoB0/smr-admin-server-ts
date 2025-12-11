@@ -575,7 +575,7 @@ export class RequisicionesService {
         throw new BadRequestException('Failed to generate RCP number');
       }
 
-      const userWithAlmacen = await queryRunner.manager.findOne(User, {
+      const userWithAlmacen = await this.userRepo.findOne({
         where: { id: user.id },
         relations: [
           'almacenEncargados',
@@ -584,7 +584,6 @@ export class RequisicionesService {
           'almacenAdminConta.almacen',
         ],
       });
-
 
       if (!userWithAlmacen) {
         throw new BadRequestException('User not found');
@@ -596,10 +595,10 @@ export class RequisicionesService {
 
       let almacenDestino: Almacen | { id: number }
 
-      if (userWithAlmacen.almacenEncargados[0].almacen !== undefined) {
+      if (userWithAlmacen?.almacenEncargados[0]?.almacen !== undefined) {
         almacenDestino = userWithAlmacen.almacenEncargados[0].almacen;
 
-      } else if (userWithAlmacen.almacenAdminConta[0].almacen !== undefined) {
+      } else if (userWithAlmacen?.almacenAdminConta[0]?.almacen !== undefined) {
         almacenDestino = userWithAlmacen.almacenAdminConta[0].almacen
 
       } else if (dto.almacenDestinoId) {
