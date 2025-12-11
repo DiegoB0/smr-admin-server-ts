@@ -569,16 +569,6 @@ export class RequisicionesService {
     await queryRunner.startTransaction();
 
     try {
-      let rcp: number;
-      try {
-        if (dto.rcp) {
-          rcp = dto.rcp;
-        } else {
-          rcp = await this.getNextRcp();
-        }
-      } catch (error) {
-        throw new BadRequestException('Failed to generate RCP number');
-      }
 
       const userWithAlmacen = await this.userRepo.findOne({
         where: { id: user.id },
@@ -612,6 +602,17 @@ export class RequisicionesService {
       } else {
 
         throw new BadRequestException('almacenDestino is required')
+      }
+
+      let rcp: number;
+      try {
+        if (dto.rcp) {
+          rcp = dto.rcp;
+        } else {
+          rcp = await this.getNextRcp(almacenDestino.id);
+        }
+      } catch (error) {
+        throw new BadRequestException('Failed to generate RCP number');
       }
 
       let proveedor: Proveedor | null = null;
@@ -985,9 +986,9 @@ export class RequisicionesService {
   }
 
 
-  private async getNextRcp(): Promise<number> {
+  private async getNextRcp(almacenId: number): Promise<number> {
     const lastRequisicion = await this.requisicionRepo.findOne({
-      where: {},
+      where: { almacenDestino: { id: almacenId } },
       order: { rcp: 'DESC' },
     });
 
